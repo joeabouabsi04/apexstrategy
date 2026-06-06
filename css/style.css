@@ -1,0 +1,823 @@
+/* //-- SECTION: GOOGLE FONTS IMPORT --// */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+/* //-- SECTION: CSS CUSTOM PROPERTIES --// */
+:root {
+  --bg-primary: #0b0d11;
+  --bg-panel: #13161c;
+  --bg-panel-alt: #1a1e26;
+  --border: #252b36;
+  --border-active: #00ff66;
+  --text-primary: #f0f3f6;
+  --text-secondary: #8892a0;
+  --text-muted: #4a5568;
+  --neon: #00ff66;
+  --danger: #ff3333;
+  --warning: #ffaa00;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-ui: "Barlow Condensed", sans-serif;
+}
+
+/* //-- SECTION: BASE RESET --// */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 !important;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg-primary);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: var(--neon);
+  color: var(--bg-primary);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* //-- SECTION: TYPOGRAPHY --// */
+.apex-mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.apex-readout {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--neon);
+  line-height: 1;
+}
+
+.apex-label {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.apex-value {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+/* //-- SECTION: TELEMETRY PANEL (core component) --// */
+.tele-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0;
+  position: relative;
+}
+
+.tele-panel-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-panel-alt);
+}
+
+.tele-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.tele-panel-body {
+  padding: 16px;
+}
+
+/* //-- SECTION: CORNER BRACKETS (visual signature) --// */
+.bracket-corners {
+  position: relative;
+}
+
+.bracket-corners::before,
+.bracket-corners::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bracket-corners::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--neon);
+  border-left: 2px solid var(--neon);
+}
+
+.bracket-corners::after {
+  right: 0;
+  bottom: 0;
+  border-right: 2px solid var(--neon);
+  border-bottom: 2px solid var(--neon);
+}
+
+/* //-- SECTION: NAVIGATION --// */
+.apex-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.apex-nav-brand {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.apex-nav-brand .brand-apex {
+  color: var(--neon);
+}
+
+.apex-nav-brand .brand-strategy {
+  color: var(--text-primary);
+}
+
+.apex-nav-links {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  height: 100%;
+}
+
+.apex-nav-link {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 0 18px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  border-bottom: 3px solid transparent;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.apex-nav-link:hover,
+.apex-nav-link:focus-visible {
+  color: var(--text-primary);
+}
+
+.apex-nav-link.active {
+  color: var(--neon);
+  border-bottom-color: var(--neon);
+}
+
+.apex-nav-toggle {
+  width: 34px;
+  height: 34px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.apex-nav-toggle:hover,
+.apex-nav-toggle:focus-visible {
+  border-color: var(--neon);
+  color: var(--neon);
+  outline: none;
+}
+
+.apex-nav-toggle-lines,
+.apex-nav-toggle-lines::before,
+.apex-nav-toggle-lines::after {
+  width: 16px;
+  height: 1px;
+  display: block;
+  background: currentColor;
+  content: "";
+}
+
+.apex-nav-toggle-lines {
+  position: relative;
+}
+
+.apex-nav-toggle-lines::before {
+  position: absolute;
+  top: -5px;
+  left: 0;
+}
+
+.apex-nav-toggle-lines::after {
+  position: absolute;
+  top: 5px;
+  left: 0;
+}
+
+.apex-nav-toggle-line {
+  width: 16px;
+  height: 1px;
+  display: block;
+  background: currentColor;
+}
+
+/* //-- SECTION: SEARCH AND FILTER BAR --// */
+.apex-search-bar {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.apex-search-bar::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.apex-search-bar:focus {
+  border-color: var(--neon);
+  outline: none;
+  box-shadow: none;
+}
+
+.apex-select {
+  width: 100%;
+  background-color: var(--bg-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2300ff66' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 10px 6px;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 8px 34px 8px 12px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.apex-select:focus {
+  border-color: var(--neon);
+  outline: none;
+  box-shadow: none;
+}
+
+.apex-select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* //-- SECTION: CIRCUIT CARDS (home page) --// */
+.circuit-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.circuit-card:hover,
+.circuit-card:focus-within {
+  border-color: var(--neon);
+}
+
+.circuit-card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.circuit-card-name {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.circuit-card-flag {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.circuit-card-body {
+  padding: 12px 16px;
+}
+
+.circuit-card-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.circuit-card-stat {
+  min-width: 0;
+}
+
+.circuit-card-stat .apex-label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.circuit-card-stat .apex-value {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.circuit-card-type {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border: 1px solid var(--neon);
+  color: var(--neon);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.circuit-card-type.type-technical {
+  border-color: var(--neon);
+  color: var(--neon);
+}
+
+.circuit-card-type.type-high-speed,
+.circuit-card-type.type-highspeed {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.circuit-card-type.type-street {
+  border-color: #8888ff;
+  color: #8888ff;
+}
+
+.circuit-card-link {
+  display: block;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: right;
+  text-decoration: none;
+}
+
+.circuit-card-link:hover,
+.circuit-card-link:focus-visible {
+  color: var(--neon);
+  background: var(--bg-panel-alt);
+  outline: none;
+}
+
+/* //-- SECTION: STATUS INDICATORS --// */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  margin-right: 6px;
+  background: var(--text-muted);
+  vertical-align: middle;
+}
+
+.status-live {
+  background: var(--neon);
+  animation: pulse 1.5s infinite;
+}
+
+.status-error {
+  background: var(--danger);
+}
+
+.status-loading {
+  background: var(--warning);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* //-- SECTION: LOADING STATE --// */
+.apex-spinner {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--neon);
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton-line {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #13161c 0%, #1a1e26 50%, #13161c 100%);
+  background-size: 200% 100%;
+  animation: skeleton-scan 1.1s linear infinite;
+}
+
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-line.w-25 {
+  width: 25%;
+}
+
+.skeleton-line.w-50 {
+  width: 50%;
+}
+
+.skeleton-line.w-75 {
+  width: 75%;
+}
+
+@keyframes skeleton-scan {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* //-- SECTION: WORKBENCH TABS --// */
+.workbench-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+}
+
+.workbench-tab {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  color: var(--text-secondary);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-top: 3px solid transparent;
+  transition:
+    color 0.15s,
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.workbench-tab:hover,
+.workbench-tab:focus-visible {
+  color: var(--text-primary);
+  outline: none;
+}
+
+.workbench-tab.tab-active {
+  color: var(--neon);
+  border-top-color: var(--neon);
+  background: var(--bg-panel);
+}
+
+.workbench-pane {
+  display: none;
+}
+
+.workbench-pane.pane-active {
+  display: block;
+}
+
+/* //-- SECTION: DATA GRID (workbench readouts) --// */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+
+.data-cell {
+  background: var(--bg-panel);
+  padding: 14px 16px;
+}
+
+.data-cell-label {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.data-cell-value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+  line-height: 1.1;
+}
+
+.data-cell-value.optimal {
+  color: var(--neon);
+}
+
+.data-cell-value.warning {
+  color: var(--warning);
+}
+
+.data-cell-value.critical {
+  color: var(--danger);
+}
+
+.data-cell-unit {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* //-- SECTION: RECOMMENDATION BLOCK --// */
+.rec-block {
+  border-left: 2px solid var(--neon);
+  padding: 12px 16px;
+  background: var(--bg-panel-alt);
+  margin-bottom: 1px;
+}
+
+.rec-block.rec-warning {
+  border-left-color: var(--warning);
+}
+
+.rec-block.rec-critical {
+  border-left-color: var(--danger);
+  background: rgba(255, 51, 51, 0.05);
+}
+
+.rec-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rec-value {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.rec-reason {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-family: var(--font-ui);
+}
+
+/* //-- SECTION: HANDBOOK (Page 3) --// */
+.handbook-entry {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+
+.handbook-term {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--neon);
+  margin-bottom: 6px;
+}
+
+.handbook-def {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-family: var(--font-ui);
+}
+
+/* //-- SECTION: RESPONSIVE OVERRIDES --// */
+@media (max-width: 768px) {
+  .apex-nav {
+    padding: 0 14px;
+  }
+
+  .apex-nav-links {
+    display: none;
+  }
+
+  .apex-nav-links.nav-open {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 52px;
+    right: 0;
+    left: 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .apex-nav-links.nav-open .apex-nav-link {
+    height: 42px;
+    border-bottom: 1px solid var(--border);
+    border-left: 3px solid transparent;
+  }
+
+  .apex-nav-links.nav-open .apex-nav-link.active {
+    border-bottom-color: var(--border);
+    border-left-color: var(--neon);
+  }
+
+  .apex-nav-toggle {
+    display: flex;
+  }
+
+  .data-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .circuit-card-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .tele-panel-header {
+    padding: 9px 12px;
+  }
+
+  .tele-panel-body,
+  .circuit-card-body {
+    padding: 12px;
+  }
+
+  .circuit-card-header {
+    padding: 10px 12px;
+  }
+
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-tab {
+    padding: 12px 12px;
+    font-size: 0.65rem;
+  }
+}
+
+/* //-- SECTION: UTILITY CLASSES --// */
+.text-neon {
+  color: var(--neon) !important;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+.text-warning {
+  color: var(--warning) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-mono {
+  font-family: var(--font-mono) !important;
+}
+
+.border-neon {
+  border-color: var(--neon) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.w-full {
+  width: 100% !important;
+}
+
+.mt-1 {
+  margin-top: 4px !important;
+}
+
+.mt-2 {
+  margin-top: 8px !important;
+}
+
+.mt-3 {
+  margin-top: 16px !important;
+}
+
+.mt-4 {
+  margin-top: 24px !important;
+}
