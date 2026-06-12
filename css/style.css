@@ -1,92 +1,167 @@
-/* //-- SECTION: GOOGLE FONTS IMPORT --// */
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap");
+/*-- SECTION: GOOGLE FONTS IMPORT --*/
 
-/* //-- SECTION: CSS CUSTOM PROPERTIES --// */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Barlow+Condensed:wght@400;500;600&display=swap");
+
+/* ============================================================
+   APEXSTRATEGY — DESIGN SYSTEM v1.0
+   Engineering-grade telemetry UI for motorsport analysis.
+   Every decision is intentional. No accidents. No defaults.
+   ============================================================ */
+
+/*-- SECTION: CSS CUSTOM PROPERTIES --*/
+
 :root {
+  /* -- Backgrounds -- */
   --bg-primary: #0b0d11;
   --bg-panel: #13161c;
   --bg-panel-alt: #1a1e26;
+
+  /* -- Borders -- */
   --border: #252b36;
   --border-active: #00ff66;
+
+  /* -- Text -- */
   --text-primary: #f0f3f6;
   --text-secondary: #8892a0;
   --text-muted: #4a5568;
+
+  /* -- Signal Colors -- */
   --neon: #00ff66;
   --danger: #ff3333;
   --warning: #ffaa00;
+
+  /* -- Circuit Type Accent -- */
+  --accent-technical: #00ff66;
+  --accent-highspeed: #ffaa00;
+  --accent-street: #8888ff;
+
+  /* -- Typography -- */
   --font-mono: "JetBrains Mono", monospace;
   --font-ui: "Barlow Condensed", sans-serif;
+
+  /* -- Timing (Kowalski framework) -- */
+  --t-fast: 100ms;
+  --t-mid: 180ms;
+  --t-slow: 280ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-morph: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* //-- SECTION: BASE RESET --// */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  border-radius: 0 !important;
-}
+/*-- SECTION: BASE RESET --*/
 
+*,
 *::before,
 *::after {
   box-sizing: border-box;
-  border-radius: 0 !important;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 !important; /* ABSOLUTE LAW — no exceptions */
 }
 
 html {
   scroll-behavior: smooth;
-  background: var(--bg-primary);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.5;
-  text-rendering: geometricPrecision;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* -- Selection: neon highlight — ownership over the cursor -- */
 ::selection {
   background: var(--neon);
   color: var(--bg-primary);
 }
 
+::-moz-selection {
+  background: var(--neon);
+  color: var(--bg-primary);
+}
+
+/* -- Scrollbar: keep it on-brand -- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* -- Anchors: inherit color context by default -- */
 a {
   color: inherit;
+  text-decoration: none;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/* -- Lists: unstyled by default -- */
+ul,
+ol {
+  list-style: none;
 }
 
-button {
-  color: inherit;
-}
-
+/* -- Images: block prevents inline-baseline gap -- */
 img,
 svg {
   display: block;
   max-width: 100%;
 }
 
-/* //-- SECTION: TYPOGRAPHY --// */
+/* -- Buttons: raw reset — styled per component -- */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+/* -- Focus ring: always visible, always branded -- */
+:focus-visible {
+  outline: 1px solid var(--neon);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/*-- SECTION: TYPOGRAPHY --*/
+
+/* -- .apex-mono: applied to any element needing engineering readout feel -- */
 .apex-mono {
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
 }
 
+/* -- .apex-readout: large numeric telemetry values (RPM, speed, etc.) -- */
 .apex-readout {
   font-family: var(--font-mono);
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--neon);
   line-height: 1;
+  letter-spacing: 0.02em;
 }
 
+/* -- .apex-label: channel/data identifier, always uppercase -- */
 .apex-label {
   font-family: var(--font-ui);
   font-size: 0.7rem;
@@ -94,72 +169,120 @@ svg {
   color: var(--text-secondary);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
+/* -- .apex-value: standard inline data value -- */
 .apex-value {
   font-family: var(--font-mono);
   font-size: 1rem;
   color: var(--text-primary);
 }
 
+/* -- Headings: all mono, no exceptions -- */
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-mono);
   color: var(--text-primary);
-  line-height: 1.15;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 h1 {
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-size: 1.6rem;
 }
-
 h2 {
-  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  font-size: 1.25rem;
 }
-
 h3 {
   font-size: 1rem;
+}
+h4 {
+  font-size: 0.9rem;
 }
 
 p {
   color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.7;
 }
 
-/* //-- SECTION: TELEMETRY PANEL (core component) --// */
+code,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--neon);
+  background: var(--bg-panel-alt);
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+}
+
+pre {
+  padding: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+
+/*-- SECTION: TELEMETRY PANEL (core component) --*/
+
+/* -- Base panel: the structural chassis -- */
 .tele-panel {
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  padding: 0;
+  padding: 0; /* inner sections handle their own padding */
   position: relative;
+  overflow: hidden;
 }
 
+/* -- Panel header: top bar with title + meta controls -- */
 .tele-panel-header {
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   background: var(--bg-panel-alt);
+  gap: 12px;
 }
 
 .tele-panel-title {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-primary);
 }
 
+/* -- Panel body: primary content zone -- */
 .tele-panel-body {
   padding: 16px;
 }
 
-/* //-- SECTION: CORNER BRACKETS (visual signature) --// */
+/* -- Panel footer: action row / legend row -- */
+.tele-panel-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/*-- SECTION: CORNER BRACKETS (visual signature) --*/
+
+/* -- .bracket-corners: apply to any tele-panel or major section.
+      Parent must be position: relative (enforced by .tele-panel).
+      Creates top-left and bottom-right "L" bracket corners.
+      The 2px arm = engineered precision, not decoration.       -- */
+
 .bracket-corners {
-  position: relative;
+  position: relative; /* ensure brackets are anchored */
 }
 
 .bracket-corners::before,
@@ -168,10 +291,12 @@ p {
   position: absolute;
   width: 8px;
   height: 8px;
-  pointer-events: none;
   z-index: 2;
+  /* scale(0.95) base — Kowalski: no element born from zero */
+  pointer-events: none;
 }
 
+/* -- Top-left bracket -- */
 .bracket-corners::before {
   top: 0;
   left: 0;
@@ -179,14 +304,49 @@ p {
   border-left: 2px solid var(--neon);
 }
 
+/* -- Bottom-right bracket -- */
 .bracket-corners::after {
-  right: 0;
   bottom: 0;
-  border-right: 2px solid var(--neon);
+  right: 0;
   border-bottom: 2px solid var(--neon);
+  border-right: 2px solid var(--neon);
 }
 
-/* //-- SECTION: NAVIGATION --// */
+/* -- Variant: bracket corners on hover only (for cards) -- */
+.bracket-corners-hover::before,
+.bracket-corners-hover::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--t-mid) var(--ease-out);
+  pointer-events: none;
+}
+
+.bracket-corners-hover::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--neon);
+  border-left: 2px solid var(--neon);
+}
+
+.bracket-corners-hover::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid var(--neon);
+  border-right: 2px solid var(--neon);
+}
+
+.bracket-corners-hover:hover::before,
+.bracket-corners-hover:hover::after {
+  opacity: 1;
+}
+
+/*-- SECTION: NAVIGATION --*/
+
+/* -- .apex-nav: sticky site-wide nav bar — always visible -- */
 .apex-nav {
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
@@ -195,12 +355,13 @@ p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
   position: sticky;
   top: 0;
   z-index: 1000;
+  /* No blur, no glass — hard surface only */
 }
 
+/* -- Brand logotype: APEX [neon] + STRATEGY [white] -- */
 .apex-nav-brand {
   font-family: var(--font-mono);
   font-size: 1rem;
@@ -208,24 +369,33 @@ p {
   color: var(--text-primary);
   text-decoration: none;
   letter-spacing: 0.06em;
-  white-space: nowrap;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .apex-nav-brand .brand-apex {
   color: var(--neon);
 }
 
-.apex-nav-brand .brand-strategy {
-  color: var(--text-primary);
+.apex-nav-brand .brand-sep {
+  color: var(--border);
+  margin: 0 6px;
+  font-weight: 400;
 }
 
+/* -- Link list -- */
 .apex-nav-links {
   display: flex;
   gap: 0;
   list-style: none;
-  height: 100%;
+  height: 52px;
+  align-items: stretch;
 }
 
+/* -- Individual nav link -- */
 .apex-nav-link {
   font-family: var(--font-ui);
   font-size: 0.8rem;
@@ -238,112 +408,136 @@ p {
   display: flex;
   align-items: center;
   border-bottom: 3px solid transparent;
+  border-top: 3px solid transparent; /* ghost — keeps height stable */
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color var(--t-fast) var(--ease-out);
+  white-space: nowrap;
 }
 
-.apex-nav-link:hover,
-.apex-nav-link:focus-visible {
+.apex-nav-link:hover {
   color: var(--text-primary);
 }
 
-.apex-nav-link.active {
+.apex-nav-link.active,
+.apex-nav-link[aria-current="page"] {
   color: var(--neon);
   border-bottom-color: var(--neon);
 }
 
+/* -- Nav right slot: holds weather + status indicator -- */
+.apex-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* -- Mobile hamburger toggle -- */
 .apex-nav-toggle {
-  width: 34px;
-  height: 34px;
-  display: none;
+  display: none; /* shown via media query */
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 4px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--border);
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: transparent;
   cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  transition: border-color var(--t-fast) var(--ease-out);
 }
 
-.apex-nav-toggle:hover,
-.apex-nav-toggle:focus-visible {
+.apex-nav-toggle:hover {
   border-color: var(--neon);
-  color: var(--neon);
-  outline: none;
 }
 
-.apex-nav-toggle-lines,
-.apex-nav-toggle-lines::before,
-.apex-nav-toggle-lines::after {
-  width: 16px;
-  height: 1px;
+.apex-nav-toggle span {
   display: block;
-  background: currentColor;
-  content: "";
-}
-
-.apex-nav-toggle-lines {
-  position: relative;
-}
-
-.apex-nav-toggle-lines::before {
-  position: absolute;
-  top: -5px;
-  left: 0;
-}
-
-.apex-nav-toggle-lines::after {
-  position: absolute;
-  top: 5px;
-  left: 0;
-}
-
-.apex-nav-toggle-line {
-  width: 16px;
-  height: 1px;
-  display: block;
-  background: currentColor;
-}
-
-/* //-- SECTION: SEARCH AND FILTER BAR --// */
-.apex-search-bar {
   width: 100%;
+  height: 1px;
+  background: var(--text-primary);
+  transition:
+    background var(--t-fast) var(--ease-out),
+    transform var(--t-mid) var(--ease-morph),
+    opacity var(--t-fast) var(--ease-out);
+}
+
+/* -- Hamburger → X animation when .nav-open is on .apex-nav -- */
+.apex-nav.nav-open .apex-nav-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.apex-nav.nav-open .apex-nav-toggle span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.apex-nav.nav-open .apex-nav-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/*-- SECTION: SEARCH AND FILTER BAR --*/
+
+/* -- Container that holds search + filters in a row -- */
+.apex-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+/* -- Text search input -- */
+.apex-search-bar {
   background: var(--bg-primary);
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 0.85rem;
   padding: 8px 12px;
-  outline: none;
+  width: 100%;
+  height: 36px;
+  line-height: 1;
+  transition: border-color var(--t-fast) var(--ease-out);
+  letter-spacing: 0.02em;
 }
 
 .apex-search-bar::placeholder {
   color: var(--text-muted);
-  opacity: 1;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
 .apex-search-bar:focus {
   border-color: var(--neon);
   outline: none;
-  box-shadow: none;
+  box-shadow: none; /* override Bootstrap glow — zero tolerance */
 }
 
+/* -- Select / dropdown filter -- */
 .apex-select {
-  width: 100%;
-  background-color: var(--bg-primary);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2300ff66' stroke-width='1.5'/%3E%3C/svg%3E");
-  background-position: right 12px center;
-  background-repeat: no-repeat;
-  background-size: 10px 6px;
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  padding: 8px 34px 8px 12px;
-  outline: none;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 32px 8px 12px;
+  height: 36px;
+  cursor: pointer;
   -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
+  transition: border-color var(--t-fast) var(--ease-out);
+  /* Custom chevron arrow — neon, no system chrome */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff66'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 8px 5px;
+  min-width: 140px;
 }
 
 .apex-select:focus {
@@ -353,26 +547,76 @@ p {
 }
 
 .apex-select option {
-  background: var(--bg-primary);
+  background: var(--bg-panel);
   color: var(--text-primary);
 }
 
-/* //-- SECTION: CIRCUIT CARDS (home page) --// */
+/* -- Label + input group wrapper -- */
+.apex-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apex-field-label {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/*-- SECTION: CIRCUIT CARDS (home page) --¨*/
+
+/* -- Card grid wrapper -- */
+.circuit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px; /* gap is the border illusion */
+  background: var(--border); /* bleeds through gaps */
+}
+
+/* -- Individual circuit card -- */
 .circuit-card {
   background: var(--bg-panel);
-  border: 1px solid var(--border);
+  border: 0; /* border handled by grid gap technique above */
   padding: 0;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.15s;
+  transition: background var(--t-mid) var(--ease-out);
+  /* Kowalski: no scale(0) — motion from near-state */
+  transform: translateZ(0); /* GPU layer promotion */
 }
 
-.circuit-card:hover,
-.circuit-card:focus-within {
-  border-color: var(--neon);
+/* -- Hover: full neon border signal -- */
+.circuit-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--neon);
+  opacity: 0;
+  transition: opacity var(--t-mid) var(--ease-out);
+  pointer-events: none;
+  z-index: 1;
 }
 
+.circuit-card:hover::after {
+  opacity: 1;
+}
+
+.circuit-card:hover {
+  background: var(--bg-panel-alt);
+}
+
+/* -- Card active press: Kowalski physical feedback -- */
+.circuit-card:active {
+  transform: scale(0.98);
+  transition: transform 80ms var(--ease-out);
+}
+
+/* -- Card header: circuit name + flag -- */
 .circuit-card-header {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
@@ -385,14 +629,28 @@ p {
 .circuit-card-name {
   font-family: var(--font-mono);
   font-size: 0.9rem;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.circuit-card-country {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
 .circuit-card-flag {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
+/* -- Card body: telemetry stats grid -- */
 .circuit-card-body {
   padding: 12px 16px;
 }
@@ -400,84 +658,109 @@ p {
 .circuit-card-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px 8px;
 }
 
+/* -- Individual stat within the meta grid -- */
 .circuit-card-stat {
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.circuit-card-stat .apex-label {
-  display: block;
-  margin-bottom: 2px;
-}
-
-.circuit-card-stat .apex-value {
-  display: block;
-  overflow-wrap: anywhere;
-}
-
+/* -- Circuit type badge -- */
 .circuit-card-type {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 2px 8px;
-  border: 1px solid var(--neon);
-  color: var(--neon);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border: 1px solid;
   text-transform: uppercase;
-  line-height: 1.3;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
 }
 
 .circuit-card-type.type-technical {
-  border-color: var(--neon);
-  color: var(--neon);
+  border-color: var(--accent-technical);
+  color: var(--accent-technical);
 }
 
-.circuit-card-type.type-high-speed,
 .circuit-card-type.type-highspeed {
-  border-color: var(--warning);
-  color: var(--warning);
+  border-color: var(--accent-highspeed);
+  color: var(--accent-highspeed);
 }
 
 .circuit-card-type.type-street {
-  border-color: #8888ff;
-  color: #8888ff;
+  border-color: var(--accent-street);
+  color: var(--accent-street);
 }
 
+/* -- Card footer: "View Analysis →" action row -- */
 .circuit-card-link {
   display: block;
   padding: 10px 16px;
   border-top: 1px solid var(--border);
   font-family: var(--font-ui);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-align: right;
   text-decoration: none;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+  position: relative;
+  z-index: 2;
 }
 
-.circuit-card-link:hover,
-.circuit-card-link:focus-visible {
+.circuit-card:hover .circuit-card-link,
+.circuit-card-link:hover {
   color: var(--neon);
   background: var(--bg-panel-alt);
-  outline: none;
 }
 
-/* //-- SECTION: STATUS INDICATORS --// */
+/* -- Empty state: no results after filter/search -- */
+.circuit-grid-empty {
+  grid-column: 1 / -1;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  border: 1px dashed var(--border);
+}
+
+.circuit-grid-empty span {
+  display: block;
+  color: var(--danger);
+  font-size: 0.7rem;
+  margin-top: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/*-- SECTION: STATUS INDICATORS --*/
+
+/* -- Inline dot — signal health at a glance -- */
 .status-dot {
+  display: inline-block;
   width: 6px;
   height: 6px;
-  display: inline-block;
   margin-right: 6px;
-  background: var(--text-muted);
+  flex-shrink: 0;
   vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 
 .status-live {
   background: var(--neon);
-  animation: pulse 1.5s infinite;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .status-error {
@@ -486,76 +769,210 @@ p {
 
 .status-loading {
   background: var(--warning);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-offline {
+  background: var(--text-muted);
 }
 
 @keyframes pulse {
-  0%,
-  100% {
+  0% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.3;
   }
+  100% {
+    opacity: 1;
+  }
 }
 
-/* //-- SECTION: LOADING STATE --// */
+/* -- Inline status label with dot bundled -- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.status-badge.live {
+  color: var(--neon);
+}
+.status-badge.error {
+  color: var(--danger);
+}
+.status-badge.warn {
+  color: var(--warning);
+}
+
+/*-- SECTION: LOADING STATE --*/
+
+/* -- Square spinner: the hardest edge in motorsport UI -- */
 .apex-spinner {
   width: 24px;
   height: 24px;
   border: 1px solid var(--neon);
-  border-top-color: transparent;
+  border-top: 1px solid transparent;
   animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+  /* border-radius: 0 already enforced by * reset — this is a square */
 }
 
 @keyframes spin {
-  to {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
   }
 }
 
+/* -- Spinner size variants -- */
+.apex-spinner.spinner-sm {
+  width: 16px;
+  height: 16px;
+}
+
+.apex-spinner.spinner-lg {
+  width: 40px;
+  height: 40px;
+  border-width: 2px;
+}
+
+/* -- Loading overlay for panels -- */
+.apex-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 24px;
+  min-height: 160px;
+}
+
+.apex-loading-text {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* -- Skeleton lines: scan animation for content loading -- */
 .skeleton-line {
-  height: 12px;
-  width: 100%;
-  margin-bottom: 8px;
-  background: linear-gradient(90deg, #13161c 0%, #1a1e26 50%, #13161c 100%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-panel) 0%,
+    var(--bg-panel-alt) 50%,
+    var(--bg-panel) 100%
+  );
   background-size: 200% 100%;
-  animation: skeleton-scan 1.1s linear infinite;
+  animation: skeleton-scan 1.4s ease-in-out infinite;
+  height: 10px;
+  margin-bottom: 8px;
 }
 
-.skeleton-line:last-child {
-  margin-bottom: 0;
+.skeleton-line.sk-lg {
+  height: 18px;
 }
-
-.skeleton-line.w-25 {
-  width: 25%;
+.skeleton-line.sk-sm {
+  height: 7px;
 }
-
-.skeleton-line.w-50 {
+.skeleton-line.sk-w-full {
+  width: 100%;
+}
+.skeleton-line.sk-w-3q {
+  width: 75%;
+}
+.skeleton-line.sk-w-half {
   width: 50%;
 }
-
-.skeleton-line.w-75 {
-  width: 75%;
+.skeleton-line.sk-w-third {
+  width: 33%;
 }
 
 @keyframes skeleton-scan {
-  from {
+  0% {
     background-position: 200% 0;
   }
-
-  to {
+  100% {
     background-position: -200% 0;
   }
 }
 
-/* //-- SECTION: WORKBENCH TABS --// */
+/* -- Error state -- */
+.apex-error {
+  padding: 24px 16px;
+  border: 1px solid var(--danger);
+  background: rgba(255, 51, 51, 0.04);
+}
+
+.apex-error-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--danger);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.apex-error-msg {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.apex-error-retry {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.apex-error-retry:hover {
+  border-color: var(--neon);
+  color: var(--neon);
+}
+
+.apex-error-retry:active {
+  transform: scale(0.97);
+}
+
+/*-- SECTION: WORKBENCH TABS --*/
+
+/* -- Tab navigation bar: the engineer's workbench switcher -- */
 .workbench-nav {
   display: flex;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel-alt);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* No scrollbar on tab row */
+  scrollbar-width: none;
 }
 
+.workbench-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* -- Individual tab button — no bootstrap data-bs-toggle allowed -- */
 .workbench-tab {
   font-family: var(--font-ui);
   font-size: 0.75rem;
@@ -565,259 +982,866 @@ p {
   padding: 14px 20px;
   color: var(--text-secondary);
   border: none;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent; /* ghost — balances height */
   background: none;
   cursor: pointer;
-  border-top: 3px solid transparent;
+  white-space: nowrap;
   transition:
-    color 0.15s,
-    background-color 0.15s,
-    border-color 0.15s;
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
 }
 
-.workbench-tab:hover,
-.workbench-tab:focus-visible {
+.workbench-tab:hover {
   color: var(--text-primary);
-  outline: none;
+  background: rgba(240, 243, 246, 0.02);
 }
 
+/* -- Active tab: top border signal + lighter background -- */
 .workbench-tab.tab-active {
   color: var(--neon);
   border-top-color: var(--neon);
   background: var(--bg-panel);
 }
 
+.workbench-tab:active {
+  transform: scale(0.97);
+}
+
+/* -- Tab content panes — JS toggles .pane-active -- */
 .workbench-pane {
   display: none;
 }
 
 .workbench-pane.pane-active {
   display: block;
+  animation: pane-enter var(--t-slow) var(--ease-out);
 }
 
-/* //-- SECTION: DATA GRID (workbench readouts) --// */
+@keyframes pane-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -- Tab counter badge (e.g. "TYRES · 4") -- */
+.tab-count {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  margin-left: 6px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  letter-spacing: 0;
+}
+
+.workbench-tab.tab-active .tab-count {
+  border-color: rgba(0, 255, 102, 0.3);
+  color: rgba(0, 255, 102, 0.6);
+}
+
+/*-- SECTION: DATA GRID (workbench readouts) --*/
+
+/* -- The core readout grid: n-wide array of data cells -- */
 .data-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1px;
-  background: var(--border);
+  gap: 1px; /* gap = the visual border between cells */
+  background: var(--border); /* visible through the 1px gaps */
 }
 
+/* -- Individual data cell -- */
 .data-cell {
   background: var(--bg-panel);
   padding: 14px 16px;
+  position: relative;
 }
 
+/* -- Cell header: channel label -- */
 .data-cell-label {
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  line-height: 1;
 }
 
+/* -- Cell value: the number -- */
 .data-cell-value {
   font-family: var(--font-mono);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-top: 4px;
-  line-height: 1.1;
+  line-height: 1;
+  letter-spacing: 0.02em;
 }
 
+/* -- Value signal states -- */
 .data-cell-value.optimal {
   color: var(--neon);
 }
-
 .data-cell-value.warning {
   color: var(--warning);
 }
-
 .data-cell-value.critical {
   color: var(--danger);
 }
 
+/* -- Unit annotation — smaller, muted -- */
 .data-cell-unit {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
   color: var(--text-muted);
-  margin-left: 4px;
+  margin-left: 3px;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
-/* //-- SECTION: RECOMMENDATION BLOCK --// */
+/* -- Delta: small change indicator below value -- */
+.data-cell-delta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+.data-cell-delta.delta-up {
+  color: var(--neon);
+}
+.data-cell-delta.delta-down {
+  color: var(--danger);
+}
+
+/*-- SECTION: RECOMMENDATION BLOCK --*/
+
+/* -- The strategy recommendation card: left-border accent signal -- */
 .rec-block {
   border-left: 2px solid var(--neon);
   padding: 12px 16px;
   background: var(--bg-panel-alt);
   margin-bottom: 1px;
+  position: relative;
+  transition: background var(--t-fast) var(--ease-out);
 }
 
+.rec-block:last-child {
+  margin-bottom: 0;
+}
+
+.rec-block:hover {
+  background: rgba(26, 30, 38, 0.8);
+}
+
+/* -- Warning level: amber border signal -- */
 .rec-block.rec-warning {
   border-left-color: var(--warning);
 }
 
+/* -- Critical level: danger border + danger tint fill -- */
 .rec-block.rec-critical {
   border-left-color: var(--danger);
   background: rgba(255, 51, 51, 0.05);
 }
 
+/* -- Recommendation channel title -- */
 .rec-title {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  line-height: 1;
 }
 
+/* -- The actual recommended value -- */
 .rec-value {
   font-family: var(--font-mono);
   font-size: 1rem;
+  font-weight: 700;
   color: var(--text-primary);
   margin-top: 4px;
+  letter-spacing: 0.02em;
 }
 
+/* -- Strategic reasoning: prose detail, ui font -- */
 .rec-reason {
-  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 6px;
-  font-family: var(--font-ui);
+  line-height: 1.55;
 }
 
-/* //-- SECTION: HANDBOOK (Page 3) --// */
+/* -- Optional: inline diff showing change from current -- */
+.rec-diff {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  margin-left: 8px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.rec-diff.diff-pos {
+  color: var(--neon);
+  border-color: rgba(0, 255, 102, 0.25);
+}
+.rec-diff.diff-neg {
+  color: var(--danger);
+  border-color: rgba(255, 51, 51, 0.25);
+}
+
+/*-- SECTION: HANDBOOK (Page 3) --*/
+
+/* -- Glossary/reference entry: term + definition -- */
 .handbook-entry {
   border-bottom: 1px solid var(--border);
   padding: 16px 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
+.handbook-entry:last-child {
+  border-bottom: none;
+}
+
+.handbook-entry:first-child {
+  padding-top: 0;
+}
+
+/* -- Term: neon signal = this is what you're looking for -- */
 .handbook-term {
   font-family: var(--font-mono);
   font-size: 0.95rem;
+  font-weight: 700;
   color: var(--neon);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  letter-spacing: 0.03em;
 }
 
+/* -- Definition: readable, not cramped -- */
 .handbook-def {
-  font-size: 0.85rem;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.7;
-  font-family: var(--font-ui);
 }
 
-/* //-- SECTION: RESPONSIVE OVERRIDES --// */
+/* -- Optional: category tag on handbook entries -- */
+.handbook-category {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+/* -- Handbook section divider: labeled separator -- */
+.handbook-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 16px;
+}
+
+.handbook-divider-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.handbook-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* -- Search result highlight within handbook -- */
+.handbook-highlight {
+  background: rgba(0, 255, 102, 0.15);
+  color: var(--neon);
+  padding: 0 2px;
+}
+
+/*-- SECTION: WEATHER WIDGET --*/
+
+/* -- Compact weather strip for nav bar -- */
+.weather-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  letter-spacing: 0.04em;
+}
+
+.weather-strip .weather-temp {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.weather-strip .weather-loc {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* -- Expanded weather panel for analysis page -- */
+.weather-panel-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+
+.weather-cell {
+  background: var(--bg-panel);
+  padding: 12px 14px;
+}
+
+/*-- SECTION: PAGE LAYOUT SCAFFOLDING --*/
+
+/* -- Main content wrapper: respects sticky nav -- */
+.apex-main {
+  min-height: calc(100vh - 52px);
+  padding: 24px;
+}
+
+/* -- Page header block: title + subtitle + actions -- */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header-left {
+}
+
+.page-title {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.page-subtitle {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* -- Section spacing within page -- */
+.section-gap {
+  margin-top: 24px;
+}
+
+.section-gap-lg {
+  margin-top: 40px;
+}
+
+/* -- Divider: labeled horizontal rule -- */
+.apex-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+  border: none;
+}
+
+/* -- SECTION: BUTTONS -- +/
+
+/* -- Primary action button -- */
+.btn-apex {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.btn-apex:active {
+  transform: scale(0.97); /* Kowalski physical press */
+}
+
+/* -- Ghost variant: neon border, transparent fill -- */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  border-color: var(--neon);
+  color: var(--neon);
+}
+
+/* -- Solid neon fill variant -- */
+.btn-neon {
+  background: var(--neon);
+  border: 1px solid var(--neon);
+  color: var(--bg-primary);
+  font-weight: 700;
+}
+
+.btn-neon:hover {
+  background: rgba(0, 255, 102, 0.85);
+}
+
+/* -- Danger variant -- */
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: rgba(255, 51, 51, 0.08);
+}
+
+/*-- SECTION: TABLES --*/
+
+/* -- Engineering data table -- */
+.apex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.apex-table thead {
+  background: var(--bg-panel-alt);
+}
+
+.apex-table th {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.apex-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.apex-table tbody tr:hover td {
+  background: var(--bg-panel-alt);
+}
+
+.apex-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/*-- SECTION: BADGES AND TAGS --*/
+
+/* -- Generic data tag / badge -- */
+.apex-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.apex-tag.tag-neon {
+  color: var(--neon);
+  border-color: rgba(0, 255, 102, 0.3);
+}
+.apex-tag.tag-danger {
+  color: var(--danger);
+  border-color: rgba(255, 51, 51, 0.3);
+}
+.apex-tag.tag-warning {
+  color: var(--warning);
+  border-color: rgba(255, 170, 0, 0.3);
+}
+
+/*-- SECTION: RESPONSIVE OVERRIDES --*/
+
+/* ---- Tablet: ≤ 768px ---- */
 @media (max-width: 768px) {
-  .apex-nav {
-    padding: 0 14px;
+  .apex-main {
+    padding: 16px;
   }
 
+  /* -- Nav: collapse to hamburger -- */
   .apex-nav-links {
     display: none;
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    height: auto;
+    z-index: 999;
+    padding: 8px 0;
   }
 
   .apex-nav-links.nav-open {
-    width: 100%;
-    height: auto;
     display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 52px;
-    right: 0;
-    left: 0;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border);
   }
 
-  .apex-nav-links.nav-open .apex-nav-link {
-    height: 42px;
-    border-bottom: 1px solid var(--border);
+  .apex-nav-link {
+    height: auto;
+    padding: 14px 24px;
+    border-bottom: none;
+    border-top: none;
     border-left: 3px solid transparent;
+    width: 100%;
   }
 
-  .apex-nav-links.nav-open .apex-nav-link.active {
-    border-bottom-color: var(--border);
+  .apex-nav-link.active {
     border-left-color: var(--neon);
+    border-bottom: none;
+    background: var(--bg-panel-alt);
   }
 
   .apex-nav-toggle {
-    display: flex;
+    display: flex; /* show hamburger */
   }
 
+  .apex-nav-right {
+    gap: 8px;
+  }
+
+  /* -- Data grid: 2 columns on tablet -- */
   .data-grid {
     grid-template-columns: 1fr 1fr;
   }
 
+  /* -- Circuit meta: single column -- */
   .circuit-card-meta {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 480px) {
-  .tele-panel-header {
-    padding: 9px 12px;
+  .circuit-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 
-  .tele-panel-body,
-  .circuit-card-body {
+  /* -- Page header: stack on mobile -- */
+  .page-header {
+    flex-direction: column;
+  }
+
+  /* -- Weather strip: hide on very small nav -- */
+  .weather-strip {
+    display: none;
+  }
+}
+
+/* ---- Mobile: ≤ 480px ---- */
+@media (max-width: 480px) {
+  .apex-main {
     padding: 12px;
   }
 
-  .circuit-card-header {
-    padding: 10px 12px;
-  }
-
+  /* -- Data grid: single column on phone -- */
   .data-grid {
     grid-template-columns: 1fr;
   }
 
+  /* -- Tab font size reduction on narrow screens -- */
   .workbench-tab {
     padding: 12px 12px;
     font-size: 0.65rem;
   }
+
+  /* -- Circuit grid: full width cards -- */
+  .circuit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* -- Readout: scale down on small screens -- */
+  .apex-readout {
+    font-size: 1.4rem;
+  }
+
+  .data-cell-value {
+    font-size: 1.2rem;
+  }
+
+  .page-title {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+  }
+  h2 {
+    font-size: 1rem;
+  }
+
+  .apex-filter-bar {
+    flex-direction: column;
+  }
+
+  .apex-select {
+    min-width: 100%;
+  }
 }
 
-/* //-- SECTION: UTILITY CLASSES --// */
+/* -- Reduced motion: respect system preference -- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*-- SECTION: UTILITY CLASSES --*/
+
+/* -- Color utilities -- */
 .text-neon {
   color: var(--neon) !important;
 }
-
 .text-danger {
   color: var(--danger) !important;
 }
-
 .text-warning {
   color: var(--warning) !important;
 }
-
 .text-muted {
   color: var(--text-muted) !important;
 }
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+.text-primary {
+  color: var(--text-primary) !important;
+}
 
+/* -- Font utilities -- */
 .text-mono {
   font-family: var(--font-mono) !important;
 }
+.text-ui {
+  font-family: var(--font-ui) !important;
+}
+.text-upper {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
 
+/* -- Border utilities -- */
 .border-neon {
   border-color: var(--neon) !important;
 }
+.border-danger {
+  border-color: var(--danger) !important;
+}
 
+/* -- Visibility -- */
 .hidden {
   display: none !important;
 }
+.invisible {
+  visibility: hidden;
+}
+.visible {
+  visibility: visible;
+}
 
+/* -- Sizing -- */
 .w-full {
-  width: 100% !important;
+  width: 100%;
+}
+.h-full {
+  height: 100%;
 }
 
+/* -- Margin-top scale -- */
 .mt-1 {
-  margin-top: 4px !important;
+  margin-top: 4px;
 }
-
 .mt-2 {
-  margin-top: 8px !important;
+  margin-top: 8px;
 }
-
 .mt-3 {
-  margin-top: 16px !important;
+  margin-top: 16px;
+}
+.mt-4 {
+  margin-top: 24px;
+}
+.mt-5 {
+  margin-top: 32px;
+}
+.mt-6 {
+  margin-top: 48px;
 }
 
-.mt-4 {
-  margin-top: 24px !important;
+/* -- Margin-bottom scale -- */
+.mb-1 {
+  margin-bottom: 4px;
+}
+.mb-2 {
+  margin-bottom: 8px;
+}
+.mb-3 {
+  margin-bottom: 16px;
+}
+.mb-4 {
+  margin-bottom: 24px;
+}
+
+/* -- Padding utilities -- */
+.p-0 {
+  padding: 0 !important;
+}
+.p-panel {
+  padding: 16px;
+}
+
+/* -- Flex utilities -- */
+.d-flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.align-center {
+  align-items: center;
+}
+.gap-1 {
+  gap: 4px;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 16px;
+}
+.gap-4 {
+  gap: 24px;
+}
+
+/* -- Text alignment -- */
+.text-right {
+  text-align: right;
+}
+.text-left {
+  text-align: left;
+}
+.text-center {
+  text-align: center;
+}
+
+/* -- Overflow -- */
+.overflow-hidden {
+  overflow: hidden;
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -- Position -- */
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+
+/* -- Cursor -- */
+.cursor-pointer {
+  cursor: pointer;
+}
+.cursor-default {
+  cursor: default;
+}
+
+/* -- No pointer events (for decorative elements) -- */
+.no-pointer {
+  pointer-events: none;
+}
+
+/* -- Opacity states -- */
+.opacity-50 {
+  opacity: 0.5;
+}
+.opacity-25 {
+  opacity: 0.25;
 }
