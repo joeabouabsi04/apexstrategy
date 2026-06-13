@@ -3,18 +3,367 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My App</title>
+    <title>APEXSTRATEGY // COMMAND CENTER</title>
+    <meta
+      name="description"
+      content="ApexStrategy Command Center — select a circuit and load live telemetry analysis."
+    />
 
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
     <link rel="stylesheet" href="css/style.css" />
+
+    <style>
+      /*-- PAGE: index.html — Command Center overrides --*/
+
+      /* Boot state: title is invisible until decode-in fires */
+      .boot-pending #pageTitle {
+        opacity: 0;
+      }
+      #pageTitle {
+        transition: opacity 80ms ease-out;
+      }
+
+      /* Page header strip */
+      .page-header-strip {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: var(--bg-panel);
+      }
+
+      .page-header-strip .module-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .page-header-strip h1 {
+        font-size: 1.3rem;
+        letter-spacing: 0.06em;
+        line-height: 1;
+      }
+
+      .page-header-strip .header-sub {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        margin-top: 6px;
+      }
+
+      .page-header-strip .header-sub .slash {
+        color: var(--border);
+        margin: 0 4px;
+      }
+
+      /* Circuit count badge — right side of header */
+      .circuit-count-badge {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .circuit-count-badge .count-num {
+        font-family: var(--font-mono);
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--neon);
+        line-height: 1;
+        display: block;
+        letter-spacing: -0.02em;
+      }
+
+      .circuit-count-badge .count-label {
+        font-family: var(--font-ui);
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        display: block;
+        margin-top: 4px;
+      }
+
+      /* Search + filter strip */
+      .search-bar-strip {
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-panel);
+      }
+
+      /* Results counter line */
+      #resultsCounter {
+        padding: 8px 24px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.68rem;
+        background: var(--bg-primary);
+        color: var(--text-muted);
+        letter-spacing: 0.1em;
+      }
+
+      /* Grid seam: container provides top + left edges;
+       each card provides bottom + right — zero double-borders.  */
+      #circuitList {
+        border-top: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+      }
+
+      #circuitList .circuit-card {
+        border-bottom: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        height: 100%; /* fill the col div fully */
+      }
+
+      /* Card type row: badge + dimensions on same line */
+      .card-type-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .card-dims {
+        font-size: 0.58rem;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+      }
+
+      /* Hybrid type badge — not in main CSS */
+      .circuit-card-type.type-hybrid {
+        border-color: var(--text-secondary);
+        color: var(--text-secondary);
+      }
+
+      /* apex-value state colours in cards */
+      .apex-value.optimal {
+        color: var(--neon);
+      }
+      .apex-value.warning {
+        color: var(--warning);
+      }
+      .apex-value.critical {
+        color: var(--danger);
+      }
+
+      /* Empty state */
+      #emptyState {
+        padding: 64px 24px;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #emptyState .empty-glyph {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+      }
+
+      #emptyState .empty-hint {
+        font-family: var(--font-ui);
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      /* Footer */
+      .apex-footer {
+        border-top: 1px solid var(--border);
+        padding: 14px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: var(--bg-panel);
+      }
+
+      /* Hero scanline container lives inside the page header */
+      .page-header-strip {
+        position: relative;
+        overflow: hidden;
+      }
+
+      @media (max-width: 576px) {
+        .circuit-count-badge .count-num {
+          font-size: 1.8rem;
+        }
+        .search-bar-strip {
+          padding: 10px 16px;
+        }
+        .page-header-strip {
+          padding: 14px 16px;
+        }
+        #resultsCounter {
+          padding: 6px 16px;
+        }
+        .apex-footer {
+          padding: 12px 16px;
+        }
+      }
+    </style>
   </head>
-  <body>
+
+  <body class="boot-pending">
+    <!-- Navigation — Custom Element, single source of truth -->
     <apex-nav></apex-nav>
 
-    <main style="padding: 20px; font-family: sans-serif">
-      <h1>Home Page</h1>
-      <p>This is where your main content goes.</p>
+    <!-- ═══════════════════════════════════════════════════
+       PAGE HEADER STRIP
+       MODULE 01 label / H1 / subtitle — circuit count right
+       ═══════════════════════════════════════════════════ -->
+    <section
+      class="page-header-strip bracket-corners"
+      aria-labelledby="pageTitle"
+    >
+      <!-- Ambient scanline — whisper-faint, "screen refresh" feel -->
+      <div class="hero-scanline" aria-hidden="true"></div>
+
+      <div class="page-header-left">
+        <span class="module-label" aria-hidden="true"
+          >MODULE 01 &nbsp;/&nbsp; COMMAND CENTER</span
+        >
+        <h1 class="apex-mono apex-cursor" id="pageTitle">COMMAND CENTER</h1>
+        <p
+          class="header-sub"
+          aria-label="Select a circuit to begin telemetry loading"
+        >
+          SELECT CIRCUIT <span class="slash" aria-hidden="true">//</span> LIVE
+          TELEMETRY LOADING
+        </p>
+      </div>
+
+      <div class="circuit-count-badge" aria-label="20 circuits loaded">
+        <span class="count-num" id="totalCount" aria-live="polite">20</span>
+        <span class="count-label">CIRCUITS LOADED</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+       SEARCH AND FILTER BAR
+       ═══════════════════════════════════════════════════ -->
+    <section class="search-bar-strip" aria-label="Filter circuits">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+          <label class="apex-field-label" for="circuitSearch">SEARCH</label>
+          <input
+            type="text"
+            id="circuitSearch"
+            class="apex-search-bar"
+            placeholder="CIRCUIT, COUNTRY, CITY..."
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Search circuits by name, country, or city"
+          />
+        </div>
+
+        <div class="col-6 col-md-4">
+          <label class="apex-field-label" for="typeFilter">CIRCUIT TYPE</label>
+          <select
+            id="typeFilter"
+            class="apex-select w-full"
+            aria-label="Filter by circuit type"
+          >
+            <option value="all">ALL TYPES</option>
+            <option value="Technical">TECHNICAL</option>
+            <option value="High-Speed">HIGH-SPEED</option>
+            <option value="Street Circuit">STREET CIRCUIT</option>
+            <option value="Hybrid">HYBRID</option>
+          </select>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <label class="apex-field-label" for="regionFilter">REGION</label>
+          <select
+            id="regionFilter"
+            class="apex-select w-full"
+            aria-label="Filter by region"
+          >
+            <option value="all">ALL REGIONS</option>
+            <option value="Europe">EUROPE</option>
+            <option value="Americas">AMERICAS</option>
+            <option value="Asia-Pacific">ASIA-PACIFIC</option>
+            <option value="Middle East">MIDDLE EAST</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+       RESULTS COUNTER
+       ═══════════════════════════════════════════════════ -->
+    <div
+      id="resultsCounter"
+      class="apex-label"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      SHOWING 20 OF 20 CIRCUITS
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+       CIRCUIT GRID — cards injected by HomeController
+       ═══════════════════════════════════════════════════ -->
+    <main
+      id="circuitGrid"
+      class="container-fluid p-0"
+      aria-label="Circuit list"
+    >
+      <div class="row g-0" id="circuitList" role="list">
+        <!-- Populated by HomeController.renderCircuits() -->
+      </div>
     </main>
 
+    <!-- ═══════════════════════════════════════════════════
+       EMPTY STATE — shown when filters match nothing
+       ═══════════════════════════════════════════════════ -->
+    <div id="emptyState" class="hidden" role="status" aria-live="polite">
+      <p class="empty-glyph">// NO CIRCUITS MATCH QUERY</p>
+      <p class="empty-hint">Adjust search parameters and try again</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════ -->
+    <footer class="apex-footer" role="contentinfo">
+      <span class="apex-label">
+        APEXSTRATEGY
+        <span style="color: var(--border)" aria-hidden="true">//</span>
+        2026
+      </span>
+      <span
+        class="apex-mono text-muted"
+        style="font-size: 0.68rem; letter-spacing: 0.04em"
+      >
+        WEATHER: OPENWEATHERMAP API
+      </span>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════
+       SCRIPTS — load order matters:
+       nav.js first (upgrades <apex-nav> immediately),
+       circuits.js (sets window.CIRCUITS synchronously),
+       main.js (sets window.ApexAnim, runs boot on DOMContentLoaded),
+       HomeController (reads both, runs on DOMContentLoaded)
+       ═══════════════════════════════════════════════════ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/nav.js"></script>
+    <script src="js/circuits.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/HomeController.js"></script>
   </body>
 </html>

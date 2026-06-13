@@ -17,7 +17,7 @@
   --bg-panel-alt: #1a1e26;
 
   /* -- Borders -- */
-  --border: #252b36;
+  --border: #353f52;
   --border-active: #00ff66;
 
   /* -- Text -- */
@@ -2063,4 +2063,20 @@ pre {
 }
 .opacity-25 {
   opacity: 0.25;
+}
+
+/*-- SECTION: TAB CONTROLLER STATES --*/
+
+/* Disabled tab — used for WET STRATEGY tab under dry conditions */
+.tab-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Focus ring for keyboard users — 1px neon, no Bootstrap blue glow */
+.workbench-tab:focus-visible {
+  outline: 1px solid var(--neon);
+  outline-offset: -1px;
+  box-shadow: none;
 }
