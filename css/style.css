@@ -43,8 +43,19 @@
   --t-fast: 100ms;
   --t-mid: 180ms;
   --t-slow: 280ms;
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-morph: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(
+    0.2,
+    0,
+    0,
+    1
+  ); /* quick out, hard settle — default for all state changes */
+  --ease-morph: cubic-bezier(
+    0.4,
+    0,
+    0.2,
+    1
+  ); /* in-out morph for shape/size transitions */
+  --ease-steps-8: steps(8, end); /* clocked/digital feel — spinner, scanline */
 }
 
 /*-- SECTION: BASE RESET --*/
@@ -55,7 +66,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  border-radius: 0 !important; /* ABSOLUTE LAW — no exceptions */
+  border-radius: 0; /* strong default — the look stays square, but nothing fights itself */
 }
 
 html {
@@ -567,7 +578,7 @@ pre {
   color: var(--text-muted);
 }
 
-/*-- SECTION: CIRCUIT CARDS (home page) --¨*/
+/*-- SECTION: CIRCUIT CARDS (home page) --*/
 
 /* -- Card grid wrapper -- */
 .circuit-grid {
@@ -864,18 +875,14 @@ pre {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* -- Skeleton lines: scan animation for content loading -- */
+/* -- Skeleton lines: flat panel-alt block + 1px neon scanline, steps()-clocked.
+      No gradient shimmer — that's the generic SaaS look. Flat + scan = on brief. -- */
 .skeleton-line {
-  background: linear-gradient(
-    90deg,
-    var(--bg-panel) 0%,
-    var(--bg-panel-alt) 50%,
-    var(--bg-panel) 100%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-scan 1.4s ease-in-out infinite;
+  background: var(--bg-panel-alt);
   height: 10px;
   margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
 .skeleton-line.sk-lg {
@@ -897,14 +904,7 @@ pre {
   width: 33%;
 }
 
-@keyframes skeleton-scan {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
+/* skeleton scanline lives inside reduced-motion guard — it's ambient, not data */
 
 /* -- Error state -- */
 .apex-error {
@@ -1349,8 +1349,7 @@ pre {
   flex-wrap: wrap;
 }
 
-.page-header-left {
-}
+/* .page-header-left — intentionally unstyled; child elements (page-title, page-subtitle) handle their own layout */
 
 .page-title {
   font-family: var(--font-mono);
@@ -1394,7 +1393,7 @@ pre {
   border: none;
 }
 
-/* -- SECTION: BUTTONS -- +/
+/*-- SECTION: BUTTONS --*/
 
 /* -- Primary action button -- */
 .btn-apex {
@@ -1662,6 +1661,226 @@ pre {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*-- SECTION: AMBIENT ANIMATION HOOKS --*/
+/* All motion behind prefers-reduced-motion: no-preference.
+   These are the "it's alive" layer — wire up in HTML/JS by adding these
+   classes; the CSS does the rest.                                         */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* -- 1. Blinking block cursor — append to any header via JS innerHTML -- */
+  .apex-cursor::after {
+    content: "▮";
+    display: inline-block;
+    color: var(--neon);
+    margin-left: 4px;
+    animation: cursor-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* -- 2. Live dot: opacity pulse + expanding square ring on ::after -- */
+  .status-live {
+    animation: live-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes live-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  /* Square expanding ring — no border-radius so it stays a square halo */
+  .status-live::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--neon);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    animation: live-ring 1.6s ease-out infinite;
+  }
+
+  /* status-dot needs relative positioning for the ring to anchor */
+  .status-dot {
+    position: relative;
+  }
+
+  @keyframes live-ring {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(3.5);
+      opacity: 0;
+    }
+  }
+
+  /* -- 3. Hero scanline — 1px neon line sweeping the hero panel, steps()-clocked -- */
+  /* Apply .hero-scanline to the .tele-panel that is the page centrepiece.
+     The line is a ::before on a sibling wrapper — add <div class="hero-scanline"></div>
+     inside the panel and position: relative on its parent.                              */
+  .hero-scanline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--neon);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 10;
+    animation: hero-sweep 4s steps(80, end) infinite;
+  }
+
+  @keyframes hero-sweep {
+    0% {
+      top: 0%;
+      opacity: 0.07;
+    }
+    95% {
+      top: 100%;
+      opacity: 0.07;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+
+  /* -- 4. Skeleton scanline — 1px neon line across flat skeleton blocks -- */
+  .skeleton-line::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -2px;
+    width: 2px;
+    height: 100%;
+    background: var(--neon);
+    opacity: 0.2;
+    animation: skeleton-scan 1.3s steps(28, end) infinite;
+  }
+
+  @keyframes skeleton-scan {
+    0% {
+      left: -2px;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* -- 5. Value-change flash — add class via JS on data update, remove after 200ms -- */
+  /* .flash-up: new value is better / higher  (neon)   */
+  /* .flash-down: new value is worse / lower  (danger) */
+  .flash-up {
+    animation: flash-neon 200ms var(--ease-out) forwards;
+  }
+
+  .flash-down {
+    animation: flash-danger 200ms var(--ease-out) forwards;
+  }
+
+  @keyframes flash-neon {
+    0% {
+      background: rgba(0, 255, 102, 0.18);
+      border-color: var(--neon);
+    }
+    100% {
+      background: transparent;
+      border-color: var(--border);
+    }
+  }
+
+  @keyframes flash-danger {
+    0% {
+      background: rgba(255, 51, 51, 0.14);
+      border-color: var(--danger);
+    }
+    100% {
+      background: transparent;
+      border-color: var(--border);
+    }
+  }
+
+  /* -- 6. Tab pane wipe — new pane clips in left-to-right with a neon leading edge -- */
+  /* Applied automatically by TabController on .pane-active swap */
+  .pane-wipe-enter {
+    animation: pane-wipe 180ms var(--ease-out) forwards;
+  }
+
+  @keyframes pane-wipe {
+    from {
+      clip-path: inset(0 100% 0 0);
+      opacity: 0.4;
+    }
+    to {
+      clip-path: inset(0 0% 0 0);
+      opacity: 1;
+    }
+  }
+
+  /* -- 7. Card stagger entrance — JS adds .card-enter staggered per card -- */
+  .card-enter {
+    animation: card-rise 200ms var(--ease-out) both;
+  }
+
+  @keyframes card-rise {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* -- 8. Power-on boot sequence hooks -- */
+  /* .boot-draw: borders draw themselves in (used on .tele-panel during boot) */
+  .boot-draw {
+    animation: border-draw 300ms steps(12, end) both;
+  }
+
+  @keyframes border-draw {
+    from {
+      clip-path: inset(0 100% 100% 0);
+    }
+    to {
+      clip-path: inset(0 0% 0% 0);
+    }
+  }
+
+  /* .boot-fade-in: for text elements that appear after borders settle */
+  .boot-fade-in {
+    animation: boot-fade 160ms var(--ease-out) both;
+  }
+
+  @keyframes boot-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+} /* end prefers-reduced-motion: no-preference */
 
 /*-- SECTION: UTILITY CLASSES --*/
 
