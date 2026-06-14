@@ -1,53 +1,123 @@
 /* ============================================================
    APEXSTRATEGY — NAVIGATION COMPONENT
-   Implemented as a Custom Element (Web Components API, no shadow
-   DOM so shared CSS penetrates fully). Each page just drops
-   <apex-nav></apex-nav> — no copy-paste, no drift between pages.
-
-   Active page is detected from window.location.pathname
-   automatically — no per-page data attribute required.
+   Custom Element — define once, use as <apex-nav> everywhere.
+   No shadow DOM: shared style.css penetrates fully.
+   Theme (light/dark) managed here and persisted to localStorage.
    ============================================================ */
 
-//-- SECTION: NAVIGATION TEMPLATE --//
+/*-- SECTION: SVG LOGO --*/
+// Inline SVG — the "Digital Apex" mark.
+// Left leg: heavy forward-leaning parallelogram.
+// Right leg: thin explosive vector at extreme angle.
+// Trailing edge: data-matrix fragment scatter.
+// All shapes: polygon/rect, zero border-radius, zero blur.
+
+const LOGO_SVG = /* html */ `
+<svg viewBox="0 0 222 38" xmlns="http://www.w3.org/2000/svg"
+     height="34" aria-hidden="true" focusable="false"
+     style="display:block;flex-shrink:0;overflow:visible;">
+
+  <!-- Left leg: heavy, forward-leaning parallelogram -->
+  <polygon style="fill:var(--neon)" points="1,38 12,38 20,2 9,2"/>
+
+  <!-- Crossbar: tilted to match leg lean angle -->
+  <polygon style="fill:var(--neon)" points="12,25 28,25 27,20 11,20"/>
+
+  <!-- Right leg: thin, sharp, explosive angle -->
+  <polygon style="fill:var(--neon)" points="16,38 20,38 48,2 44,2"/>
+
+  <!-- Data-matrix fragments: breaking from tip of right leg -->
+  <!-- Zone 1 — closest, full opacity -->
+  <rect style="fill:var(--neon)" x="50" y="0" width="4" height="4"/>
+  <rect style="fill:var(--neon)" x="55" y="0" width="4" height="4"/>
+  <!-- Zone 2 — expanding scatter -->
+  <rect style="fill:var(--neon);opacity:.68" x="50" y="6" width="3" height="3"/>
+  <rect style="fill:var(--neon);opacity:.68" x="55" y="6" width="3" height="3"/>
+  <rect style="fill:var(--neon);opacity:.60" x="60" y="2" width="3" height="3"/>
+  <!-- Zone 3 — diffuse -->
+  <rect style="fill:var(--neon);opacity:.40" x="52" y="12" width="3" height="3"/>
+  <rect style="fill:var(--neon);opacity:.38" x="57" y="10" width="2" height="2"/>
+  <rect style="fill:var(--neon);opacity:.35" x="62" y="7"  width="3" height="3"/>
+  <rect style="fill:var(--neon);opacity:.33" x="61" y="1"  width="2" height="2"/>
+  <!-- Zone 4 — final dissolve -->
+  <rect style="fill:var(--neon);opacity:.20" x="55" y="18" width="2" height="2"/>
+  <rect style="fill:var(--neon);opacity:.18" x="60" y="16" width="2" height="2"/>
+  <rect style="fill:var(--neon);opacity:.16" x="65" y="12" width="2" height="2"/>
+  <rect style="fill:var(--neon);opacity:.14" x="64" y="5"  width="2" height="2"/>
+  <rect style="fill:var(--neon);opacity:.10" x="68" y="9"  width="1" height="1"/>
+
+  <!-- Divider: thin vertical separator between icon and wordmark -->
+  <line x1="76" y1="7" x2="76" y2="31"
+        style="stroke:var(--border)" stroke-width="1"/>
+
+  <!-- Wordmark: APEX [neon] + STRATEGY [primary text] -->
+  <text x="82" y="26"
+        style="font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:18px;letter-spacing:2.5px">
+    <tspan style="fill:var(--neon)">APEX</tspan><tspan style="fill:var(--text-primary)">STRATEGY</tspan>
+  </text>
+
+</svg>`;
+
+/*-- SECTION: NAV HTML TEMPLATE --*/
 
 const NAV_TEMPLATE = /* html */ `
 <nav class="apex-nav" role="navigation" aria-label="Main navigation">
 
   <div class="apex-nav-left">
-    <!-- Brand -->
-    <a href="index.html" class="apex-nav-brand" aria-label="ApexStrategy home">
-      <span class="brand-apex">APEX</span><span class="brand-word">STRATEGY</span>
-      <span class="brand-sep" aria-hidden="true">|</span>
-      <span class="apex-mono text-muted" style="font-size:0.65rem;letter-spacing:0.08em;">v2.4.1</span>
+    <!-- Brand: SVG logo mark -->
+    <a href="index.html" class="apex-nav-brand" aria-label="ApexStrategy — return to Command Center">
+      ${LOGO_SVG}
     </a>
 
     <!-- Live status indicator -->
     <div class="apex-nav-status" aria-label="System status: online">
       <span class="status-dot status-live" aria-hidden="true"></span>
-      <span class="apex-label" style="color:var(--neon);letter-spacing:0.12em;">SYSTEM ONLINE</span>
+      <span class="apex-label apex-nav-status-label">SYSTEM ONLINE</span>
     </div>
   </div>
 
   <div class="apex-nav-right">
-    <!-- Primary links -->
+
+    <!-- Theme toggle: light ↔ dark -->
+    <button class="apex-theme-toggle" id="themeToggle"
+            type="button"
+            aria-label="Switch to light mode"
+            aria-pressed="false"
+            title="Toggle light / dark mode">
+      <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" width="14" height="14"
+           fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z"
+              style="fill:var(--text-secondary)"/>
+      </svg>
+      <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" width="14" height="14"
+           fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:none">
+        <circle cx="8" cy="8" r="3.5" style="fill:var(--text-secondary)"/>
+        <g style="stroke:var(--text-secondary);stroke-width:1.2">
+          <line x1="8" y1="1" x2="8" y2="3"/>
+          <line x1="8" y1="13" x2="8" y2="15"/>
+          <line x1="1" y1="8" x2="3" y2="8"/>
+          <line x1="13" y1="8" x2="15" y2="8"/>
+          <line x1="3.2" y1="3.2" x2="4.6" y2="4.6"/>
+          <line x1="11.4" y1="11.4" x2="12.8" y2="12.8"/>
+          <line x1="12.8" y1="3.2" x2="11.4" y2="4.6"/>
+          <line x1="4.6" y1="11.4" x2="3.2" y2="12.8"/>
+        </g>
+      </svg>
+    </button>
+
+    <!-- Primary nav links -->
     <ul class="apex-nav-links" id="navLinks" role="list">
       <li role="listitem">
-        <a href="index.html"
-           class="apex-nav-link"
-           data-page="home"
-           aria-label="Command Center — home page">COMMAND CENTER</a>
+        <a href="index.html"    class="apex-nav-link" data-page="home"
+           aria-label="Command Center">COMMAND CENTER</a>
       </li>
       <li role="listitem">
-        <a href="workbench.html"
-           class="apex-nav-link"
-           data-page="workbench"
-           aria-label="Workbench — setup analyzer">WORKBENCH</a>
+        <a href="workbench.html" class="apex-nav-link" data-page="workbench"
+           aria-label="Workbench">WORKBENCH</a>
       </li>
       <li role="listitem">
-        <a href="handbook.html"
-           class="apex-nav-link"
-           data-page="handbook"
-           aria-label="Handbook — engineering reference">HANDBOOK</a>
+        <a href="handbook.html" class="apex-nav-link" data-page="handbook"
+           aria-label="Handbook">HANDBOOK</a>
       </li>
     </ul>
 
@@ -61,89 +131,115 @@ const NAV_TEMPLATE = /* html */ `
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
     </button>
-  </div>
 
+  </div>
 </nav>
 `;
 
-//-- SECTION: PAGE → FILE MAP --//
+/*-- SECTION: PAGE → FILE MAP --*/
 
-// Maps data-page values to filename fragments so the active link
-// is detected from window.location.pathname without any per-page attribute.
 const PAGE_MAP = {
   home: ["index.html", "/", ""],
   workbench: ["workbench.html"],
   handbook: ["handbook.html"],
 };
 
-//-- SECTION: NAVIGATIONCONTROLLER --//
+/*-- SECTION: NAVIGATIONCONTROLLER --*/
 
 class NavigationController {
-  /**
-   * @param {HTMLElement} root — the <apex-nav> custom element host,
-   *                             or document.body for manual init.
-   */
   constructor(root) {
     this._root = root;
     this._nav = root.querySelector(".apex-nav");
     this._links = root.querySelectorAll(".apex-nav-link");
     this._toggle = root.querySelector("#navToggle");
     this._linkList = root.querySelector("#navLinks");
+    this._themBtn = root.querySelector("#themeToggle");
     this._isOpen = false;
   }
 
-  //-- Active page detection --//
+  //-- Active page detection from pathname --//
   _detectActivePage() {
     const path = window.location.pathname.toLowerCase();
-    // Extract just the filename from the full path
     const file = path.split("/").pop() || "index.html";
 
     for (const [page, patterns] of Object.entries(PAGE_MAP)) {
-      if (
-        patterns.some(
-          (p) =>
-            file === p ||
-            (p === "" && file === "") ||
-            (p === "/" && file === ""),
-        )
-      ) {
+      if (patterns.some((p) => file === p || (p === "" && file === "")))
         return page;
-      }
     }
-
-    // Fallback: match by substring
     for (const [page, patterns] of Object.entries(PAGE_MAP)) {
-      if (patterns.some((p) => path.includes(p.replace(".html", "")))) {
+      if (patterns.some((p) => p && path.includes(p.replace(".html", ""))))
         return page;
-      }
     }
-
-    return "home"; // safe default
+    return "home";
   }
 
-  //-- Apply active class to matching link --//
+  //-- Mark the matching link as active --//
   _setActiveLink() {
-    const activePage = this._detectActivePage();
-
+    const active = this._detectActivePage();
     this._links.forEach((link) => {
-      const isActive = link.dataset.page === activePage;
-      link.classList.toggle("active", isActive);
-      link.setAttribute("aria-current", isActive ? "page" : "false");
+      const is = link.dataset.page === active;
+      link.classList.toggle("active", is);
+      link.setAttribute("aria-current", is ? "page" : "false");
     });
   }
 
-  //-- Mobile menu: open --//
+  //-- Theme: read saved preference, apply to <html> --//
+  _initTheme() {
+    const saved = localStorage.getItem("apexTheme") ?? "dark";
+    this._applyTheme(saved, false);
+  }
+
+  //-- Apply a theme — write attr on <html>, persist, update button --//
+  _applyTheme(theme, animate = true) {
+    const html = document.documentElement;
+    if (theme === "light") {
+      html.setAttribute("data-theme", "light");
+    } else {
+      html.removeAttribute("data-theme");
+    }
+    localStorage.setItem("apexTheme", theme);
+    this._syncThemeButton(theme);
+
+    // Brief flash class for smooth repaint (optional, no-op under reduced motion)
+    if (animate) {
+      html.classList.add("theme-switching");
+      setTimeout(() => html.classList.remove("theme-switching"), 220);
+    }
+  }
+
+  //-- Update toggle button icons and aria state --//
+  _syncThemeButton(theme) {
+    const btn = this._themBtn;
+    if (!btn) return;
+    const moon = btn.querySelector(".theme-icon-moon");
+    const sun = btn.querySelector(".theme-icon-sun");
+    const isLight = theme === "light";
+
+    btn.setAttribute("aria-pressed", isLight ? "true" : "false");
+    btn.setAttribute(
+      "aria-label",
+      isLight ? "Switch to dark mode" : "Switch to light mode",
+    );
+    if (moon) moon.style.display = isLight ? "none" : "block";
+    if (sun) sun.style.display = isLight ? "block" : "none";
+  }
+
+  _toggleTheme() {
+    const current =
+      document.documentElement.getAttribute("data-theme") ?? "dark";
+    this._applyTheme(current === "light" ? "dark" : "light");
+  }
+
+  //-- Mobile: open --//
   _openMenu() {
     this._isOpen = true;
     this._linkList.classList.add("nav-open");
     this._nav.classList.add("nav-open");
     this._toggle.setAttribute("aria-expanded", "true");
-    // Focus first link for keyboard nav
-    const firstLink = this._linkList.querySelector(".apex-nav-link");
-    if (firstLink) firstLink.focus();
+    this._linkList.querySelector(".apex-nav-link")?.focus();
   }
 
-  //-- Mobile menu: close --//
+  //-- Mobile: close --//
   _closeMenu() {
     this._isOpen = false;
     this._linkList.classList.remove("nav-open");
@@ -151,35 +247,30 @@ class NavigationController {
     this._toggle.setAttribute("aria-expanded", "false");
   }
 
-  //-- Toggle mobile menu --//
   _toggleMenu() {
     this._isOpen ? this._closeMenu() : this._openMenu();
   }
 
-  //-- Wire up all event listeners --//
+  //-- Bind all events --//
   _bindEvents() {
-    // Hamburger click
     this._toggle?.addEventListener("click", (e) => {
       e.stopPropagation();
       this._toggleMenu();
     });
 
-    // Outside click closes the menu
+    this._themBtn?.addEventListener("click", () => this._toggleTheme());
+
     document.addEventListener("click", (e) => {
-      if (this._isOpen && !this._nav.contains(e.target)) {
-        this._closeMenu();
-      }
+      if (this._isOpen && !this._nav.contains(e.target)) this._closeMenu();
     });
 
-    // Escape key closes the menu
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && this._isOpen) {
         this._closeMenu();
-        this._toggle?.focus(); // return focus to trigger
+        this._toggle?.focus();
       }
     });
 
-    // Close on link click (mobile — the page navigates but state feels clean)
     this._links.forEach((link) => {
       link.addEventListener("click", () => {
         if (this._isOpen) this._closeMenu();
@@ -187,101 +278,114 @@ class NavigationController {
     });
   }
 
-  //-- Public init --//
   init() {
+    this._initTheme();
     this._setActiveLink();
     this._bindEvents();
   }
 }
 
-//-- SECTION: CUSTOM ELEMENT DEFINITION --//
+/*-- SECTION: CUSTOM ELEMENT --*/
 
-/**
- * <apex-nav> — drop this tag anywhere and you get the full nav.
- *
- * Usage on every page (no other attributes needed):
- *   <apex-nav></apex-nav>
- *
- * No shadow DOM: inherits the shared style.css fully.
- * Active page auto-detected from window.location.pathname.
- */
 class ApexNavElement extends HTMLElement {
   connectedCallback() {
-    // Render HTML into the host element
     this.innerHTML = NAV_TEMPLATE;
-
-    // Wire up behaviour
     this._controller = new NavigationController(this);
     this._controller.init();
   }
-
-  disconnectedCallback() {
-    // Nothing to tear down — event listeners on document
-    // are acceptable here since there is exactly one <apex-nav> per page.
-  }
 }
 
-// Register the custom element
 customElements.define("apex-nav", ApexNavElement);
 
-//-- SECTION: ADDITIONAL NAV CSS (injected once) --//
-// These styles can't live in style.css cleanly because they need to target
-// the flex layout split (.apex-nav-left / .apex-nav-right) that only the
-// component knows about. Injected once, idempotent.
+/*-- SECTION: INJECTED NAV STYLES --*/
 
 (function injectNavStyles() {
   if (document.getElementById("apex-nav-styles")) return;
-
   const style = document.createElement("style");
   style.id = "apex-nav-styles";
   style.textContent = `
-    apex-nav {
-      display: block;
-    }
+    apex-nav { display: block; }
 
     .apex-nav-left {
       display:     flex;
       align-items: center;
-      gap:         20px;
+      gap:         16px;
+    }
+
+    .apex-nav-brand {
+      display:     flex;
+      align-items: center;
+      line-height: 1;
     }
 
     .apex-nav-status {
       display:     flex;
       align-items: center;
-      padding:     0 12px;
+      padding:     0 14px;
       border-left: 1px solid var(--border);
       height:      28px;
-      gap:         0;
     }
 
-    /* Brand word in primary text, apex part is already .text-neon via span */
-    .brand-word {
-      color: var(--text-primary);
+    .apex-nav-status-label {
+      color:          var(--neon);
+      letter-spacing: 0.12em;
+      font-size:      0.65rem;
     }
 
-    /* Keyboard shortcut hint strip — shown when user hits / or ? */
+    /* Theme toggle button */
+    .apex-theme-toggle {
+      display:        flex;
+      align-items:    center;
+      justify-content:center;
+      width:          30px;
+      height:         30px;
+      border:         1px solid var(--border);
+      background:     transparent;
+      cursor:         pointer;
+      transition:     border-color 120ms, opacity 120ms;
+      flex-shrink:    0;
+    }
+    .apex-theme-toggle:hover {
+      border-color: var(--neon);
+    }
+    .apex-theme-toggle:hover svg path,
+    .apex-theme-toggle:hover svg circle,
+    .apex-theme-toggle:hover svg line,
+    .apex-theme-toggle:hover svg g {
+      fill:   var(--neon) !important;
+      stroke: var(--neon) !important;
+    }
+    .apex-theme-toggle:active { opacity: 0.7; }
+
+    /* Mobile logo: hide wordmark on very small screens */
+    @media (max-width: 380px) {
+      .apex-nav-brand svg { width: 46px; overflow: hidden; }
+    }
+
+    /* Status indicator hidden on very narrow screens */
+    @media (max-width: 480px) {
+      .apex-nav-status { display: none; }
+    }
+
+    /* Keyboard shortcuts hint */
     .apex-keyhints {
-      display:         none;
-      position:        fixed;
-      bottom:          16px;
-      left:            50%;
-      transform:       translateX(-50%);
-      background:      var(--bg-panel);
-      border:          1px solid var(--border);
-      padding:         6px 16px;
-      font-family:     var(--font-mono);
-      font-size:       0.65rem;
-      color:           var(--text-muted);
-      letter-spacing:  0.1em;
-      z-index:         2000;
-      white-space:     nowrap;
-      pointer-events:  none;
+      display:        none;
+      position:       fixed;
+      bottom:         16px;
+      left:           50%;
+      transform:      translateX(-50%);
+      background:     var(--bg-panel);
+      border:         1px solid var(--border);
+      padding:        6px 16px;
+      font-family:    var(--font-mono);
+      font-size:      0.65rem;
+      color:          var(--text-muted);
+      letter-spacing: 0.1em;
+      z-index:        2000;
+      white-space:    nowrap;
+      pointer-events: none;
     }
-
-    .apex-keyhints.visible {
-      display: block;
-    }
-
+    .apex-keyhints.visible { display: block; }
     .apex-keyhints kbd {
       color:       var(--text-secondary);
       margin:      0 4px;
@@ -290,14 +394,16 @@ customElements.define("apex-nav", ApexNavElement);
       font-family: var(--font-mono);
       font-size:   0.6rem;
     }
-  `;
 
+    /* Theme switch transition — CSS vars can't animate, but we can fade the page slightly */
+    html.theme-switching * {
+      transition: background-color 180ms ease-out, border-color 140ms ease-out, color 100ms ease-out !important;
+    }
+  `;
   document.head.appendChild(style);
 })();
 
-//-- SECTION: GLOBAL KEYBOARD SHORTCUTS --//
-// Documented in §5 of brief: / focuses search, R refetches, Escape clears.
-// Lives here because it's navigation-layer UX, not page-specific logic.
+/*-- SECTION: KEYBOARD SHORTCUTS --*/
 
 class KeyboardShortcutController {
   constructor() {
@@ -310,20 +416,19 @@ class KeyboardShortcutController {
       this._hintEl = document.createElement("div");
       this._hintEl.className = "apex-keyhints";
       this._hintEl.setAttribute("aria-hidden", "true");
-      this._hintEl.innerHTML = `<kbd>/</kbd> SEARCH &nbsp;|&nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> TABS &nbsp;|&nbsp; <kbd>R</kbd> REFRESH &nbsp;|&nbsp; <kbd>ESC</kbd> CLOSE`;
+      this._hintEl.innerHTML = `<kbd>/</kbd> SEARCH &nbsp;|&nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> TABS &nbsp;|&nbsp; <kbd>R</kbd> REFRESH &nbsp;|&nbsp; <kbd>?</kbd> THIS PANEL`;
       document.body.appendChild(this._hintEl);
     }
     this._hintEl.classList.add("visible");
     clearTimeout(this._hintTimer);
     this._hintTimer = setTimeout(
       () => this._hintEl?.classList.remove("visible"),
-      2400,
+      2800,
     );
   }
 
   init() {
     document.addEventListener("keydown", (e) => {
-      // Don't intercept when user is typing in an input
       const tag = document.activeElement?.tagName.toLowerCase();
       const isInput = tag === "input" || tag === "textarea" || tag === "select";
 
@@ -331,48 +436,38 @@ class KeyboardShortcutController {
         this._showHint();
         return;
       }
-
       if (isInput) return;
 
       switch (e.key) {
-        case "/": {
+        case "/":
           e.preventDefault();
-          const search = document.querySelector(".apex-search-bar");
-          if (search) {
-            search.focus();
-            search.select();
+          const s = document.querySelector(".apex-search-bar");
+          if (s) {
+            s.focus();
+            s.select();
           }
           break;
-        }
         case "r":
-        case "R": {
-          // Pages that want R-to-refresh expose window.__apexRefetch
-          if (typeof window.__apexRefetch === "function") {
+        case "R":
+          if (typeof window.__apexRefetch === "function")
             window.__apexRefetch();
-          }
           break;
-        }
         case "1":
         case "2":
-        case "3": {
-          // Pages that want number-key tab switching expose window.__apexSwitchTab
-          if (typeof window.__apexSwitchTab === "function") {
+        case "3":
+          if (typeof window.__apexSwitchTab === "function")
             window.__apexSwitchTab(parseInt(e.key, 10) - 1);
-          }
           break;
-        }
       }
     });
   }
 }
 
-//-- SECTION: BOOT + EXPORT --//
+/*-- SECTION: INIT + EXPORTS --*/
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Keyboard shortcuts — available on all pages
   new KeyboardShortcutController().init();
 });
 
-// Export classes so other scripts can extend if needed
 window.NavigationController = NavigationController;
 window.KeyboardShortcutController = KeyboardShortcutController;

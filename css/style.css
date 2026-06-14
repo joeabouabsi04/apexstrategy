@@ -17,7 +17,7 @@
   --bg-panel-alt: #1a1e26;
 
   /* -- Borders -- */
-  --border: #353f52;
+  --border: #252b36;
   --border-active: #00ff66;
 
   /* -- Text -- */
@@ -2079,4 +2079,85 @@ pre {
   outline: 1px solid var(--neon);
   outline-offset: -1px;
   box-shadow: none;
+}
+
+/*-- SECTION: LIGHT MODE THEME --*/
+/*
+   Light mode uses HSL-inverted luminance of the dark palette while
+   keeping the same cool blue-gray hue temperature. Everything still
+   reads as the same family — same instrument, different lighting.
+
+   Applied by setting data-theme="light" on <html>.
+   NavigationController writes this attribute and persists to localStorage.
+*/
+
+[data-theme="light"] {
+  --bg-primary: #ececf5; /* H220 S18 L93 — cool light blue-gray page  */
+  --bg-panel: #e4e7f2; /* H220 S19 L91 — panel surface              */
+  --bg-panel-alt: #dbdfe9; /* H220 S18 L88 — alt panel, slightly darker  */
+  --border: #c4c9d8; /* H220 S18 L81 — visible but not harsh       */
+  --border-active: #007a2a; /* darkened neon for light-bg contrast         */
+
+  --text-primary: #0c111a; /* H220 S30 L8  — near-black, blue-cast       */
+  --text-secondary: #283249; /* H220 S30 L22 — dark slate                  */
+  --text-muted: #5a6480; /* H220 S18 L43 — medium slate                */
+
+  --neon: #007a2a; /* legible dark green on light backgrounds     */
+  --danger: #c01010; /* dark red — same hue, reduced luminance      */
+  --warning: #9a5e00; /* dark amber                                  */
+
+  /* accent colours for circuit type badges */
+  --accent-technical: #007a2a;
+  --accent-highspeed: #9a5e00;
+  --accent-street: #4444cc;
+}
+
+/* Custom select arrow: re-encode chevron in light-mode neon */
+[data-theme="light"] .apex-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23007a2a'/%3E%3C/svg%3E");
+}
+
+/* Scrollbar: lighten for light mode */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+/* Selection highlight: keep neon but darker */
+[data-theme="light"] ::selection {
+  background: var(--neon);
+  color: #ffffff;
+}
+
+/* Spinner: override so it stays visible on light bg */
+[data-theme="light"] .apex-spinner {
+  border-color: var(--neon);
+  border-top-color: transparent;
+}
+
+/* Square live-dot ring: light mode needs same neon override */
+[data-theme="light"] .status-live::after {
+  border-color: var(--neon);
+}
+
+/* Skeleton lines: flat bg slightly darker in light mode */
+[data-theme="light"] .skeleton-line {
+  background: var(--bg-panel-alt);
+}
+
+/* Hero scanline: subtler on light bg */
+[data-theme="light"] .hero-scanline {
+  opacity: 0.04;
+}
+
+/* Recommendation block accent lines adapt via CSS vars automatically. */
+/* Circuit type badges: already use --accent-* vars, update via above. */
+
+/* Bootstrap overrides for light mode — kill its white bg assumptions */
+[data-theme="light"] .container,
+[data-theme="light"] .container-fluid {
+  --bs-body-bg: var(--bg-primary);
+  --bs-body-color: var(--text-primary);
 }

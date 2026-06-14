@@ -112,17 +112,16 @@
         letter-spacing: 0.1em;
       }
 
-      /* Grid seam: container provides top + left edges;
-       each card provides bottom + right — zero double-borders.  */
+      /* Grid: g-2 gives 8px gutter so cards breathe individually */
       #circuitList {
-        border-top: 1px solid var(--border);
-        border-left: 1px solid var(--border);
+        border: none; /* no collapse trick needed with gutters */
+        padding: 6px; /* slight outer buffer so edge cards don't clip */
       }
 
       #circuitList .circuit-card {
-        border-bottom: 1px solid var(--border);
-        border-right: 1px solid var(--border);
-        height: 100%; /* fill the col div fully */
+        border: 1px solid var(--border); /* standalone border per card */
+        background: var(--bg-panel-alt); /* #1a1e26 — lifts card off page bg */
+        height: 100%;
       }
 
       /* Card type row: badge + dimensions on same line */
@@ -320,10 +319,11 @@
        ═══════════════════════════════════════════════════ -->
     <main
       id="circuitGrid"
-      class="container-fluid p-0"
+      class="container-fluid"
+      style="padding: 6px"
       aria-label="Circuit list"
     >
-      <div class="row g-0" id="circuitList" role="list">
+      <div class="row g-2" id="circuitList" role="list">
         <!-- Populated by HomeController.renderCircuits() -->
       </div>
     </main>
@@ -343,13 +343,15 @@
       <span class="apex-label">
         APEXSTRATEGY
         <span style="color: var(--border)" aria-hidden="true">//</span>
-        2026
+        FULL-STACK PROJECT 2026
       </span>
       <span
         class="apex-mono text-muted"
         style="font-size: 0.68rem; letter-spacing: 0.04em"
       >
         WEATHER: OPENWEATHERMAP API
+        <span style="color: var(--border)" aria-hidden="true">//</span>
+        CIRCUITS: HAND-CURATED
       </span>
     </footer>
 
