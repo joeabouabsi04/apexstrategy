@@ -590,35 +590,73 @@ pre {
 
 /* -- Individual circuit card -- */
 .circuit-card {
-  background: var(--bg-panel);
-  border: 0; /* border handled by grid gap technique above */
+  background: var(--bg-panel); /* #13161c — distinct from page bg #0b0d11 */
+  border: 1px solid var(--border);
   padding: 0;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
-  transition: background var(--t-mid) var(--ease-out);
-  /* Kowalski: no scale(0) — motion from near-state */
-  transform: translateZ(0); /* GPU layer promotion */
+  overflow: hidden; /* back to hidden — brackets clip cleanly at edge */
+  transition:
+    border-color 120ms var(--ease-out),
+    background 120ms var(--ease-out);
+  transform: translateZ(0);
 }
 
-/* -- Hover: full neon border signal -- */
+/* -- Hover: border snaps to neon, background lifts to panel-alt -- */
+.circuit-card:hover {
+  border-color: var(--neon);
+  background: var(--bg-panel-alt); /* #1a1e26 — visible step up from panel */
+}
+
+/* -- Corner bracket pair: ::before = top-left, ::after = bottom-right --
+   These are the visual "arming" signal. Both start invisible and snap
+   into place on hover — 120ms, no easing delay, hardware feel.         */
+.circuit-card::before,
 .circuit-card::after {
   content: "";
   position: absolute;
-  inset: 0;
-  border: 1px solid var(--neon);
+  width: 10px;
+  height: 10px;
   opacity: 0;
-  transition: opacity var(--t-mid) var(--ease-out);
+  transition: opacity 120ms var(--ease-out);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
+.circuit-card::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--neon);
+  border-left: 2px solid var(--neon);
+}
+
+.circuit-card::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--neon);
+  border-right: 2px solid var(--neon);
+}
+
+.circuit-card:hover::before,
 .circuit-card:hover::after {
   opacity: 1;
 }
 
-.circuit-card:hover {
+/* -- Circuit name lights neon on card hover -- */
+.circuit-card:hover .circuit-card-name {
+  color: var(--neon);
+  transition: color 120ms var(--ease-out);
+}
+
+/* -- Link arrow nudges right on hover — mechanical "arm" feel -- */
+.circuit-card:hover .circuit-card-link {
+  color: var(--neon);
   background: var(--bg-panel-alt);
+  padding-right: 12px; /* nudges the text without layout shift */
+  transition:
+    color 120ms var(--ease-out),
+    padding-right 120ms var(--ease-out),
+    background 120ms var(--ease-out);
 }
 
 /* -- Card active press: Kowalski physical feedback -- */
@@ -709,6 +747,10 @@ pre {
 }
 
 /* -- Card footer: "View Analysis →" action row -- */
+/* -- Card footer link: "LOAD WORKBENCH →"
+   Uses CSS stretched-link pattern — ::before covers the entire card,
+   making it clickable as a semantic <a> without JavaScript.
+   position: static (not relative) so ::before is contained by .circuit-card.  -- */
 .circuit-card-link {
   display: block;
   padding: 10px 16px;
@@ -721,11 +763,18 @@ pre {
   color: var(--text-muted);
   text-align: right;
   text-decoration: none;
+  position: static; /* DO NOT set relative — ::before must anchor to .circuit-card */
   transition:
     color var(--t-fast) var(--ease-out),
     background var(--t-fast) var(--ease-out);
-  position: relative;
-  z-index: 2;
+}
+
+/* Stretched overlay — covers the entire .circuit-card (nearest position:relative ancestor) */
+.circuit-card-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* sits above card content, below decorative ::after brackets */
 }
 
 .circuit-card:hover .circuit-card-link,

@@ -114,13 +114,15 @@
 
       /* Grid: g-2 gives 8px gutter so cards breathe individually */
       #circuitList {
-        border: none; /* no collapse trick needed with gutters */
-        padding: 6px; /* slight outer buffer so edge cards don't clip */
+        border: none;
+        padding: 6px;
       }
 
       #circuitList .circuit-card {
-        border: 1px solid var(--border); /* standalone border per card */
-        background: var(--bg-panel-alt); /* #1a1e26 — lifts card off page bg */
+        border: 1px solid var(--border);
+        background: var(
+          --bg-panel
+        ); /* #13161c — lift from page #0b0d11; hover goes to panel-alt */
         height: 100%;
       }
 

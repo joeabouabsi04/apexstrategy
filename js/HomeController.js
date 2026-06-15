@@ -63,15 +63,9 @@ class HomeController {
     this._typeEl?.addEventListener("change", () => this.filterAndRender());
     this._regionEl?.addEventListener("change", () => this.filterAndRender());
 
-    // Card click delegation — whole card navigates to workbench,
-    // except when clicking the explicit link (let it handle itself).
-    this._listEl?.addEventListener("click", (e) => {
-      if (e.target.closest(".circuit-card-link")) return;
-      const card = e.target.closest(".circuit-card");
-      if (card?.dataset.id) {
-        window.location.href = `workbench.html?circuit=${card.dataset.id}`;
-      }
-    });
+    // Full-card navigation is handled by the CSS stretched-link on .circuit-card-link:
+    // its ::before covers the card via position:absolute on .circuit-card (position:relative).
+    // No JS delegation required.
   }
 
   //-- Debounce helper: returns a wrapper that delays fn by `delay` ms --//
@@ -132,7 +126,7 @@ class HomeController {
 
     return /* html */ `
       <article
-        class="circuit-card bracket-corners-hover"
+
         data-id="${circuit.id}"
         data-type="${circuit.type}"
         data-region="${circuit.region}"

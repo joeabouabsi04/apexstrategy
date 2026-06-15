@@ -11,7 +11,7 @@
 /*-- SECTION: API CONFIGURATION --*/
 
 // Swap this string before submission — keep it out of any public repo.
-const API_KEY = "YOUR_API_KEY_HERE";
+const API_KEY = "12dd9d42affba8496f084686e769dc9d";
 
 /*-- SECTION: COMPASS TABLES --*/
 
