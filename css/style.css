@@ -1192,7 +1192,9 @@ pre {
 }
 
 .rec-block:hover {
-  background: rgba(26, 30, 38, 0.8);
+  background: var(
+    --bg-panel
+  ); /* was rgba(26,30,38,.8) — hardcoded dark, broken in light mode */
 }
 
 /* -- Warning level: amber border signal -- */
@@ -2141,19 +2143,19 @@ pre {
 */
 
 [data-theme="light"] {
-  --bg-primary: #ececf5; /* H220 S18 L93 — cool light blue-gray page  */
-  --bg-panel: #e4e7f2; /* H220 S19 L91 — panel surface              */
-  --bg-panel-alt: #dbdfe9; /* H220 S18 L88 — alt panel, slightly darker  */
-  --border: #c4c9d8; /* H220 S18 L81 — visible but not harsh       */
-  --border-active: #007a2a; /* darkened neon for light-bg contrast         */
+  --bg-primary: #eceef5; /* cool light blue-gray page bg                */
+  --bg-panel: #dde1ee; /* panel surface — noticeably darker than page  */
+  --bg-panel-alt: #d0d5e4; /* alt panel — another clear step down          */
+  --border: #9ba8be; /* stronger border — readable against all panel bg */
+  --border-active: #007a2a; /* darkened neon for light-bg contrast          */
 
-  --text-primary: #0c111a; /* H220 S30 L8  — near-black, blue-cast       */
-  --text-secondary: #283249; /* H220 S30 L22 — dark slate                  */
-  --text-muted: #5a6480; /* H220 S18 L43 — medium slate                */
+  --text-primary: #0c111a; /* near-black, blue-cast                        */
+  --text-secondary: #283249; /* dark slate                                   */
+  --text-muted: #5a6480; /* medium slate                                 */
 
-  --neon: #007a2a; /* legible dark green on light backgrounds     */
-  --danger: #c01010; /* dark red — same hue, reduced luminance      */
-  --warning: #9a5e00; /* dark amber                                  */
+  --neon: #007a2a; /* legible dark green on light backgrounds      */
+  --danger: #c01010; /* dark red                                     */
+  --warning: #9a5e00; /* dark amber                                   */
 
   /* accent colours for circuit type badges */
   --accent-technical: #007a2a;
@@ -2209,4 +2211,129 @@ pre {
 [data-theme="light"] .container-fluid {
   --bs-body-bg: var(--bg-primary);
   --bs-body-color: var(--text-primary);
+}
+
+/*-- SECTION: TASK 10 — POLISH & RESPONSIVE ADDITIONS --*/
+
+/* ── Page header ───────────────────────────────────────────── */
+.page-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-header h1 {
+  font-size: 1.4rem;
+  margin: 4px 0;
+}
+
+/* ── Search bar strip ──────────────────────────────────────── */
+.search-bar-strip {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+/* ── Card entrance animation ───────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .circuit-card {
+    animation: fadeSlideIn 0.2s var(--ease-out) both;
+  }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger first 8 visible cards */
+  .col-12:nth-child(1) .circuit-card {
+    animation-delay: 0.02s;
+  }
+  .col-12:nth-child(2) .circuit-card {
+    animation-delay: 0.04s;
+  }
+  .col-12:nth-child(3) .circuit-card {
+    animation-delay: 0.06s;
+  }
+  .col-12:nth-child(4) .circuit-card {
+    animation-delay: 0.08s;
+  }
+  .col-12:nth-child(5) .circuit-card {
+    animation-delay: 0.1s;
+  }
+  .col-12:nth-child(6) .circuit-card {
+    animation-delay: 0.12s;
+  }
+  .col-12:nth-child(7) .circuit-card {
+    animation-delay: 0.14s;
+  }
+  .col-12:nth-child(8) .circuit-card {
+    animation-delay: 0.16s;
+  }
+}
+
+/* ── Workbench responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 12px 16px;
+  }
+  .page-header h1 {
+    font-size: 1.1rem;
+  }
+  .search-bar-strip {
+    padding: 10px 12px;
+  }
+  .workbench-nav {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .data-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .wb-split-left {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 480px) {
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+  .apex-readout {
+    font-size: 1.4rem;
+  }
+}
+
+/* ── Handbook responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .handbook-entry {
+    padding: 12px 0;
+  }
+}
+
+/* ── Print ─────────────────────────────────────────────────── */
+@media print {
+  .apex-nav,
+  .workbench-nav,
+  .apex-footer {
+    display: none;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  .tele-panel {
+    border: 1px solid #ccc;
+  }
 }

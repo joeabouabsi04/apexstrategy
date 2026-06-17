@@ -1,11 +1,16 @@
 /* ============================================================
-   APEXSTRATEGY — HOME CONTROLLER
-   Drives the Command Center circuit grid: rendering, filtering,
-   search debounce, and staggered entrance animation.
-   Depends on: window.CIRCUITS (circuits.js), window.ApexAnim (main.js)
+   APEXSTRATEGY — HOME CONTROLLER  (ES6 module)
    ============================================================ */
 
-/*-- SECTION: TYPE → CSS CLASS MAP --*/
+import {
+  CIRCUITS,
+  searchCircuits,
+  filterCircuitsByType,
+  filterCircuitsByRegion,
+} from "./circuits.js";
+import { animateValue } from "./anim.js";
+
+/*-- SECTION: LOOKUP --*/
 
 const TYPE_CLASS_MAP = {
   Technical: "type-technical",
@@ -14,7 +19,6 @@ const TYPE_CLASS_MAP = {
   Hybrid: "type-hybrid",
 };
 
-// Demand levels that warrant the .optimal / .warning style on apex-value
 const DEMAND_STATE = {
   Low: "optimal",
   Medium: "",
@@ -23,11 +27,11 @@ const DEMAND_STATE = {
   "Very High": "critical",
 };
 
-/*-- SECTION: HOMECONTROLLER CLASS --*/
+/*-- SECTION: CLASS --*/
 
-class HomeController {
+export class HomeController {
   constructor() {
-    this._circuits = window.CIRCUITS ?? [];
+    this._circuits = CIRCUITS;
     this._searchEl = document.getElementById("circuitSearch");
     this._typeEl = document.getElementById("typeFilter");
     this._regionEl = document.getElementById("regionFilter");
@@ -35,57 +39,44 @@ class HomeController {
     this._counterEl = document.getElementById("resultsCounter");
     this._emptyEl = document.getElementById("emptyState");
     this._badgeEl = document.getElementById("totalCount");
-
     this._init();
   }
 
-  //-- Wire everything up on construction --//
   _init() {
     this._bindEvents();
     this.renderCircuits(this._circuits);
     this._animateTotalBadge();
   }
 
-  //-- Count-up on the big "20" circuit badge (boot delight) --//
   _animateTotalBadge() {
-    if (!this._badgeEl || !window.ApexAnim) return;
-    window.ApexAnim.animateValue(this._badgeEl, this._circuits.length, {
+    if (!this._badgeEl) return;
+    animateValue(this._badgeEl, this._circuits.length, {
       duration: 800,
       decimals: 0,
     });
   }
 
-  //-- Event bindings: debounced search, immediate filter selects, card click delegation --//
   _bindEvents() {
-    const debouncedFilter = this.debounce(() => this.filterAndRender(), 250);
-
-    this._searchEl?.addEventListener("input", debouncedFilter);
+    const debounced = this.debounce(() => this.filterAndRender(), 250);
+    this._searchEl?.addEventListener("input", debounced);
     this._typeEl?.addEventListener("change", () => this.filterAndRender());
     this._regionEl?.addEventListener("change", () => this.filterAndRender());
-
-    // Full-card navigation is handled by the CSS stretched-link on .circuit-card-link:
-    // its ::before covers the card via position:absolute on .circuit-card (position:relative).
-    // No JS delegation required.
+    // Full-card navigation handled by CSS stretched-link on .circuit-card-link
   }
 
-  //-- Debounce helper: returns a wrapper that delays fn by `delay` ms --//
   debounce(fn, delay) {
-    let timer;
+    let t;
     return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), delay);
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), delay);
     };
   }
 
-  //-- Chain all three active filters against the full CIRCUITS array --//
   filterAndRender() {
     const query = this._searchEl?.value.trim() ?? "";
     const type = this._typeEl?.value ?? "all";
     const region = this._regionEl?.value ?? "all";
-
     let results = this._circuits;
-
-    // 1. Free-text search across key string fields
     if (query) {
       const q = query.toLowerCase();
       results = results.filter(
@@ -98,41 +89,21 @@ class HomeController {
           c.type.toLowerCase().includes(q),
       );
     }
-
-    // 2. Exact-match circuit type
-    if (type !== "all") {
-      results = results.filter((c) => c.type === type);
-    }
-
-    // 3. Exact-match region
-    if (region !== "all") {
-      results = results.filter((c) => c.region === region);
-    }
-
+    if (type !== "all") results = results.filter((c) => c.type === type);
+    if (region !== "all") results = results.filter((c) => c.region === region);
     this.renderCircuits(results);
   }
 
-  //-- Build individual card HTML string --//
   _buildCardHTML(circuit) {
     const typeClass = TYPE_CLASS_MAP[circuit.type] ?? "type-hybrid";
-
-    // Strip hyphen for display, upper-case for brand consistency
-    const typeLabel = circuit.type.toUpperCase().replace(/-/g, "\u2011"); // non-breaking hyphen
-
-    // Downforce gets a colour state — it's the key setup signal
+    const typeLabel = circuit.type.toUpperCase().replace(/-/g, "\u2011");
     const dfState = DEMAND_STATE[circuit.baseDownforce] ?? "";
     const tyrState = DEMAND_STATE[circuit.tyreWear] ?? "";
     const brkState = DEMAND_STATE[circuit.brakingDemand] ?? "";
-
     return /* html */ `
-      <article
-
-        data-id="${circuit.id}"
-        data-type="${circuit.type}"
-        data-region="${circuit.region}"
-        role="article"
-        aria-label="${circuit.name} — ${circuit.country}. Type: ${circuit.type}.">
-
+      <article class="circuit-card" data-id="${circuit.id}" data-type="${circuit.type}"
+               data-region="${circuit.region}" role="article"
+               aria-label="${circuit.name} — ${circuit.country}">
         <div class="circuit-card-header">
           <div>
             <div class="circuit-card-name">${circuit.shortName.toUpperCase()}</div>
@@ -140,80 +111,41 @@ class HomeController {
           </div>
           <span class="circuit-card-flag" role="img" aria-label="${circuit.country} flag">${circuit.flag}</span>
         </div>
-
         <div class="circuit-card-body">
           <div class="card-type-row">
-            <span class="circuit-card-type ${typeClass}" aria-label="Circuit type: ${circuit.type}">${typeLabel}</span>
+            <span class="circuit-card-type ${typeClass}">${typeLabel}</span>
             <span class="apex-label card-dims">${circuit.length}&nbsp;KM&nbsp;·&nbsp;${circuit.turns}&nbsp;TURNS</span>
           </div>
-
           <div class="circuit-card-meta">
-            <div class="circuit-card-stat">
-              <span class="apex-label">DOWNFORCE</span>
-              <span class="apex-value ${dfState}">${circuit.baseDownforce.toUpperCase()}</span>
-            </div>
-            <div class="circuit-card-stat">
-              <span class="apex-label">TYRE WEAR</span>
-              <span class="apex-value ${tyrState}">${circuit.tyreWear.toUpperCase()}</span>
-            </div>
-            <div class="circuit-card-stat">
-              <span class="apex-label">BRAKING</span>
-              <span class="apex-value ${brkState}">${circuit.brakingDemand.toUpperCase()}</span>
-            </div>
+            <div class="circuit-card-stat"><span class="apex-label">DOWNFORCE</span><span class="apex-value ${dfState}">${circuit.baseDownforce.toUpperCase()}</span></div>
+            <div class="circuit-card-stat"><span class="apex-label">TYRE WEAR</span><span class="apex-value ${tyrState}">${circuit.tyreWear.toUpperCase()}</span></div>
+            <div class="circuit-card-stat"><span class="apex-label">BRAKING</span><span class="apex-value ${brkState}">${circuit.brakingDemand.toUpperCase()}</span></div>
           </div>
         </div>
-
-        <a href="workbench.html?circuit=${circuit.id}"
-           class="circuit-card-link"
-           aria-label="Open ${circuit.shortName} in the Workbench">
-          LOAD WORKBENCH&nbsp;→
-        </a>
-      </article>
-    `;
+        <a href="workbench.html?circuit=${circuit.id}" class="circuit-card-link"
+           aria-label="Open ${circuit.shortName} in Workbench">LOAD WORKBENCH&nbsp;→</a>
+      </article>`;
   }
 
-  //-- Render an array of circuits to the grid with staggered entrance --//
   renderCircuits(circuits) {
     if (!this._listEl) return;
-
     this._updateCounter(circuits.length);
-
-    const isEmpty = circuits.length === 0;
+    const isEmpty = !circuits.length;
     this._emptyEl?.classList.toggle("hidden", !isEmpty);
-
     if (isEmpty) {
       this._listEl.innerHTML = "";
       return;
     }
-
-    // Build all column wrappers + card HTML in one string pass
-    const html = circuits
-      .map((circuit, i) => {
-        // Cap stagger at 200ms so the grid is fully in by ~400ms
-        const delay = Math.min(i * 22, 200);
-        return /* html */ `
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 card-enter"
-               style="animation-delay:${delay}ms"
-               data-circuit-col="${circuit.id}">
-            ${this._buildCardHTML(circuit)}
-          </div>`;
-      })
+    this._listEl.innerHTML = circuits
+      .map(
+        (c, i) =>
+          `<div class="col-12 col-sm-6 col-lg-4 col-xl-3 card-enter" style="animation-delay:${Math.min(i * 22, 200)}ms">${this._buildCardHTML(c)}</div>`,
+      )
       .join("");
-
-    this._listEl.innerHTML = html;
   }
 
-  //-- Update the "SHOWING X OF Y CIRCUITS" counter line --//
   _updateCounter(shown) {
-    if (!this._counterEl) return;
-    const total = this._circuits.length;
-    const state = shown === 0 ? "—" : `${shown}`;
-    this._counterEl.textContent = `SHOWING ${state} OF ${total} CIRCUITS`;
+    if (this._counterEl)
+      this._counterEl.textContent = `SHOWING ${shown || "—"} OF ${this._circuits.length} CIRCUITS`;
   }
 }
-
-/*-- SECTION: INIT --*/
-
-document.addEventListener("DOMContentLoaded", () => {
-  new HomeController();
-});

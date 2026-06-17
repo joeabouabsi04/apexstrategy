@@ -1,0 +1,6 @@
+# Ignore local environment keys
+js/config.js
+
+# Ignore operating system garbage
+.DS_Store
+Thumbs.db
