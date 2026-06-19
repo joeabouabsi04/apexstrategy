@@ -440,6 +440,79 @@
        MAIN WORKBENCH — hidden until data loads
        ═══════════════════════════════════════════════════════ -->
     <div id="workbenchMain" class="hidden">
+      <!-- ── RACE WEEKEND TIMELINE SELECTOR ──────────────────── -->
+      <div
+        class="tele-panel timeline-panel"
+        style="margin-bottom: 1px; padding: 0"
+        aria-label="Race weekend session selector"
+      >
+        <div
+          class="timeline-selector"
+          role="tablist"
+          aria-label="Weekend sessions"
+        >
+          <button
+            class="timeline-btn active"
+            data-session="now"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-label="Live current conditions"
+          >
+            <span class="timeline-dot" aria-hidden="true"></span>LIVE (NOW)
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="practice"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Practice session forecast (24 hours ahead)"
+          >
+            PRACTICE <span class="timeline-offset">+24H</span>
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="quali"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Qualifying session forecast (48 hours ahead)"
+          >
+            QUALI <span class="timeline-offset">+48H</span>
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="race"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Race day forecast (72 hours ahead)"
+          >
+            RACE <span class="timeline-offset">+72H</span>
+          </button>
+        </div>
+        <div class="timeline-status" id="timelineStatus" aria-live="polite">
+          <span
+            class="status-dot status-loading"
+            id="timelineDot"
+            aria-hidden="true"
+          ></span>
+          <span id="timelineLabel" class="apex-label"
+            >FETCHING FORECAST...</span
+          >
+          <span
+            id="timelineTime"
+            class="apex-mono"
+            style="
+              font-size: 0.6rem;
+              color: var(--text-muted);
+              margin-left: auto;
+            "
+          ></span>
+        </div>
+      </div>
+
       <!-- ── TAB NAVIGATION ──────────────────────────────────── -->
       <div
         class="workbench-nav"
@@ -583,6 +656,57 @@
             </div>
           </div>
           <!-- /wb-split tyres -->
+
+          <!-- Degradation curve graphs -->
+          <div
+            class="tele-panel-header"
+            style="margin-top: 1px; border-top: 1px solid var(--border)"
+          >
+            <span class="apex-label">PROJECTED DEGRADATION CURVE</span>
+            <span
+              class="apex-label"
+              id="degradationSession"
+              style="color: var(--text-muted)"
+              >LIVE (NOW)</span
+            >
+          </div>
+          <div
+            class="tele-panel-body"
+            id="degradationGraphs"
+            aria-label="Tyre degradation rates"
+          >
+            <!-- injected by _renderDegradationGraphs() -->
+            <div class="deg-row">
+              <div class="deg-label">SOFT</div>
+              <div class="deg-track">
+                <div
+                  class="deg-fill"
+                  style="width: 0%; background: var(--danger)"
+                ></div>
+              </div>
+              <div class="deg-pct">--%</div>
+            </div>
+            <div class="deg-row">
+              <div class="deg-label">MED</div>
+              <div class="deg-track">
+                <div
+                  class="deg-fill"
+                  style="width: 0%; background: var(--warning)"
+                ></div>
+              </div>
+              <div class="deg-pct">--%</div>
+            </div>
+            <div class="deg-row">
+              <div class="deg-label">HARD</div>
+              <div class="deg-track">
+                <div
+                  class="deg-fill"
+                  style="width: 0%; background: var(--neon)"
+                ></div>
+              </div>
+              <div class="deg-pct">--%</div>
+            </div>
+          </div>
         </article>
         <!-- /pane tyres -->
 

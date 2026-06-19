@@ -128,6 +128,33 @@ export class SetupEngine {
   }
 
   recommendTyreCompound() {
+    // Base degradation lookup by circuit tyre-wear classification.
+    // These represent the percentage of useful tyre life consumed per stint
+    // under race pace — calibrated to real-world F1 engineering ranges.
+    const wearBase = { Low: 32, Medium: 50, High: 68, "Very High": 84 };
+    const base = wearBase[this.circuit.tyreWear] ?? 50;
+
+    // Track temperature bonus: every 10°C above 20°C adds ~4% additional thermal stress.
+    const trackTemp = this.weather.trackTempEstimate;
+    const tempBonus = Math.max(0, (trackTemp - 20) * 0.35);
+
+    // Compound multipliers: soft = 1.0x, medium = 0.58x, hard = 0.33x
+    // Soft in rain has dramatically reduced thermal load (cooler track).
+    const rainReduction = this.weather.isRaining ? 0.65 : 1.0;
+
+    const degSoft = Math.min(
+      100,
+      Math.round((base + tempBonus) * rainReduction),
+    );
+    const degMedium = Math.min(
+      100,
+      Math.round((base * 0.58 + tempBonus * 0.58) * rainReduction),
+    );
+    const degHard = Math.min(
+      100,
+      Math.round((base * 0.33 + tempBonus * 0.33) * rainReduction),
+    );
+
     if (this.weather.isRaining) {
       if (this.weather.rain1h < 0.5)
         return {
@@ -135,17 +162,30 @@ export class SetupEngine {
           status: "warning",
           reason:
             "Light precipitation — intermediate viable. Monitor for slick window.",
+          degSoft,
+          degMedium,
+          degHard,
         };
       return {
         compound: "FULL WET",
         status: "critical",
         reason: `Active precipitation at ${this.weather.rain1h.toFixed(1)}mm/h — full wet mandatory.`,
+        degSoft,
+        degMedium,
+        degHard,
       };
     }
     const w =
       COMPOUND_WINDOWS.find((w) => this.weather.trackTempEstimate < w.max) ??
       COMPOUND_WINDOWS.at(-1);
-    return { compound: w.compound, status: w.status, reason: w.reason };
+    return {
+      compound: w.compound,
+      status: w.status,
+      reason: w.reason,
+      degSoft,
+      degMedium,
+      degHard,
+    };
   }
 
   calculateAeroSetup() {

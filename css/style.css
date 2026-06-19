@@ -2337,3 +2337,212 @@ pre {
     border: 1px solid #ccc;
   }
 }
+
+/*-- SECTION: RACE WEEKEND TIMELINE --*/
+
+.timeline-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: none; /* sits flush against circuit header */
+}
+
+.timeline-selector {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.timeline-selector::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-btn {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition:
+    color 100ms var(--ease-out),
+    background 100ms var(--ease-out),
+    border-bottom-color 100ms var(--ease-out);
+}
+
+.timeline-btn:last-child {
+  border-right: none;
+}
+
+.timeline-btn:hover {
+  color: var(--text-primary);
+  background: rgba(240, 243, 246, 0.02);
+}
+
+.timeline-btn.active {
+  background: var(--bg-panel-alt);
+  color: var(--neon);
+  border-bottom-color: var(--neon);
+}
+
+.timeline-btn:active {
+  transform: scale(0.97);
+}
+
+/* Live dot inside LIVE button */
+.timeline-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--neon);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .timeline-btn.active .timeline-dot {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+}
+
+/* Hour offset label */
+.timeline-offset {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-left: 2px;
+}
+
+.timeline-btn.active .timeline-offset {
+  color: rgba(0, 255, 102, 0.5);
+}
+
+/* Status strip below timeline buttons */
+.timeline-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+  font-size: 0.62rem;
+  min-height: 24px;
+}
+
+/* Rain-alert on RACE button when forecast predicts rain */
+.timeline-btn.forecast-rain {
+  color: var(--warning);
+}
+
+.timeline-btn.forecast-rain .timeline-offset {
+  color: rgba(255, 170, 0, 0.5);
+}
+
+/*-- SECTION: DEGRADATION BAR CHARTS --*/
+
+.deg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.deg-row:last-child {
+  margin-bottom: 0;
+}
+
+.deg-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: 36px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.deg-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tick marks at 25 / 50 / 75 % — visual calibration */
+.deg-track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent calc(25% - 1px),
+    var(--border) calc(25% - 1px),
+    var(--border) 25%,
+    transparent 25%
+  );
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.deg-fill {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: width 500ms var(--ease-out);
+  z-index: 0;
+}
+
+/* Warning stripe overlay when deg > 75% */
+.deg-fill.deg-critical {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.2) 3px,
+    rgba(0, 0, 0, 0.2) 6px
+  );
+}
+
+.deg-pct {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 34px;
+  flex-shrink: 0;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+.deg-pct.pct-critical {
+  color: var(--danger);
+}
+.deg-pct.pct-warning {
+  color: var(--warning);
+}
+.deg-pct.pct-good {
+  color: var(--neon);
+}
+
+@media (max-width: 480px) {
+  .timeline-btn {
+    padding: 10px 12px;
+    font-size: 0.65rem;
+  }
+}

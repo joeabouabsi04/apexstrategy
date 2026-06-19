@@ -56,6 +56,8 @@ export class WorkbenchController {
     this.tabController = null;
     this.report = null;
     this._ageTimer = null;
+    this.forecastData = null;
+    this.currentWeather = null;
   }
 
   async init() {
@@ -118,20 +120,46 @@ export class WorkbenchController {
   async _fetchAndRender() {
     this._showLoading();
     try {
-      const weather = await this.weatherService.fetchWeather(
-        this.circuit.lat,
-        this.circuit.lon,
-        this.circuit.id,
-      );
-      const engine = new SetupEngine(this.circuit, weather);
+      // Fetch current conditions and weekend forecast in parallel
+      const [weather, forecastData] = await Promise.allSettled([
+        this.weatherService.fetchWeather(
+          this.circuit.lat,
+          this.circuit.lon,
+          this.circuit.id,
+        ),
+        this.weatherService.fetchWeekendForecast(
+          this.circuit.lat,
+          this.circuit.lon,
+          this.circuit.id,
+        ),
+      ]);
+
+      if (weather.status === "rejected") throw weather.reason;
+      const currentWeather = weather.value;
+
+      // Store for timeline switching
+      this.currentWeather = currentWeather;
+      this.forecastData =
+        forecastData.status === "fulfilled"
+          ? forecastData.value
+          : {
+              now: currentWeather,
+              practice: currentWeather,
+              quali: currentWeather,
+              race: currentWeather,
+            };
+
+      const engine = new SetupEngine(this.circuit, currentWeather);
       this.report = engine.generateReport();
-      this._updateWeatherHeader(weather);
+
+      this._updateWeatherHeader(currentWeather);
       this._renderTyrePane(this.report);
       this._renderAeroPane(this.report);
       this._renderWetPane(this.report);
       this._renderVerdict(this.report.conditions);
       this._startDataAgeTimer();
-      this._applyRainAlerts(weather.isRaining);
+      this._applyRainAlerts(currentWeather.isRaining);
+      this._initTimeline();
       this._showWorkbench();
     } catch (err) {
       console.error("[WorkbenchController]", err);
@@ -139,7 +167,140 @@ export class WorkbenchController {
     }
   }
 
-  /*-- WEATHER HEADER --*/
+  /*-- SECTION: TIMELINE --*/
+
+  /**
+   * Wires up the race-weekend timeline buttons.
+   * Each click re-runs SetupEngine against its forecast block
+   * and re-renders the full workbench without a page reload.
+   */
+  _initTimeline() {
+    const buttons = document.querySelectorAll(".timeline-btn");
+    const statusEl = document.getElementById("timelineLabel");
+    const dotEl = document.getElementById("timelineDot");
+    const timeEl = document.getElementById("timelineTime");
+
+    // Mark sessions that have rain in the forecast
+    buttons.forEach((btn) => {
+      const s = btn.dataset.session;
+      if (s !== "now" && this.forecastData?.[s]?.isRaining) {
+        btn.classList.add("forecast-rain");
+        btn.title = `${s.toUpperCase()}: Rain forecast`;
+      }
+    });
+
+    if (statusEl) statusEl.textContent = "LIVE CONDITIONS — FORECAST LOADED";
+    if (dotEl) {
+      dotEl.classList.remove("status-loading");
+      dotEl.classList.add("status-live");
+    }
+
+    const LABELS = {
+      now: "LIVE (NOW)",
+      practice: "PRACTICE (+24H)",
+      quali: "QUALIFYING (+48H)",
+      race: "RACE DAY (+72H)",
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+        });
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+
+        const session = btn.dataset.session;
+        const weather = this.forecastData?.[session] ?? this.currentWeather;
+        if (!weather) return;
+
+        if (statusEl)
+          statusEl.textContent = LABELS[session] ?? session.toUpperCase();
+        if (dotEl) {
+          dotEl.classList.remove(
+            "status-live",
+            "status-loading",
+            "status-error",
+          );
+          dotEl.classList.add(
+            session === "now" ? "status-live" : "status-loading",
+          );
+        }
+        if (timeEl) {
+          timeEl.textContent =
+            session === "now"
+              ? ""
+              : `EST. ${new Date(weather.fetchedAt).toUTCString().slice(0, 22)}`;
+        }
+
+        this._setText(
+          "degradationSession",
+          LABELS[session] ?? session.toUpperCase(),
+        );
+
+        // Re-run engine against selected weather block
+        const engine = new SetupEngine(this.circuit, weather);
+        this.report = engine.generateReport();
+
+        this._updateWeatherHeader(weather);
+        this._renderTyrePane(this.report);
+        this._renderAeroPane(this.report);
+        this._renderWetPane(this.report);
+        this._renderVerdict(this.report.conditions);
+        this._applyRainAlerts(weather.isRaining);
+      });
+    });
+  }
+
+  /*-- SECTION: DEGRADATION GRAPHS --*/
+
+  /**
+   * Renders three pure-CSS horizontal bar charts for soft / medium / hard
+   * degradation rates into #degradationGraphs.
+   * Bars animate from 0% → real value via rAF double-tick.
+   * Stripe overlay on fills > 75% signals critical degradation.
+   * @param {{ degSoft, degMedium, degHard }} compound
+   */
+  _renderDegradationGraphs(compound) {
+    const el = document.getElementById("degradationGraphs");
+    if (!el) return;
+
+    const rows = [
+      { label: "SOFT", pct: compound.degSoft ?? 0, color: "var(--danger)" },
+      { label: "MED", pct: compound.degMedium ?? 0, color: "var(--warning)" },
+      { label: "HARD", pct: compound.degHard ?? 0, color: "var(--neon)" },
+    ];
+
+    el.innerHTML = rows
+      .map(({ label, pct }) => {
+        const pctClass =
+          pct >= 75 ? "pct-critical" : pct >= 50 ? "pct-warning" : "pct-good";
+        return /* html */ `
+        <div class="deg-row">
+          <div class="deg-label">${label}</div>
+          <div class="deg-track">
+            <div class="deg-fill" data-target="${pct}" style="width:0%;"></div>
+          </div>
+          <div class="deg-pct ${pctClass}">${pct}%</div>
+        </div>`;
+      })
+      .join("");
+
+    // Double rAF: first frame paints 0%, second frame triggers CSS transition
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        el.querySelectorAll(".deg-fill").forEach((fill, i) => {
+          const pct = parseInt(fill.dataset.target, 10);
+          fill.style.background = rows[i].color;
+          fill.style.width = `${pct}%`;
+          if (pct >= 75) fill.classList.add("deg-critical");
+        });
+      }),
+    );
+  }
+
+  /*-- SECTION: WEATHER HEADER --*/
 
   _updateWeatherHeader(weather) {
     const tempEl = document.getElementById("tempReadout");
@@ -238,6 +399,9 @@ export class WorkbenchController {
       `Front: ${tyres.frontPsi} PSI · Rear: ${tyres.rearPsi} PSI`,
       tyres.status,
     );
+
+    // Degradation bar charts — compound object carries degSoft/degMedium/degHard
+    this._renderDegradationGraphs(compound);
   }
 
   /*-- AERO PANE --*/
