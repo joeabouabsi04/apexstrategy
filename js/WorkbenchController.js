@@ -7,6 +7,7 @@ import { animateValue, decodeText, flashCell } from "./anim.js";
 import { WeatherService } from "./WeatherService.js";
 import { SetupEngine } from "./SetupEngine.js";
 import { TabController } from "./TabController.js";
+import { fetchTrackMap } from "./trackmaps.js"; // local SVG fetch — replaces getTrackMap
 
 /*-- SECTION: VERDICT GENERATOR --*/
 
@@ -58,6 +59,7 @@ export class WorkbenchController {
     this._ageTimer = null;
     this.forecastData = null;
     this.currentWeather = null;
+    this._rainFrame = null;
   }
 
   async init() {
@@ -105,6 +107,179 @@ export class WorkbenchController {
     this._setText("statLapRecord", c.lapRecord);
     this._setText("statAltitude", `${c.altitudeM} M`);
     this._setText("statGrip", c.surfaceGrip.toUpperCase());
+
+    // Draw circuit minimap — async, fire-and-forget (visual only)
+    this._renderMinimap().catch((err) =>
+      console.warn("[WorkbenchController] Minimap load failed:", err),
+    );
+  }
+
+  /*-- SECTION: TRACK MINIMAP --*/
+
+  /**
+   * Fetches the circuit SVG from tracks/{id}.svg, parses it, and
+   * renders it into the minimap panel with a draw-in animation and
+   * a continuously lapping neon dot via SVG animateMotion.
+   *
+   * Replaces the old static-path approach from trackmaps.js.
+   */
+  async _renderMinimap() {
+    const svg = document.getElementById("trackMapSvg");
+    const nameEl = document.getElementById("minimapName");
+    if (!svg) return;
+
+    const svgText = await fetchTrackMap(this.circuit.id);
+
+    if (!svgText) {
+      svg.innerHTML = `<text x="100" y="70" text-anchor="middle"
+        style="font-family:var(--font-mono);font-size:10px;fill:var(--text-muted);">
+        NO MAP DATA
+      </text>`;
+      return;
+    }
+
+    if (nameEl) nameEl.textContent = this.circuit.shortName.toUpperCase();
+
+    // Parse the fetched SVG document
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgText, "image/svg+xml");
+    const sourceSvg = doc.querySelector("svg");
+
+    if (!sourceSvg) {
+      svg.innerHTML = `<text x="100" y="70" text-anchor="middle"
+        style="font-family:var(--font-mono);font-size:10px;fill:var(--text-muted);">
+        PARSE ERROR
+      </text>`;
+      return;
+    }
+
+    // Mirror the source viewBox so the track scales correctly in the panel
+    const viewBox = sourceSvg.getAttribute("viewBox") ?? "0 0 200 140";
+    svg.setAttribute("viewBox", viewBox);
+
+    // Collect all <path> d-attributes and join into a single compound outline.
+    // A single compound path works correctly with animateMotion / mpath.
+    const pathEls = [...sourceSvg.querySelectorAll("path")];
+    const combinedD = pathEls
+      .map((p) => p.getAttribute("d"))
+      .filter(Boolean)
+      .join(" ");
+
+    if (!combinedD) {
+      // Fallback: if the SVG uses non-path geometry, render it as-is
+      svg.innerHTML = sourceSvg.innerHTML;
+      return;
+    }
+
+    // Generous dasharray upper-bound covers any real circuit path length
+    const pathLen = 2400;
+
+    svg.innerHTML = `
+      <!-- Track outline — draws itself in on data arrival -->
+      <path id="trackOutline"
+        d="${combinedD}"
+        fill="none"
+        stroke="var(--border)"
+        stroke-width="4"
+        stroke-linecap="square"
+        stroke-linejoin="miter"
+        stroke-dasharray="${pathLen}"
+        stroke-dashoffset="${pathLen}"
+        style="transition: stroke-dashoffset 1.4s cubic-bezier(0.2,0,0,1) 0.2s,
+                           stroke 0.4s ease;">
+      </path>
+
+      <!-- Neon lap-marker dot -->
+      <circle r="5" fill="var(--neon)" opacity="0.9">
+        <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
+          <mpath href="#trackOutline"/>
+        </animateMotion>
+      </circle>
+
+      <!-- Larger glow halo behind the dot -->
+      <circle r="10" fill="var(--neon)" opacity="0.18">
+        <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
+          <mpath href="#trackOutline"/>
+        </animateMotion>
+      </circle>`;
+
+    // Double rAF: first frame paints the 0% offset, second triggers the CSS transition
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const outline = svg.querySelector("#trackOutline");
+        if (outline) {
+          outline.style.strokeDashoffset = "0";
+          outline.style.stroke = "var(--neon)";
+        }
+      }),
+    );
+  }
+
+  /*-- SECTION: RAIN CANVAS --*/
+
+  /**
+   * Activates a canvas rain overlay when isRaining === true.
+   * Diagonal streak particles animate at 60fps.
+   * Immediately stops and clears when conditions are dry.
+   * @param {boolean} isRaining
+   */
+  _toggleRainCanvas(isRaining) {
+    const canvas = document.getElementById("rainCanvas");
+    if (!canvas) return;
+
+    if (!isRaining) {
+      canvas.style.opacity = "0";
+      if (this._rainFrame) {
+        cancelAnimationFrame(this._rainFrame);
+        this._rainFrame = null;
+      }
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    const header = document.getElementById("circuitHeader");
+
+    const resize = () => {
+      canvas.width = header?.offsetWidth || 800;
+      canvas.height = header?.offsetHeight || 200;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Rain drop pool
+    const drops = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: 8 + Math.random() * 14,
+      speed: 4 + Math.random() * 6,
+      alpha: 0.08 + Math.random() * 0.14,
+    }));
+
+    const tick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drops.forEach((d) => {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0, 180, 255, ${d.alpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x + d.len * 0.25, d.y + d.len); // slight diagonal
+        ctx.stroke();
+        ctx.restore();
+
+        d.y += d.speed;
+        d.x += d.speed * 0.15;
+        if (d.y > canvas.height) {
+          d.y = -d.len;
+          d.x = Math.random() * canvas.width;
+        }
+      });
+      this._rainFrame = requestAnimationFrame(tick);
+    };
+
+    canvas.style.opacity = "1";
+    if (this._rainFrame) cancelAnimationFrame(this._rainFrame);
+    tick();
   }
 
   _initTabs() {
@@ -553,6 +728,7 @@ export class WorkbenchController {
     document
       .querySelector('[data-tab="wet"]')
       ?.classList.toggle("tab-rain-alert", isRaining);
+    this._toggleRainCanvas(isRaining);
   }
 
   /*-- TAB SWITCH --*/

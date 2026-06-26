@@ -139,6 +139,13 @@ export class NavigationController {
       : html.removeAttribute("data-theme");
     localStorage.setItem("apexTheme", theme);
     this._syncThemeButton(theme);
+
+    // Broadcast theme change so other modules (e.g. hero.js Vanta background)
+    // can update their colors without polling or coupling to this class directly.
+    document.dispatchEvent(
+      new CustomEvent("apex:themechange", { detail: { theme } }),
+    );
+
     if (animate) {
       html.classList.add("theme-switching");
       setTimeout(() => html.classList.remove("theme-switching"), 220);

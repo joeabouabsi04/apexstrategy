@@ -142,6 +142,17 @@ export class HomeController {
           `<div class="col-12 col-sm-6 col-lg-4 col-xl-3 card-enter" style="animation-delay:${Math.min(i * 22, 200)}ms">${this._buildCardHTML(c)}</div>`,
       )
       .join("");
+
+    // Tilt.js — 3D perspective on mousemove
+    if (window.VanillaTilt) {
+      window.VanillaTilt.init(this._listEl.querySelectorAll(".circuit-card"), {
+        max: 6,
+        speed: 300,
+        glare: false,
+        scale: 1.02,
+        perspective: 900,
+      });
+    }
   }
 
   _updateCounter(shown) {
