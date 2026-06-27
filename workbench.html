@@ -25,18 +25,61 @@
     <style>
       /*-- PAGE: workbench.html — Tuning Workbench --*/
 
-      /* ── Circuit header ──────────────────────────────────────── */
+      /* ═══════════════════════════════════════════════════════════
+         TASK 1 — Timeline panel: full-width, equal columns
+         Sits immediately below the navbar, above the circuit header.
+         #timelinePanel is shown/hidden by WorkbenchController (JS).
+         ═══════════════════════════════════════════════════════════ */
+      #timelinePanel {
+        /* Flush against the nav's border-bottom; no top border needed. */
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 0;
+        background: var(--bg-panel-alt);
+      }
+
+      /* 4 equal columns instead of a left-aligned scrolling flex row */
+      #timelinePanel .timeline-selector {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        overflow: visible; /* override .timeline-selector overflow-x:auto */
+      }
+
+      #timelinePanel .timeline-btn {
+        justify-content: center; /* center text within each equal cell */
+        flex-shrink: unset; /* not relevant in grid context */
+        border-right: 1px solid var(--border);
+      }
+
+      #timelinePanel .timeline-btn:last-child {
+        border-right: none;
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         TASK 4 — Circuit header: CSS Grid layout
+         Three-column top row (title | weather | minimap) +
+         a full-width stats row that spans all columns below.
+         ═══════════════════════════════════════════════════════════ */
       .wb-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 18px 24px;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        grid-template-rows: auto auto;
+        align-items: stretch;
+        gap: 0;
+        /* Padding moved to .wb-header-left so stats row is edge-to-edge */
+        padding: 0;
         border-bottom: 1px solid var(--border);
         background: var(--bg-panel);
-        flex-wrap: wrap;
         position: relative;
-        overflow: hidden;
+        overflow: hidden; /* contains rain canvas + scanline */
+      }
+
+      /* ── Left column ─────────────────────────────────────────── */
+      .wb-header-left {
+        padding: 18px 24px;
+        min-width: 0; /* allow grid cell to shrink */
       }
 
       .wb-header-left .module-label {
@@ -70,7 +113,6 @@
         margin: 0 6px;
       }
 
-      /* Verdict line — decoded in on data arrival */
       .wb-verdict {
         font-family: var(--font-ui);
         font-size: 0.78rem;
@@ -81,10 +123,12 @@
         min-height: 1.2em;
       }
 
-      /* ── Weather status panel (header right) ─────────────────── */
+      /* ── Weather panel (centre column) ───────────────────────── */
       #weatherStatus {
-        flex-shrink: 0;
         min-width: 230px;
+        /* Override .tele-panel's all-sides border; only a left separator */
+        border: none;
+        border-left: 1px solid var(--border);
       }
 
       .weather-readout-row {
@@ -104,6 +148,42 @@
         color: var(--text-muted);
         letter-spacing: 0.1em;
         text-transform: uppercase;
+      }
+
+      /* ── Minimap panel (right column) ────────────────────────── */
+      #trackMinimapPanel {
+        border: none;
+        border-left: 1px solid var(--border);
+      }
+
+      /* ── Circuit stats row (spans all 3 columns) ─────────────── */
+      .wb-circuit-stats {
+        grid-column: 1 / -1; /* span full width */
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0;
+        border-top: 1px solid var(--border);
+        background: var(--bg-panel-alt);
+      }
+
+      .circuit-stat-item {
+        padding: 10px 20px;
+        border-right: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .circuit-stat-item:last-child {
+        border-right: none;
+      }
+
+      .circuit-stat-val {
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--neon);
+        margin-top: 2px;
+        letter-spacing: 0.02em;
       }
 
       /* ── Loading / error states ─────────────────────────────── */
@@ -131,12 +211,12 @@
         margin: 24px;
       }
 
-      /* ── Workbench main: tab nav + panes ─────────────────────── */
+      /* ── Workbench main ──────────────────────────────────────── */
       #workbenchMain {
-        border-top: none; /* header strip provides the border */
+        border-top: none;
       }
 
-      /* Tab attention state for WET tab when it's raining */
+      /* WET tab alert when raining */
       .tab-rain-alert {
         color: var(--warning) !important;
         border-top-color: var(--warning) !important;
@@ -169,6 +249,25 @@
         color: var(--text-secondary);
         line-height: 1.65;
         margin-top: 10px;
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         TASK 3 — Degradation chart container
+         The SVG chart is injected by _renderDegradationGraphs().
+         ═══════════════════════════════════════════════════════════ */
+      #degradationGraphs {
+        padding: 0;
+      }
+
+      .deg-chart-wrap {
+        padding: 10px 16px 8px;
+      }
+
+      .deg-chart-wrap svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
       }
 
       /* ── Pane 2: Aero ───────────────────────────────────────── */
@@ -236,7 +335,6 @@
         margin-top: 8px;
       }
 
-      /* Wet details: data grid + rec blocks stacked */
       #wetDetailsGrid .data-grid {
         border-bottom: 1px solid var(--border);
       }
@@ -245,31 +343,7 @@
         padding: 0;
       }
 
-      /* ── Circuit stats strip ────────────────────────────────── */
-      .circuit-stats-strip {
-        border-top: 1px solid var(--border);
-        padding: 12px 24px;
-        display: flex;
-        gap: 32px;
-        flex-wrap: wrap;
-        align-items: center;
-        background: var(--bg-panel-alt);
-      }
-
-      .circuit-stat-item {
-        flex-shrink: 0;
-      }
-
-      .circuit-stat-val {
-        font-family: var(--font-mono);
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: var(--neon);
-        margin-top: 2px;
-        letter-spacing: 0.02em;
-      }
-
-      /* ── Split row used inside panes ────────────────────────── */
+      /* ── Split rows inside panes ─────────────────────────────── */
       .wb-split {
         display: flex;
         flex-wrap: wrap;
@@ -287,33 +361,66 @@
       }
 
       /* ── Responsive ─────────────────────────────────────────── */
+
+      /* At 900px the minimap hides (existing rule in style.css).
+         Collapse to two-column grid cleanly. */
+      @media (max-width: 900px) {
+        .wb-header {
+          grid-template-columns: 1fr auto;
+        }
+      }
+
+      /* Below 768px stack header panels vertically */
       @media (max-width: 768px) {
         .wb-header {
-          padding: 14px 16px;
+          grid-template-columns: 1fr;
         }
+
+        #weatherStatus {
+          border-left: none;
+          border-top: 1px solid var(--border);
+          min-width: 0;
+        }
+
         .wb-split-left {
           border-right: none;
           border-bottom: 1px solid var(--border);
         }
-        #weatherStatus {
-          min-width: 0;
-          width: 100%;
-        }
-        .circuit-stats-strip {
-          gap: 20px;
-          padding: 10px 16px;
+
+        .circuit-stat-item {
+          padding: 8px 16px;
         }
       }
 
+      /* Narrow phones: compact timeline buttons */
       @media (max-width: 480px) {
         .wb-header-left h1 {
           font-size: 1rem;
         }
+
         .compound-readout {
           font-size: 1.2rem;
         }
+
         #wetStatusReadout {
           font-size: 1rem;
+        }
+
+        #timelinePanel .timeline-btn {
+          padding: 10px 6px;
+          font-size: 0.6rem;
+          letter-spacing: 0.04em;
+          gap: 4px;
+        }
+
+        /* Hide the offset label (+24H) on very small screens to save space */
+        #timelinePanel .timeline-offset {
+          display: none;
+        }
+
+        .timeline-dot {
+          width: 4px;
+          height: 4px;
         }
       }
     </style>
@@ -324,7 +431,73 @@
     <apex-nav></apex-nav>
 
     <!-- ═══════════════════════════════════════════════════════
-       CIRCUIT + WEATHER HEADER
+       TASK 1 — RACE WEEKEND TIMELINE SELECTOR
+       Moved here: immediately below navbar, above circuit header.
+       Hidden by default; WorkbenchController._showWorkbench()
+       removes the "hidden" class once forecast data is ready.
+
+       TASK 2 — Status bar (timeline-status div) REMOVED.
+       ═══════════════════════════════════════════════════════ -->
+    <div
+      id="timelinePanel"
+      class="hidden"
+      aria-label="Race weekend session selector"
+      style="margin-top: 30px"
+    >
+      <div
+        class="timeline-selector"
+        role="tablist"
+        aria-label="Weekend sessions"
+      >
+        <button
+          class="timeline-btn active"
+          data-session="now"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-label="Live current conditions"
+        >
+          <span class="timeline-dot" aria-hidden="true"></span>LIVE (NOW)
+        </button>
+        <button
+          class="timeline-btn"
+          data-session="practice"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-label="Practice session forecast (24 hours ahead)"
+        >
+          PRACTICE <span class="timeline-offset">+24H</span>
+        </button>
+        <button
+          class="timeline-btn"
+          data-session="quali"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-label="Qualifying session forecast (48 hours ahead)"
+        >
+          QUALI <span class="timeline-offset">+48H</span>
+        </button>
+        <button
+          class="timeline-btn"
+          data-session="race"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-label="Race day forecast (72 hours ahead)"
+        >
+          RACE <span class="timeline-offset">+72H</span>
+        </button>
+      </div>
+      <!-- TASK 2: .timeline-status bar intentionally omitted -->
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+       TASK 4 — CIRCUIT + WEATHER HEADER
+       Converted from flex to CSS Grid.
+       Row 1: title column | weather panel | minimap panel
+       Row 2: circuit stats strip (spans all columns)
        ═══════════════════════════════════════════════════════ -->
     <section
       class="wb-header bracket-corners"
@@ -336,6 +509,7 @@
       <!-- Rain canvas — activated by WorkbenchController when isRaining -->
       <canvas id="rainCanvas" class="rain-canvas" aria-hidden="true"></canvas>
 
+      <!-- Col 1: Circuit name, meta, verdict -->
       <div class="wb-header-left">
         <span class="module-label" aria-hidden="true"
           >MODULE 02 // TUNING WORKBENCH</span
@@ -358,7 +532,7 @@
         </p>
       </div>
 
-      <!-- Live conditions panel -->
+      <!-- Col 2: Live conditions weather panel -->
       <div
         class="tele-panel"
         id="weatherStatus"
@@ -402,7 +576,7 @@
         </div>
       </div>
 
-      <!-- Track minimap -->
+      <!-- Col 3: Track minimap -->
       <div
         class="tele-panel track-minimap-panel"
         id="trackMinimapPanel"
@@ -427,6 +601,45 @@
           >
             <!-- path injected by WorkbenchController._renderMinimap() -->
           </svg>
+        </div>
+      </div>
+
+      <!-- Row 2 (spans all cols): Circuit specification stats
+           TASK 4: moved from bottom of page into the header container. -->
+      <div
+        class="wb-circuit-stats"
+        role="complementary"
+        aria-label="Circuit specifications"
+      >
+        <div class="circuit-stat-item">
+          <div class="apex-label">CIRCUIT LENGTH</div>
+          <div class="circuit-stat-val" id="statLength">--</div>
+        </div>
+
+        <div class="circuit-stat-item">
+          <div class="apex-label">TOTAL TURNS</div>
+          <div class="circuit-stat-val" id="statTurns">--</div>
+        </div>
+
+        <div class="circuit-stat-item">
+          <div class="apex-label">LAP RECORD</div>
+          <div
+            class="circuit-stat-val"
+            id="statLapRecord"
+            style="font-size: 0.75rem"
+          >
+            --
+          </div>
+        </div>
+
+        <div class="circuit-stat-item">
+          <div class="apex-label">ALTITUDE</div>
+          <div class="circuit-stat-val" id="statAltitude">--</div>
+        </div>
+
+        <div class="circuit-stat-item">
+          <div class="apex-label">SURFACE GRIP</div>
+          <div class="circuit-stat-val" id="statGrip">--</div>
         </div>
       </div>
     </section>
@@ -469,81 +682,10 @@
 
     <!-- ═══════════════════════════════════════════════════════
        MAIN WORKBENCH — hidden until data loads
+       NOTE: Timeline selector and circuit stats strip have both
+       been moved out of this container (Tasks 1 & 4).
        ═══════════════════════════════════════════════════════ -->
     <div id="workbenchMain" class="hidden">
-      <!-- ── RACE WEEKEND TIMELINE SELECTOR ──────────────────── -->
-      <div
-        class="tele-panel timeline-panel"
-        style="margin-bottom: 1px; padding: 0"
-        aria-label="Race weekend session selector"
-      >
-        <div
-          class="timeline-selector"
-          role="tablist"
-          aria-label="Weekend sessions"
-        >
-          <button
-            class="timeline-btn active"
-            data-session="now"
-            type="button"
-            role="tab"
-            aria-selected="true"
-            aria-label="Live current conditions"
-          >
-            <span class="timeline-dot" aria-hidden="true"></span>LIVE (NOW)
-          </button>
-          <button
-            class="timeline-btn"
-            data-session="practice"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-label="Practice session forecast (24 hours ahead)"
-          >
-            PRACTICE <span class="timeline-offset">+24H</span>
-          </button>
-          <button
-            class="timeline-btn"
-            data-session="quali"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-label="Qualifying session forecast (48 hours ahead)"
-          >
-            QUALI <span class="timeline-offset">+48H</span>
-          </button>
-          <button
-            class="timeline-btn"
-            data-session="race"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-label="Race day forecast (72 hours ahead)"
-          >
-            RACE <span class="timeline-offset">+72H</span>
-          </button>
-        </div>
-        <div class="timeline-status" id="timelineStatus" aria-live="polite">
-          <span
-            class="status-dot status-loading"
-            id="timelineDot"
-            aria-hidden="true"
-          ></span>
-          <span id="timelineLabel" class="apex-label"
-            >FETCHING FORECAST...</span
-          >
-          <span
-            id="timelineTime"
-            class="apex-mono"
-            style="
-              font-size: 0.6rem;
-              color: var(--text-muted);
-              margin-left: auto;
-            "
-          ></span>
-        </div>
-      </div>
-
       <!-- ── TAB NAVIGATION ──────────────────────────────────── -->
       <div
         class="workbench-nav"
@@ -688,12 +830,15 @@
           </div>
           <!-- /wb-split tyres -->
 
-          <!-- Degradation curve graphs -->
+          <!-- TASK 3 — Degradation SVG chart (replaces progress bars)
+               Content is injected by WorkbenchController._renderDegradationGraphs() -->
           <div
             class="tele-panel-header"
             style="margin-top: 1px; border-top: 1px solid var(--border)"
           >
-            <span class="apex-label">PROJECTED DEGRADATION CURVE</span>
+            <span class="apex-label"
+              >PROJECTED DEGRADATION CURVE — % PERFORMANCE VS LAPS</span
+            >
             <span
               class="apex-label"
               id="degradationSession"
@@ -702,41 +847,10 @@
             >
           </div>
           <div
-            class="tele-panel-body"
             id="degradationGraphs"
-            aria-label="Tyre degradation rates"
+            aria-label="Tyre compound degradation curves"
           >
-            <!-- injected by _renderDegradationGraphs() -->
-            <div class="deg-row">
-              <div class="deg-label">SOFT</div>
-              <div class="deg-track">
-                <div
-                  class="deg-fill"
-                  style="width: 0%; background: var(--danger)"
-                ></div>
-              </div>
-              <div class="deg-pct">--%</div>
-            </div>
-            <div class="deg-row">
-              <div class="deg-label">MED</div>
-              <div class="deg-track">
-                <div
-                  class="deg-fill"
-                  style="width: 0%; background: var(--warning)"
-                ></div>
-              </div>
-              <div class="deg-pct">--%</div>
-            </div>
-            <div class="deg-row">
-              <div class="deg-label">HARD</div>
-              <div class="deg-track">
-                <div
-                  class="deg-fill"
-                  style="width: 0%; background: var(--neon)"
-                ></div>
-              </div>
-              <div class="deg-pct">--%</div>
-            </div>
+            <!-- SVG chart rendered by _renderDegradationGraphs() on data load -->
           </div>
         </article>
         <!-- /pane tyres -->
@@ -836,7 +950,7 @@
           role="tabpanel"
           aria-labelledby="apex-tab-wet"
         >
-          <!-- Status banner: always visible, content changes with conditions -->
+          <!-- Status banner -->
           <div id="wetStatusBanner">
             <div id="wetStatusReadout" aria-live="polite">CHECKING...</div>
             <div id="wetStatusSub">AWAITING WEATHER DATA</div>
@@ -896,11 +1010,10 @@
                 <div class="rec-reason">--</div>
               </div>
             </div>
-            <!-- /wb-rec-list -->
           </div>
           <!-- /wetDetailsGrid -->
 
-          <!-- Dry conditions panel: shown when no rain -->
+          <!-- Dry conditions panel -->
           <div id="dryConditionsPanel" class="hidden">
             <p class="dry-glyph">// DRY CONDITIONS CONFIRMED</p>
             <p class="dry-sub">
@@ -914,44 +1027,7 @@
       </div>
       <!-- /workbench-panes -->
 
-      <!-- ── CIRCUIT STATS STRIP ──────────────────────────────── -->
-      <div
-        class="circuit-stats-strip"
-        role="complementary"
-        aria-label="Circuit specifications"
-      >
-        <div class="circuit-stat-item">
-          <div class="apex-label">CIRCUIT LENGTH</div>
-          <div class="circuit-stat-val" id="statLength">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">TOTAL TURNS</div>
-          <div class="circuit-stat-val" id="statTurns">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">LAP RECORD</div>
-          <div
-            class="circuit-stat-val"
-            id="statLapRecord"
-            style="font-size: 0.75rem"
-          >
-            --
-          </div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">ALTITUDE</div>
-          <div class="circuit-stat-val" id="statAltitude">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">SURFACE GRIP</div>
-          <div class="circuit-stat-val" id="statGrip">--</div>
-        </div>
-      </div>
-      <!-- /circuit-stats-strip -->
+      <!-- TASK 4: circuit-stats-strip intentionally omitted — moved to #circuitHeader -->
     </div>
     <!-- /workbenchMain -->
 
@@ -974,9 +1050,6 @@
       </span>
     </footer>
 
-    <!-- ═══════════════════════════════════════════════════════
-       SCRIPTS — load order: bootstrap → nav → data → logic → controller
-       ═══════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/main.js"></script>
   </body>
