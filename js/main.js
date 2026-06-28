@@ -4,6 +4,7 @@
    ============================================================ */
 
 import "./nav.js";
+import "./footer.js";
 import { runBootSequence } from "./anim.js";
 
 document.addEventListener("DOMContentLoaded", async () => {

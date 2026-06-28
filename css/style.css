@@ -2143,29 +2143,36 @@ pre {
 */
 
 [data-theme="light"] {
-  --bg-primary: #eceef5; /* cool light blue-gray page bg                */
-  --bg-panel: #dde1ee; /* panel surface — noticeably darker than page  */
-  --bg-panel-alt: #d0d5e4; /* alt panel — another clear step down          */
-  --border: #9ba8be; /* stronger border — readable against all panel bg */
-  --border-active: #007a2a; /* darkened neon for light-bg contrast          */
+  /* Panels are white "cards" lifted off a light slate page — the
+     conventional light-mode direction (brighter = closer to the user)
+     instead of mirroring dark mode's darker-page/lighter-panel logic,
+     which read as recessed, muddy wells. Header strips (bg-panel-alt)
+     get a soft tint to separate them from the white card body. */
+  --bg-primary: #eef1f7; /* light cool slate page bg                     */
+  --bg-panel: #ffffff; /* panel surface — white card, lifted off page  */
+  --bg-panel-alt: #e6e9f2; /* header/strip tint — sits between page & card */
+  --border: #c3cbdc; /* soft slate border — crisp on white, not heavy */
+  --border-active: #057a45; /* neon, darkened for light-bg contrast         */
 
-  --text-primary: #0c111a; /* near-black, blue-cast                        */
-  --text-secondary: #283249; /* dark slate                                   */
-  --text-muted: #5a6480; /* medium slate                                 */
+  --text-primary: #11151d; /* near-black, blue-cast                        */
+  --text-secondary: #2c3548; /* dark slate                                   */
+  --text-muted: #6b7690; /* medium slate                                 */
 
-  --neon: #007a2a; /* legible dark green on light backgrounds      */
-  --danger: #c01010; /* dark red                                     */
-  --warning: #9a5e00; /* dark amber                                   */
+  /* Teal-leaning green reads cleaner against cool slate than a pure
+     grass green, which vibrated against the gray panels. */
+  --neon: #057a45; /* legible teal-green on light backgrounds      */
+  --danger: #c81e3a; /* warm red — vivid but still dark enough for AA */
+  --warning: #b5650a; /* warm amber — less muddy-brown than before    */
 
   /* accent colours for circuit type badges */
-  --accent-technical: #007a2a;
-  --accent-highspeed: #9a5e00;
-  --accent-street: #4444cc;
+  --accent-technical: #057a45;
+  --accent-highspeed: #b5650a;
+  --accent-street: #4a5de0;
 }
 
 /* Custom select arrow: re-encode chevron in light-mode neon */
 [data-theme="light"] .apex-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23007a2a'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23057a45'/%3E%3C/svg%3E");
 }
 
 /* Scrollbar: lighten for light mode */
@@ -2335,6 +2342,115 @@ pre {
   }
   .tele-panel {
     border: 1px solid #ccc;
+  }
+}
+
+/*-- SECTION: FOOTER (<apex-footer> custom element, js/footer.js) --*/
+
+apex-footer {
+  display: block;
+}
+
+.apex-footer {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.apex-footer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 20px 24px 16px;
+}
+
+.apex-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apex-footer-logo {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.apex-footer-logo-accent {
+  color: var(--neon);
+}
+
+.apex-footer-tagline {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.apex-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.apex-footer-links a {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.apex-footer-links a:hover {
+  color: var(--neon);
+}
+
+.apex-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+}
+
+.apex-footer-copy,
+.apex-footer-meta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.apex-footer-sep {
+  color: var(--border);
+  margin: 0 6px;
+}
+
+@media (max-width: 576px) {
+  .apex-footer-top {
+    padding: 16px 16px 14px;
+  }
+  .apex-footer-bottom {
+    padding: 10px 16px;
+  }
+  .apex-footer-links {
+    gap: 16px;
   }
 }
 
@@ -2739,18 +2855,133 @@ body::after {
   transform: translateY(3px);
 }
 
-/* -- Right: Three.js canvas column -- */
+/* -- Right: focal circuit graphic column -- */
 .hero-canvas-wrap {
   flex: 0 0 auto;
-  width: clamp(260px, 36vw, 480px);
+  width: clamp(280px, 38vw, 520px);
   aspect-ratio: 1;
   position: relative;
 }
 
-#heroCanvas {
+/* Soft radial glow sitting behind the rotor — stands in for the old
+   Three.js halo sphere lapping the racing line. */
+.hero-circuit-glow {
+  position: absolute;
+  inset: -16%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--neon) 38%, transparent) 0%,
+    color-mix(in srgb, var(--neon) 14%, transparent) 45%,
+    transparent 72%
+  );
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Concentric telemetry rings — echoes the two lapping rings from the
+   original 3D scene. Gentle independent breathing animation. */
+.hero-circuit-ring {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--neon) 45%, transparent);
+  pointer-events: none;
+}
+
+.hero-circuit-ring--outer {
+  inset: -9%;
+  opacity: 0.3;
+}
+
+.hero-circuit-ring--inner {
+  inset: 7%;
+  opacity: 0.2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-circuit-ring--outer {
+    animation: hero-ring-pulse 4.5s ease-in-out infinite;
+  }
+  .hero-circuit-ring--inner {
+    animation: hero-ring-pulse 4.5s ease-in-out infinite reverse;
+    animation-delay: 0.6s;
+  }
+
+  @keyframes hero-ring-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.2;
+    }
+    50% {
+      transform: scale(1.045);
+      opacity: 0.4;
+    }
+  }
+}
+
+/* Outer stage: establishes the 3D viewing perspective + centres the rotor */
+.hero-circuit-spin {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neon);
+  perspective: 1000px;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--neon) 60%, transparent));
+}
+
+/* The rotor is the thing that actually spins, tilted slightly like the
+   old Three.js camera angle so the 3D-ness reads even at rest. */
+.hero-circuit-rotor {
+  position: relative;
+  width: 72%;
+  height: 72%;
+  transform-style: preserve-3d;
+  transform: rotateX(14deg);
+}
+
+/* Front/back faces hold an identical copy of the inlined SVG. Showing
+   the back face (rotated 180deg, not mirrored) instead of letting the
+   front face's backside show through keeps the artwork readable at
+   every angle — a card-flip rather than a flat plane spinning in place. */
+.hero-circuit-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+}
+
+.hero-circuit-face svg {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.hero-circuit-face--back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-circuit-rotor {
+    animation: hero-circuit-rotate-3d 16s linear infinite;
+  }
+
+  @keyframes hero-circuit-rotate-3d {
+    from {
+      transform: rotateX(14deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(14deg) rotateY(360deg);
+    }
+  }
 }
 
 .hero-canvas-label {
@@ -2821,8 +3052,10 @@ body::after {
   }
 
   .hero-canvas-wrap {
-    width: clamp(180px, 60vw, 320px);
-    margin: 0 auto;
+    width: clamp(160px, 46vw, 280px);
+    aspect-ratio: 1;
+    margin: 8px auto 0;
+    order: 2;
   }
 
   .hero-headline {
@@ -2833,6 +3066,7 @@ body::after {
 @media (max-width: 480px) {
   .hero-content {
     padding: 48px 16px 36px;
+    gap: 28px;
   }
   .hero-cta {
     padding: 12px 20px;
@@ -2840,6 +3074,17 @@ body::after {
   }
   .hero-stat-num {
     font-size: 1.8rem;
+  }
+  .hero-stats {
+    gap: 8px 0;
+  }
+  .hero-canvas-wrap {
+    width: clamp(140px, 42vw, 220px);
+    margin-top: 4px;
+  }
+  .hero-circuit-rotor {
+    width: 70%;
+    height: 70%;
   }
 }
 

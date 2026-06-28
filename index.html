@@ -191,18 +191,6 @@
         text-transform: uppercase;
       }
 
-      /* Footer */
-      .apex-footer {
-        border-top: 1px solid var(--border);
-        padding: 14px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        background: var(--bg-panel);
-      }
-
       /* Hero scanline container lives inside the page header */
       .page-header-strip {
         position: relative;
@@ -222,9 +210,6 @@
         #resultsCounter {
           padding: 6px 16px;
         }
-        .apex-footer {
-          padding: 12px 16px;
-        }
       }
     </style>
   </head>
@@ -241,27 +226,27 @@
       id="heroSection"
       aria-label="ApexStrategy introduction"
     >
-      <!-- Vanta.js NET background mounts here -->
-      <div id="vantaBg" class="hero-bg" aria-hidden="true"></div>
+      <!-- Custom Three.js telemetry track-floor background mounts here -->
+      <canvas id="heroBgCanvas" class="hero-bg" aria-hidden="true"></canvas>
 
       <div class="hero-content">
         <!-- Left column: text -->
         <div class="hero-text">
-          <div class="hero-pre-label">
+          <div class="hero-pre-label hero-reveal" style="--d: 80ms">
             <span class="status-dot status-live" aria-hidden="true"></span>
             RACE ENGINEERING PLATFORM · SEASON 2026
           </div>
 
-          <h1 class="hero-headline">
+          <h1 class="hero-headline hero-reveal" style="--d: 180ms">
             <span class="hero-word-apex">APEX</span>
             <span class="hero-word-strat">STRATEGY</span>
           </h1>
 
-          <p class="hero-tagline" id="heroTagline">
+          <p class="hero-tagline hero-reveal" id="heroTagline" style="--d: 300ms">
             WEATHER-DRIVEN SETUP ANALYSIS · 20 ICONIC CIRCUITS
           </p>
 
-          <div class="hero-stats" role="list">
+          <div class="hero-stats hero-reveal" role="list" style="--d: 420ms">
             <div class="hero-stat-item" role="listitem">
               <span class="hero-stat-num apex-mono" id="hstat1">0</span>
               <span class="hero-stat-label">CIRCUITS</span>
@@ -289,9 +274,17 @@
           </a>
         </div>
 
-        <!-- Right column: Three.js canvas -->
+        <!-- Right column: spinning circuit graphic (3D card-flip via CSS) -->
         <div class="hero-canvas-wrap" aria-hidden="true">
-          <canvas id="heroCanvas"></canvas>
+          <div class="hero-circuit-glow"></div>
+          <div class="hero-circuit-ring hero-circuit-ring--outer"></div>
+          <div class="hero-circuit-ring hero-circuit-ring--inner"></div>
+          <div class="hero-circuit-spin">
+            <div class="hero-circuit-rotor" id="heroCircuitRotor">
+              <div class="hero-circuit-face hero-circuit-face--front"></div>
+              <div class="hero-circuit-face hero-circuit-face--back"></div>
+            </div>
+          </div>
           <div class="hero-canvas-label">TELEMETRY ACTIVE</div>
         </div>
       </div>
@@ -429,21 +422,7 @@
     <!-- ═══════════════════════════════════════════════════
        FOOTER
        ═══════════════════════════════════════════════════ -->
-    <footer class="apex-footer" role="contentinfo">
-      <span class="apex-label">
-        APEXSTRATEGY
-        <span style="color: var(--border)" aria-hidden="true">//</span>
-        FULL-STACK PROJECT 2026
-      </span>
-      <span
-        class="apex-mono text-muted"
-        style="font-size: 0.68rem; letter-spacing: 0.04em"
-      >
-        WEATHER: OPENWEATHERMAP API
-        <span style="color: var(--border)" aria-hidden="true">//</span>
-        CIRCUITS: HAND-CURATED
-      </span>
-    </footer>
+    <apex-footer></apex-footer>
 
     <!-- ═══════════════════════════════════════════════════
        SCRIPTS — load order matters:

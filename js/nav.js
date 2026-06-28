@@ -298,8 +298,10 @@ function injectNavStyles() {
     .apex-nav-brand { display:flex; align-items:center; line-height:1; }
     .apex-nav-status { display:flex; align-items:center; padding:0 14px; border-left:1px solid var(--border); height:28px; }
     .apex-nav-status-label { color:var(--neon); letter-spacing:0.12em; font-size:0.65rem; }
-    .apex-theme-toggle { display:flex; align-items:center; justify-content:center; width:30px; height:30px; border:1px solid var(--border); background:transparent; cursor:pointer; transition:border-color 120ms,opacity 120ms; flex-shrink:0; }
-    .apex-theme-toggle:hover { border-color:var(--neon); }
+    .apex-theme-toggle { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border:none; border-radius:4px; background:transparent; cursor:pointer; transition:background-color 120ms,opacity 120ms; flex-shrink:0; }
+    .apex-theme-toggle svg { display:block; margin:auto; }
+    .apex-theme-toggle:hover, .apex-theme-toggle:focus-visible { background:var(--bg-panel-alt); }
+    .apex-theme-toggle:focus-visible { outline:1px solid var(--neon); outline-offset:1px; }
     .apex-theme-toggle:hover svg path, .apex-theme-toggle:hover svg circle, .apex-theme-toggle:hover svg line { fill:var(--neon)!important; stroke:var(--neon)!important; }
     .apex-keyhints { display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--bg-panel); border:1px solid var(--border); padding:6px 16px; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-muted); letter-spacing:0.1em; z-index:2000; white-space:nowrap; pointer-events:none; }
     .apex-keyhints.visible { display:block; }

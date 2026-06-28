@@ -351,9 +351,6 @@ export class WorkbenchController {
    */
   _initTimeline() {
     const buttons = document.querySelectorAll(".timeline-btn");
-    const statusEl = document.getElementById("timelineLabel");
-    const dotEl = document.getElementById("timelineDot");
-    const timeEl = document.getElementById("timelineTime");
 
     // Mark sessions that have rain in the forecast
     buttons.forEach((btn) => {
@@ -364,12 +361,9 @@ export class WorkbenchController {
       }
     });
 
-    if (statusEl) statusEl.textContent = "LIVE CONDITIONS — FORECAST LOADED";
-    if (dotEl) {
-      dotEl.classList.remove("status-loading");
-      dotEl.classList.add("status-live");
-    }
-
+    // TASK 2: the redundant status bar (timelineLabel/Dot/Time) was removed.
+    // The active session is now communicated solely by the highlighted button
+    // and the degradation-panel session label.
     const LABELS = {
       now: "LIVE (NOW)",
       practice: "PRACTICE (+24H)",
@@ -390,25 +384,6 @@ export class WorkbenchController {
         const weather = this.forecastData?.[session] ?? this.currentWeather;
         if (!weather) return;
 
-        if (statusEl)
-          statusEl.textContent = LABELS[session] ?? session.toUpperCase();
-        if (dotEl) {
-          dotEl.classList.remove(
-            "status-live",
-            "status-loading",
-            "status-error",
-          );
-          dotEl.classList.add(
-            session === "now" ? "status-live" : "status-loading",
-          );
-        }
-        if (timeEl) {
-          timeEl.textContent =
-            session === "now"
-              ? ""
-              : `EST. ${new Date(weather.fetchedAt).toUTCString().slice(0, 22)}`;
-        }
-
         this._setText(
           "degradationSession",
           LABELS[session] ?? session.toUpperCase(),
@@ -428,48 +403,157 @@ export class WorkbenchController {
     });
   }
 
-  /*-- SECTION: DEGRADATION GRAPHS --*/
+  /*-- SECTION: DEGRADATION CURVE CHART --*/
 
   /**
-   * Renders three pure-CSS horizontal bar charts for soft / medium / hard
-   * degradation rates into #degradationGraphs.
-   * Bars animate from 0% → real value via rAF double-tick.
-   * Stripe overlay on fills > 75% signals critical degradation.
-   * @param {{ degSoft, degMedium, degHard }} compound
+   * TASK 3 — Renders an actual multi-curve degradation graph (SVG) into
+   * #degradationGraphs, plotting tyre performance retained (%) over a
+   * race stint for the soft / medium / hard compounds.
+   *
+   * The SetupEngine gives a single end-of-stint degradation figure per
+   * compound (degSoft/degMedium/degHard). We model each as a curve over
+   * STINT_LAPS using a per-compound convexity exponent so softs show the
+   * classic late-stint "cliff" while hards fall away more linearly:
+   *
+   *   loss(lap)        = totalDeg * (lap / STINT_LAPS) ^ exponent
+   *   performance(lap) = 100 - loss(lap)
+   *
+   * Lines draw themselves in via stroke-dashoffset (same technique as the
+   * track minimap), respecting prefers-reduced-motion.
+   *
+   * @param {{ degSoft:number, degMedium:number, degHard:number }} compound
    */
   _renderDegradationGraphs(compound) {
     const el = document.getElementById("degradationGraphs");
     if (!el) return;
 
-    const rows = [
-      { label: "SOFT", pct: compound.degSoft ?? 0, color: "var(--danger)" },
-      { label: "MED", pct: compound.degMedium ?? 0, color: "var(--warning)" },
-      { label: "HARD", pct: compound.degHard ?? 0, color: "var(--neon)" },
+    const STINT_LAPS = 25;
+
+    // Per-compound model: total end-of-stint loss + curve convexity.
+    // Softer compound → more total loss AND a sharper late cliff (higher exp).
+    const series = [
+      {
+        label: "SOFT",
+        total: compound.degSoft ?? 0,
+        exp: 1.55,
+        color: "var(--danger)",
+      },
+      {
+        label: "MEDIUM",
+        total: compound.degMedium ?? 0,
+        exp: 1.25,
+        color: "var(--warning)",
+      },
+      {
+        label: "HARD",
+        total: compound.degHard ?? 0,
+        exp: 1.08,
+        color: "var(--neon)",
+      },
     ];
 
-    el.innerHTML = rows
-      .map(({ label, pct }) => {
-        const pctClass =
-          pct >= 75 ? "pct-critical" : pct >= 50 ? "pct-warning" : "pct-good";
-        return /* html */ `
-        <div class="deg-row">
-          <div class="deg-label">${label}</div>
-          <div class="deg-track">
-            <div class="deg-fill" data-target="${pct}" style="width:0%;"></div>
-          </div>
-          <div class="deg-pct ${pctClass}">${pct}%</div>
-        </div>`;
-      })
+    // ── Chart geometry (viewBox units) ──────────────────────────────
+    const VB_W = 360;
+    const VB_H = 184;
+    const PAD = { top: 12, right: 12, bottom: 24, left: 34 };
+    const plotW = VB_W - PAD.left - PAD.right;
+    const plotH = VB_H - PAD.top - PAD.bottom;
+
+    // Y domain: dynamic floor so the curves fill the panel. Lowest point
+    // reached across all compounds, dropped to the next 10% gridline.
+    const finals = series.map((s) => 100 - Math.min(100, s.total));
+    const yMin = Math.max(0, Math.floor((Math.min(...finals) - 8) / 10) * 10);
+    const yMax = 100;
+
+    const n1 = (n) => Math.round(n * 10) / 10; // 1-dp coordinate rounding
+    const xAt = (lap) => PAD.left + (lap / STINT_LAPS) * plotW;
+    const yAt = (perf) =>
+      PAD.top + (1 - (perf - yMin) / (yMax - yMin)) * plotH;
+
+    // Build each compound's polyline point string.
+    const lines = series.map((s) => {
+      const total = Math.min(100, s.total);
+      const pts = [];
+      for (let lap = 0; lap <= STINT_LAPS; lap++) {
+        const perf = 100 - total * Math.pow(lap / STINT_LAPS, s.exp);
+        pts.push(`${n1(xAt(lap))},${n1(yAt(perf))}`);
+      }
+      return { ...s, points: pts.join(" ") };
+    });
+
+    // ── Gridlines + Y axis labels (every 20%) ───────────────────────
+    let grid = "";
+    for (let v = yMin; v <= yMax; v += 20) {
+      const y = n1(yAt(v));
+      grid += `<line x1="${PAD.left}" y1="${y}" x2="${VB_W - PAD.right}" y2="${y}"
+        stroke="var(--border)" stroke-width="0.5" opacity="0.6" />`;
+      grid += `<text x="${PAD.left - 6}" y="${y + 3}" text-anchor="end"
+        class="deg-axis-label">${v}</text>`;
+    }
+
+    // ── X axis labels (lap markers) ─────────────────────────────────
+    let xlabels = "";
+    for (let lap = 0; lap <= STINT_LAPS; lap += 5) {
+      const x = n1(xAt(lap));
+      xlabels += `<text x="${x}" y="${VB_H - 8}" text-anchor="middle"
+        class="deg-axis-label">${lap}</text>`;
+    }
+
+    // ── Polylines (drawn in via dashoffset) ─────────────────────────
+    const polylines = lines
+      .map(
+        (l, i) => `<polyline data-line="${i}" points="${l.points}"
+          fill="none" stroke="${l.color}" stroke-width="2"
+          stroke-linejoin="round" stroke-linecap="round"
+          style="filter:drop-shadow(0 0 3px ${l.color});" />`,
+      )
       .join("");
 
-    // Double rAF: first frame paints 0%, second frame triggers CSS transition
+    el.innerHTML = /* html */ `
+      <div class="deg-chart-wrap">
+        <svg viewBox="0 0 ${VB_W} ${VB_H}" role="img"
+             aria-label="Tyre performance degradation over ${STINT_LAPS} laps">
+          ${grid}
+          <line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top + plotH}"
+                stroke="var(--border)" stroke-width="0.75" />
+          <line x1="${PAD.left}" y1="${PAD.top + plotH}" x2="${VB_W - PAD.right}" y2="${PAD.top + plotH}"
+                stroke="var(--border)" stroke-width="0.75" />
+          ${xlabels}
+          ${polylines}
+        </svg>
+        <div class="deg-legend">
+          ${series
+            .map(
+              (s) => `<div class="deg-legend-item">
+                <span class="deg-legend-swatch" style="background:${s.color};"></span>
+                <span class="deg-legend-label">${s.label}</span>
+                <span class="deg-legend-val">${Math.round(100 - Math.min(100, s.total))}%</span>
+              </div>`,
+            )
+            .join("")}
+          <span class="deg-legend-axis">LAPS →</span>
+        </div>
+      </div>`;
+
+    // Draw-in animation: offset each polyline by its own length, then
+    // release to 0 on the next frame. Skipped under reduced-motion.
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const polys = el.querySelectorAll("polyline[data-line]");
+    if (reduce) return;
+
+    polys.forEach((p) => {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = `${len}`;
+      p.style.strokeDashoffset = `${len}`;
+      p.style.transition = "stroke-dashoffset 1.1s cubic-bezier(0.2,0,0,1)";
+    });
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        el.querySelectorAll(".deg-fill").forEach((fill, i) => {
-          const pct = parseInt(fill.dataset.target, 10);
-          fill.style.background = rows[i].color;
-          fill.style.width = `${pct}%`;
-          if (pct >= 75) fill.classList.add("deg-critical");
+        polys.forEach((p, i) => {
+          p.style.transitionDelay = `${i * 120}ms`;
+          p.style.strokeDashoffset = "0";
         });
       }),
     );
@@ -844,18 +928,21 @@ export class WorkbenchController {
     this._show("loadingState");
     this._hide("workbenchMain");
     this._hide("errorState");
+    this._hide("timelinePanel");
     this._setDotClass("weatherDot", "status-loading");
   }
   _showWorkbench() {
     this._hide("loadingState");
     this._hide("errorState");
     this._show("workbenchMain");
+    this._show("timelinePanel");
     this._setDotClass("weatherDot", "status-live");
   }
   _showError(msg) {
     this._hide("loadingState");
     this._hide("workbenchMain");
     this._show("errorState");
+    this._hide("timelinePanel");
     this._setText("errorMessage", msg);
     this._setDotClass("weatherDot", "status-error");
     document.getElementById("retryBtn").onclick = () => this._fetchAndRender();

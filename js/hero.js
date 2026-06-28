@@ -1,187 +1,261 @@
 /* ============================================================
    APEXSTRATEGY — HERO.JS
    Drives the full-viewport landing hero on index.html.
-   Requires THREE (r128) and VANTA globals from CDN scripts
-   loaded before <script type="module">.
 
-   Features:
-     1. Vanta NET animated wireframe mesh background
-        — theme-reactive: updates color + backgroundColor live
-          when the user toggles dark ↔ light mode, using
-          Vanta's built-in setOptions() without remounting.
-     2. Three.js wireframe TorusKnot (3D accent right column)
-     3. Decode-in headline
-     4. Number roll-up on stats
-     5. Scroll-down arrow animation
+   Replaces the previous Vanta.js NET background with a bespoke
+   Three.js (r128, global) motorsport scene that actually fits
+   the telemetry theme:
+
+     1. BACKGROUND — an infinite scrolling "telemetry track floor":
+        a perspective grid rushing toward the camera with a drifting
+        data-point particle field and depth fog. Evokes speed + a
+        live track surface. Reacts to pointer for deep parallax.
+     2. FOCAL (right column) — a glowing 3D "apex racing line":
+        a Catmull-Rom spline shaped like a corner, with a bright
+        marker (the car) lapping it and concentric telemetry rings.
+     3. Decode-in headline, number roll-up on stats, scroll cue.
+
+   Motion follows the animate-skill principles: GPU-only transforms,
+   ~200-600ms entrances with ease-out, and a hard bail-out under
+   prefers-reduced-motion. Both scenes recolour live on theme change.
+
+   ── OPTIONAL ASSET ──────────────────────────────────────────
+   The focal piece is fully procedural so it works with no assets.
+   To swap in a real F1 car model, drop a glTF file at
+   `assets/f1-car.glb` (low-poly, < ~2 MB, Y-up, facing +Z) and
+   load Three's GLTFLoader — see initFocal() for the hook comment.
    ============================================================ */
 
 import { animateValue, decodeText } from "./anim.js";
 
-/*-- SECTION: VANTA STATE --*/
+/*-- SECTION: THEME COLOURS --*/
 
-// Module-level reference — kept alive so _updateVantaTheme()
-// can call setOptions() on the live effect at any time.
-let _vantaEffect = null;
+// Hex mirrors the CSS custom properties in style.css exactly:
+//   dark  → --neon #00ff66, --bg-primary #0b0d11
+//   light → --neon #057a45, --bg-primary #eef1f7
+const THEME_COLORS = {
+  dark: { neon: 0x00ff66, bg: 0x0b0d11 },
+  light: { neon: 0x057a45, bg: 0xeef1f7 },
+};
 
-/**
- * Maps a theme name to the correct Vanta color/backgroundColor pair.
- * Hex values mirror the CSS custom properties in style.css exactly:
- *   dark  → --neon #00ff66, --bg-primary #0b0d11
- *   light → --neon #007a2a, --bg-primary #eceef5
- *
- * @param {string} theme  "light" | "dark" (or anything → treated as dark)
- * @returns {{ color: number, backgroundColor: number }}
- */
-function _vantaColors(theme) {
-  return theme === "light"
-    ? { color: 0x007a2a, backgroundColor: 0xeceef5 }
-    : { color: 0x00ff66, backgroundColor: 0x0b0d11 };
+function themeColors(theme) {
+  return theme === "light" ? THEME_COLORS.light : THEME_COLORS.dark;
 }
 
-/*-- SECTION: VANTA BACKGROUND --*/
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") ?? "dark";
+}
 
-function initVanta() {
-  const el = document.getElementById("vantaBg");
-  if (!el || !window.VANTA || !window.THREE) return;
+function prefersReduced() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
-  // Read the theme that's already been applied by NavigationController
-  // (persisted in localStorage and set on <html data-theme> before this runs)
-  const currentTheme =
-    document.documentElement.getAttribute("data-theme") ?? "dark";
-  const { color, backgroundColor } = _vantaColors(currentTheme);
+// Live scene handles so the theme listener can recolour without remounting.
+const _scenes = [];
 
-  _vantaEffect = window.VANTA.NET({
-    el,
-    THREE: window.THREE,
-    mouseControls: true,
-    touchControls: true,
-    gyroControls: false,
-    minHeight: 200,
-    minWidth: 200,
-    scale: 1.0,
-    scaleMobile: 1.0,
+/*-- SECTION: BACKGROUND — TELEMETRY TRACK FLOOR --*/
+
+function buildGrid(size, div, color) {
+  const half = size / 2;
+  const step = size / div;
+  const verts = [];
+  for (let i = 0; i <= div; i++) {
+    const p = -half + i * step;
+    // line parallel to X (constant z) + line parallel to Z (constant x)
+    verts.push(-half, 0, p, half, 0, p);
+    verts.push(p, 0, -half, p, 0, half);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
+  const mat = new THREE.LineBasicMaterial({
     color,
-    backgroundColor,
-    // Slightly denser than default — evokes a live telemetry data mesh
-    // rather than a generic background graphic.
-    points: 12.0, // node count
-    maxDistance: 20.0, // max connection radius
-    spacing: 16.0, // node spacing
-    showDots: false, // clean lines only — no dot clutter
+    transparent: true,
+    opacity: 0.26,
   });
-
-  // React to theme toggles dispatched by NavigationController._applyTheme().
-  // setOptions() updates the renderer in-place; no canvas destroy/remount needed.
-  document.addEventListener("apex:themechange", (e) => {
-    if (!_vantaEffect) return;
-    const { color: c, backgroundColor: bg } = _vantaColors(
-      e.detail?.theme ?? "dark",
-    );
-    try {
-      _vantaEffect.setOptions({ color: c, backgroundColor: bg });
-    } catch (err) {
-      // setOptions() shouldn't fail but guard defensively
-      console.warn("[Hero] Vanta setOptions failed:", err);
-    }
-  });
+  return new THREE.LineSegments(geo, mat);
 }
 
-/*-- SECTION: THREE.JS TORUS KNOT --*/
-
-function initThreeCanvas() {
-  const canvas = document.getElementById("heroCanvas");
+function initBackground() {
+  const canvas = document.getElementById("heroBgCanvas");
   if (!canvas || !window.THREE) return;
 
-  const W = canvas.clientWidth || 340;
-  const H = canvas.clientHeight || 340;
+  const host = canvas.closest(".hero-section") || canvas.parentElement;
+  const size = () => ({
+    w: host.clientWidth || window.innerWidth,
+    h: host.clientHeight || window.innerHeight,
+  });
+  let { w, h } = size();
+
+  const { neon, bg } = themeColors(currentTheme());
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
     antialias: true,
   });
-  renderer.setSize(W, H);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 1000);
-  camera.position.set(0, 0, 200);
+  scene.fog = new THREE.Fog(bg, 45, 150);
 
-  // Outer torus knot — the 3D focal piece
-  const geo = new THREE.TorusKnotGeometry(52, 14, 120, 18, 2, 3);
-  const wire = new THREE.WireframeGeometry(geo);
-  const mat = new THREE.LineBasicMaterial({
-    color: 0x00ff66,
+  const camera = new THREE.PerspectiveCamera(62, w / h, 0.1, 400);
+  const CAM = { x: 0, y: 9, z: 26 };
+  camera.position.set(CAM.x, CAM.y, CAM.z);
+  camera.lookAt(0, 0, -34);
+
+  // Infinite floor — periodic grid; scroll by one CELL then wrap seamlessly.
+  const CELL = 8;
+  const DIV = 48;
+  const SIZE = CELL * DIV;
+  const grid = buildGrid(SIZE, DIV, neon);
+  scene.add(grid);
+
+  // Drifting telemetry particles above the floor
+  const COUNT = 130;
+  const pos = new Float32Array(COUNT * 3);
+  for (let i = 0; i < COUNT; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * SIZE;
+    pos[i * 3 + 1] = Math.random() * 34 + 2;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * SIZE;
+  }
+  const pgeo = new THREE.BufferGeometry();
+  pgeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const pmat = new THREE.PointsMaterial({
+    color: neon,
+    size: 0.55,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.5,
   });
-  const knot = new THREE.LineSegments(wire, mat);
-  scene.add(knot);
+  const particles = new THREE.Points(pgeo, pmat);
+  scene.add(particles);
 
-  // Inner accent ring
-  const ringGeo = new THREE.TorusGeometry(72, 1.2, 4, 80);
-  const ringWire = new THREE.WireframeGeometry(ringGeo);
-  const ringMat = new THREE.LineBasicMaterial({
-    color: 0x00ff66,
-    transparent: true,
-    opacity: 0.18,
-  });
-  const ring = new THREE.LineSegments(ringWire, ringMat);
-  scene.add(ring);
+  // Deep-parallax pointer target (camera sways slightly toward cursor)
+  const parallax = { x: 0, y: 0 };
+  const onPointer = (e) => {
+    parallax.x = (e.clientX / window.innerWidth - 0.5) * 2;
+    parallax.y = (e.clientY / window.innerHeight - 0.5) * 2;
+  };
+  window.addEventListener("pointermove", onPointer, { passive: true });
 
-  // Particle dots scattered around
-  const dotGeo = new THREE.BufferGeometry();
-  const dotPos = new Float32Array(90); // 30 dots × xyz
-  for (let i = 0; i < 90; i++) dotPos[i] = (Math.random() - 0.5) * 200;
-  dotGeo.setAttribute("position", new THREE.BufferAttribute(dotPos, 3));
-  const dotMat = new THREE.PointsMaterial({
-    color: 0x00ff66,
-    size: 1.4,
-    transparent: true,
-    opacity: 0.35,
-  });
-  const dots = new THREE.Points(dotGeo, dotMat);
-  scene.add(dots);
-
-  // Responsive resize
   const onResize = () => {
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    renderer.setSize(w, h);
+    ({ w, h } = size());
+    renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   };
   window.addEventListener("resize", onResize);
 
-  // Animation loop — respect reduced-motion
-  const prefersReduced = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-  let frameId;
+  const reduced = prefersReduced();
+  let raf = null;
+  let running = false;
 
   const tick = () => {
-    frameId = requestAnimationFrame(tick);
-    if (!prefersReduced) {
-      knot.rotation.x += 0.004;
-      knot.rotation.y += 0.007;
-      ring.rotation.z += 0.003;
-      dots.rotation.y += 0.001;
+    raf = requestAnimationFrame(tick);
+
+    // Rush the floor toward the camera; wrap at one cell for seamlessness.
+    grid.position.z = (grid.position.z + 0.45) % CELL;
+
+    // Particles drift forward and recycle behind the camera.
+    const arr = pgeo.attributes.position.array;
+    for (let i = 0; i < COUNT; i++) {
+      arr[i * 3 + 2] += 0.4;
+      if (arr[i * 3 + 2] > SIZE / 2) arr[i * 3 + 2] = -SIZE / 2;
     }
+    pgeo.attributes.position.needsUpdate = true;
+
+    // Eased deep-parallax sway
+    camera.position.x += (CAM.x + parallax.x * 6 - camera.position.x) * 0.04;
+    camera.position.y += (CAM.y - parallax.y * 3 - camera.position.y) * 0.04;
+    camera.lookAt(0, 0, -34);
+
     renderer.render(scene, camera);
   };
-  tick();
 
-  // Pause when off-screen (IntersectionObserver)
+  const start = () => {
+    if (running) return;
+    running = true;
+    if (reduced) {
+      renderer.render(scene, camera); // single static frame
+      running = false;
+      return;
+    }
+    tick();
+  };
+  const stop = () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+    running = false;
+  };
+
+  start();
+
+  // Pause when the hero scrolls out of view
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
-      (entries) => {
-        entries[0].isIntersecting ? tick() : cancelAnimationFrame(frameId);
-      },
+      (entries) => (entries[0].isIntersecting ? start() : stop()),
       { threshold: 0 },
     );
     io.observe(canvas);
   }
+
+  _scenes.push({
+    recolor(theme) {
+      const c = themeColors(theme);
+      grid.material.color.setHex(c.neon);
+      pmat.color.setHex(c.neon);
+      scene.fog.color.setHex(c.bg);
+    },
+  });
+}
+
+/*-- SECTION: FOCAL — SPINNING CIRCUIT GRAPHIC --*/
+
+/**
+ * Loads tracks/hero.svg and inlines it into both faces of the 3D rotor
+ * (.hero-circuit-rotor, CSS in style.css) so it genuinely spins in 3D —
+ * a front face and a back face (rotated 180deg, backface-visibility
+ * hidden) so the correct, unmirrored artwork is shown on both halves
+ * of the rotation, card-flip style. Inlining (rather than <img>) lets
+ * the graphic pick up `color: var(--neon)` and recolour live on theme
+ * change, same as the rest of the hero.
+ */
+function initFocal() {
+  const rotor = document.getElementById("heroCircuitRotor");
+  if (!rotor) return;
+  const faces = rotor.querySelectorAll(".hero-circuit-face");
+  if (!faces.length) return;
+
+  fetch("tracks/hero.svg")
+    .then((res) => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
+    .then((svgText) => {
+      faces.forEach((face) => {
+        face.innerHTML = svgText;
+        const svg = face.querySelector("svg");
+        if (!svg) return;
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute("fill", "currentColor");
+        svg.setAttribute("aria-hidden", "true");
+      });
+    })
+    .catch((err) => console.warn("[Hero] circuit svg load failed:", err));
+}
+
+/*-- SECTION: THEME LISTENER --*/
+
+function initThemeListener() {
+  document.addEventListener("apex:themechange", (e) => {
+    const theme = e.detail?.theme ?? currentTheme();
+    _scenes.forEach((s) => {
+      try {
+        s.recolor(theme);
+      } catch (err) {
+        console.warn("[Hero] recolor failed:", err);
+      }
+    });
+  });
 }
 
 /*-- SECTION: STATS ROLL-UP --*/
@@ -192,23 +266,17 @@ function animateStats() {
     { id: "hstat2", to: 4, suffix: "" }, // sessions
     { id: "hstat3", to: 7, suffix: "" }, // compounds
   ];
-
-  const prefersReduced = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+  const reduced = prefersReduced();
 
   stats.forEach(({ id, to, suffix }, i) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (prefersReduced) {
+    if (reduced) {
       el.textContent = to + suffix;
       return;
     }
-    // Stagger each stat slightly
     setTimeout(
-      () => {
-        animateValue(el, to, { duration: 900, decimals: 0, suffix });
-      },
+      () => animateValue(el, to, { duration: 900, decimals: 0, suffix }),
       300 + i * 150,
     );
   });
@@ -218,8 +286,7 @@ function animateStats() {
 
 function animateHeadline() {
   const el = document.getElementById("heroTagline");
-  if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-    return;
+  if (!el || prefersReduced()) return;
   const txt = el.textContent.trim();
   el.textContent = "";
   setTimeout(() => decodeText(el, txt, { duration: 500 }), 600);
@@ -232,18 +299,20 @@ function initScrollIndicator() {
   if (!cta) return;
   cta.addEventListener("click", (e) => {
     e.preventDefault();
-    const target = document.getElementById("commandCenter");
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById("commandCenter")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 
 /*-- SECTION: PUBLIC INIT --*/
 
 export function initHero() {
-  // Slight delay so DOM is fully painted before Three.js measures canvas
+  // Defer one frame so the DOM is painted before Three.js measures canvases.
   requestAnimationFrame(() => {
-    initVanta();
-    initThreeCanvas();
+    initBackground();
+    initFocal();
+    initThemeListener();
     animateStats();
     animateHeadline();
     initScrollIndicator();
