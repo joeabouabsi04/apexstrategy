@@ -42,7 +42,7 @@ export class WeatherService {
     if (!this.API_KEY || this.API_KEY === "YOUR_API_KEY_HERE") {
       throw new Error(
         "API_KEY_MISSING: Add your OpenWeatherMap key to js/WeatherService.js. " +
-          "Free key at openweathermap.org/api — activates in ~10 minutes.",
+          "Free key at openweathermap.org/api · activates in ~10 minutes.",
       );
     }
 
@@ -69,9 +69,9 @@ export class WeatherService {
     if (!response.ok) {
       const hint =
         response.status === 401
-          ? " — invalid key or not yet activated (wait 10 min)"
+          ? " · invalid key or not yet activated (wait 10 min)"
           : response.status === 429
-            ? " — rate limit, try again in a minute"
+            ? " · rate limit, try again in a minute"
             : "";
       throw new Error(`HTTP_${response.status}: ${response.statusText}${hint}`);
     }
@@ -189,9 +189,9 @@ export class WeatherService {
     if (!response.ok) {
       const hint =
         response.status === 401
-          ? " — invalid key or not yet activated"
+          ? " · invalid key or not yet activated"
           : response.status === 429
-            ? " — rate limit, retry in a minute"
+            ? " · rate limit, retry in a minute"
             : "";
       throw new Error(`HTTP_${response.status}: ${response.statusText}${hint}`);
     }
@@ -231,7 +231,7 @@ export class WeatherService {
         visibility: Math.round((entry.visibility ?? 10000) / 1000),
         cloudCover,
         isRaining,
-        // forecast uses 3h rain accumulation — divide to get hourly equivalent
+        // forecast uses 3h rain accumulation · divide to get hourly equivalent
         rain1h: entry.rain ? (entry.rain["3h"] ?? 0) / 3 : 0,
         trackTempEstimate: this._estimateTrackTemp(
           ambientTemp,

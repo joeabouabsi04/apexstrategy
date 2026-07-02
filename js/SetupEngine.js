@@ -1,5 +1,5 @@
 /* ============================================================
-   APEXSTRATEGY — SETUP ENGINE  (ES6 module)
+   APEXSTRATEGY · SETUP ENGINE  (ES6 module)
    No dependencies. Pass circuit + weather objects to constructor.
    ============================================================ */
 
@@ -11,7 +11,7 @@ const COMPOUND_WINDOWS = [
     compound: "C3 (SOFT)",
     status: "warning",
     reason:
-      "Track too cold — soft mandatory but warm-up will be slow. Expect understeer for first 3–4 laps.",
+      "Track too cold · soft mandatory but warm-up will be slow. Expect understeer for first 3-4 laps.",
   },
   {
     max: 25,
@@ -32,14 +32,14 @@ const COMPOUND_WINDOWS = [
     compound: "C1 (HARD)",
     status: "optimal",
     reason:
-      "High track temp — hard compound recommended. Monitor shoulder wear on long stints.",
+      "High track temp · hard compound recommended. Monitor shoulder wear on long stints.",
   },
   {
     max: Infinity,
     compound: "C1 (HARD)",
     status: "warning",
     reason:
-      "Track temp critical — overheating risk even on hard compound. Increase pressure 0.5 PSI and monitor.",
+      "Track temp critical · overheating risk even on hard compound. Increase pressure 0.5 PSI and monitor.",
   },
 ];
 
@@ -105,16 +105,16 @@ export class SetupEngine {
     let recommendation = "WITHIN OPTIMAL WINDOW";
     if (this.weather.isRaining) {
       status = "warning";
-      recommendation = "WET CONFIGURATION — REDUCED PRESSURE APPLIED";
+      recommendation = "WET CONFIGURATION · REDUCED PRESSURE APPLIED";
     } else if (this.weather.temp > 38 || this.weather.trackTempEstimate > 58) {
       status = "warning";
       recommendation =
-        "MONITOR — HIGH AMBIENT · RISK OF OVERINFLATION ON TRACK";
+        "MONITOR · HIGH AMBIENT · RISK OF OVERINFLATION ON TRACK";
     } else if (this.weather.temp < 8) {
       status = "warning";
-      recommendation = "MONITOR — COLD CONDITIONS · ALLOW EXTENDED WARM-UP LAP";
+      recommendation = "MONITOR · COLD CONDITIONS · ALLOW EXTENDED WARM-UP LAP";
     } else if (this.weather.temp > 30) {
-      recommendation = "SLIGHTLY ELEVATED — STANDARD FOR HIGH-TEMP RUNNING";
+      recommendation = "SLIGHTLY ELEVATED · STANDARD FOR HIGH-TEMP RUNNING";
     }
 
     return {
@@ -130,7 +130,7 @@ export class SetupEngine {
   recommendTyreCompound() {
     // Base degradation lookup by circuit tyre-wear classification.
     // These represent the percentage of useful tyre life consumed per stint
-    // under race pace — calibrated to real-world F1 engineering ranges.
+    // under race pace · calibrated to real-world F1 engineering ranges.
     const wearBase = { Low: 32, Medium: 50, High: 68, "Very High": 84 };
     const base = wearBase[this.circuit.tyreWear] ?? 50;
 
@@ -161,7 +161,7 @@ export class SetupEngine {
           compound: "INTERMEDIATE",
           status: "warning",
           reason:
-            "Light precipitation — intermediate viable. Monitor for slick window.",
+            "Light precipitation · intermediate viable. Monitor for slick window.",
           degSoft,
           degMedium,
           degHard,
@@ -169,7 +169,7 @@ export class SetupEngine {
       return {
         compound: "FULL WET",
         status: "critical",
-        reason: `Active precipitation at ${this.weather.rain1h.toFixed(1)}mm/h — full wet mandatory.`,
+        reason: `Active precipitation at ${this.weather.rain1h.toFixed(1)}mm/h · full wet mandatory.`,
         degSoft,
         degMedium,
         degHard,
@@ -200,13 +200,13 @@ export class SetupEngine {
       rear += 2;
       status = "warning";
       notes.push(
-        "SEVERE CROSSWIND — additional downforce. Significant lap time variation expected.",
+        "SEVERE CROSSWIND · additional downforce. Significant lap time variation expected.",
       );
     } else if (this.weather.windSpeed > 40) {
       front += 1;
       rear += 1;
       notes.push(
-        "CROSSWIND RISK — +1° applied. Monitor high-speed entry stability.",
+        "CROSSWIND RISK · +1° applied. Monitor high-speed entry stability.",
       );
     }
 
@@ -214,7 +214,7 @@ export class SetupEngine {
       front += 2;
       rear += 2;
       status = "warning";
-      notes.push("WET CONFIGURATION — maximum downforce for traction.");
+      notes.push("WET CONFIGURATION · maximum downforce for traction.");
     }
 
     front = Math.max(1, Math.min(20, front));
@@ -222,7 +222,7 @@ export class SetupEngine {
 
     if (!notes.length)
       notes.push(
-        `${this.circuit.baseDownforce.toUpperCase()} DOWNFORCE — baseline for ${this.circuit.shortName}. Drag: ${dragLabel(front + rear)}.`,
+        `${this.circuit.baseDownforce.toUpperCase()} DOWNFORCE · baseline for ${this.circuit.shortName}. Drag: ${dragLabel(front + rear)}.`,
       );
 
     return {
@@ -240,7 +240,7 @@ export class SetupEngine {
     if (!isRaining && rain1h < 0.1)
       return {
         required: false,
-        recommendation: "DRY CONDITIONS — STANDARD SETUP",
+        recommendation: "DRY CONDITIONS · STANDARD SETUP",
         status: "optimal",
       };
 
@@ -248,11 +248,11 @@ export class SetupEngine {
       return {
         required: true,
         compound: "FULL WET",
-        pitWindow: "PIT IMMEDIATELY — CONDITIONS CRITICAL",
+        pitWindow: "PIT IMMEDIATELY · CONDITIONS CRITICAL",
         visibilityRisk: "HIGH",
         aquaplaningRisk: rain1h > 5 ? "CRITICAL" : "MEDIUM",
         brakesBias: "FRONT +2% (wet bias for stability)",
-        engineMap: "RAIN MAP — REDUCED POWER DELIVERY",
+        engineMap: "RAIN MAP · REDUCED POWER DELIVERY",
         recommendation: `Full wet mandatory. Rain: ${rain1h.toFixed(1)}mm/h.`,
         status: "critical",
       };
@@ -260,12 +260,12 @@ export class SetupEngine {
     return {
       required: true,
       compound: "INTERMEDIATE",
-      pitWindow: "MONITOR — INTERMEDIATE VIABLE",
+      pitWindow: "MONITOR · INTERMEDIATE VIABLE",
       visibilityRisk: visibility < 5 ? "HIGH" : "LOW",
       aquaplaningRisk: "LOW",
       brakesBias: "FRONT +2% (wet bias for stability)",
-      engineMap: "RAIN MAP — REDUCED POWER DELIVERY",
-      recommendation: `Light rain at ${rain1h.toFixed(1)}mm/h — intermediate viable. Slick tyres on standby.`,
+      engineMap: "RAIN MAP · REDUCED POWER DELIVERY",
+      recommendation: `Light rain at ${rain1h.toFixed(1)}mm/h · intermediate viable. Slick tyres on standby.`,
       status: "warning",
     };
   }

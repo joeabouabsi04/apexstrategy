@@ -9,28 +9,27 @@
 /*-- SECTION: SVG LOGO --*/
 
 const LOGO_SVG = /* html */ `
-<svg viewBox="0 0 222 38" xmlns="http://www.w3.org/2000/svg"
-     height="34" aria-hidden="true" focusable="false"
+<svg viewBox="0 0 210 38" xmlns="http://www.w3.org/2000/svg"
+     height="30" aria-hidden="true" focusable="false"
      style="display:block;flex-shrink:0;overflow:visible;">
-  <polygon style="fill:var(--neon)" points="1,38 12,38 20,2 9,2"/>
-  <polygon style="fill:var(--neon)" points="12,25 28,25 27,20 11,20"/>
-  <polygon style="fill:var(--neon)" points="16,38 20,38 48,2 44,2"/>
-  <rect style="fill:var(--neon)"            x="50" y="0"  width="4" height="4"/>
-  <rect style="fill:var(--neon)"            x="55" y="0"  width="4" height="4"/>
-  <rect style="fill:var(--neon);opacity:.68" x="50" y="6"  width="3" height="3"/>
-  <rect style="fill:var(--neon);opacity:.68" x="55" y="6"  width="3" height="3"/>
-  <rect style="fill:var(--neon);opacity:.60" x="60" y="2"  width="3" height="3"/>
-  <rect style="fill:var(--neon);opacity:.40" x="52" y="12" width="3" height="3"/>
-  <rect style="fill:var(--neon);opacity:.38" x="57" y="10" width="2" height="2"/>
-  <rect style="fill:var(--neon);opacity:.35" x="62" y="7"  width="3" height="3"/>
-  <rect style="fill:var(--neon);opacity:.33" x="61" y="1"  width="2" height="2"/>
-  <rect style="fill:var(--neon);opacity:.20" x="55" y="18" width="2" height="2"/>
-  <rect style="fill:var(--neon);opacity:.18" x="60" y="16" width="2" height="2"/>
-  <rect style="fill:var(--neon);opacity:.16" x="65" y="12" width="2" height="2"/>
-  <rect style="fill:var(--neon);opacity:.10" x="68" y="9"  width="1" height="1"/>
-  <line x1="76" y1="7" x2="76" y2="31" style="stroke:var(--border)" stroke-width="1"/>
-  <text x="82" y="26" style="font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:18px;letter-spacing:2.5px">
-    <tspan style="fill:var(--neon)">APEX</tspan><tspan style="fill:var(--text-primary)">STRATEGY</tspan>
+  <polygon style="fill:var(--accent)" points="1,38 12,38 20,2 9,2"/>
+  <polygon style="fill:var(--accent)" points="12,25 28,25 27,20 11,20"/>
+  <polygon style="fill:var(--accent)" points="16,38 20,38 48,2 44,2"/>
+  <rect style="fill:var(--accent)"            x="50" y="0"  width="4" height="4"/>
+  <rect style="fill:var(--accent)"            x="55" y="0"  width="4" height="4"/>
+  <rect style="fill:var(--accent);opacity:.68" x="50" y="6"  width="3" height="3"/>
+  <rect style="fill:var(--accent);opacity:.68" x="55" y="6"  width="3" height="3"/>
+  <rect style="fill:var(--accent);opacity:.60" x="60" y="2"  width="3" height="3"/>
+  <rect style="fill:var(--accent);opacity:.40" x="52" y="12" width="3" height="3"/>
+  <rect style="fill:var(--accent);opacity:.38" x="57" y="10" width="2" height="2"/>
+  <rect style="fill:var(--accent);opacity:.35" x="62" y="7"  width="3" height="3"/>
+  <rect style="fill:var(--accent);opacity:.33" x="61" y="1"  width="2" height="2"/>
+  <rect style="fill:var(--accent);opacity:.20" x="55" y="18" width="2" height="2"/>
+  <rect style="fill:var(--accent);opacity:.18" x="60" y="16" width="2" height="2"/>
+  <rect style="fill:var(--accent);opacity:.16" x="65" y="12" width="2" height="2"/>
+  <rect style="fill:var(--accent);opacity:.10" x="68" y="9"  width="1" height="1"/>
+  <text x="78" y="28" style="font-family:'Saira Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:24px;letter-spacing:0.5px">
+    <tspan style="fill:var(--accent)">APEX</tspan><tspan style="fill:var(--text-primary)">STRATEGY</tspan>
   </text>
 </svg>`;
 
@@ -39,21 +38,22 @@ const LOGO_SVG = /* html */ `
 const NAV_TEMPLATE = /* html */ `
 <nav class="apex-nav" role="navigation" aria-label="Main navigation">
   <div class="apex-nav-left">
-    <a href="index.html" class="apex-nav-brand" aria-label="ApexStrategy — Command Center">
+    <a href="index.html" class="apex-nav-brand" aria-label="ApexStrategy home">
       ${LOGO_SVG}
     </a>
-    <div class="apex-nav-status" aria-label="System status: online">
-      <span class="status-dot status-live" aria-hidden="true"></span>
-      <span class="apex-label apex-nav-status-label">SYSTEM ONLINE</span>
-    </div>
   </div>
   <div class="apex-nav-right">
+    <ul class="apex-nav-links" id="navLinks" role="list">
+      <li role="listitem"><a href="index.html"     class="apex-nav-link" data-page="home"      aria-label="Circuits">CIRCUITS</a></li>
+      <li role="listitem"><a href="workbench.html" class="apex-nav-link" data-page="workbench" aria-label="Workbench">WORKBENCH</a></li>
+      <li role="listitem"><a href="handbook.html"  class="apex-nav-link" data-page="handbook"  aria-label="Handbook">HANDBOOK</a></li>
+    </ul>
     <button class="apex-theme-toggle" id="themeToggle" type="button"
             aria-label="Switch to light mode" aria-pressed="false">
-      <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+      <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
         <path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z" style="fill:var(--text-secondary)"/>
       </svg>
-      <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true" style="display:none">
+      <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" style="display:none">
         <circle cx="8" cy="8" r="3.5" style="fill:var(--text-secondary)"/>
         <g style="stroke:var(--text-secondary);stroke-width:1.2">
           <line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/>
@@ -63,11 +63,6 @@ const NAV_TEMPLATE = /* html */ `
         </g>
       </svg>
     </button>
-    <ul class="apex-nav-links" id="navLinks" role="list">
-      <li role="listitem"><a href="index.html"     class="apex-nav-link" data-page="home"      aria-label="Command Center">COMMAND CENTER</a></li>
-      <li role="listitem"><a href="workbench.html" class="apex-nav-link" data-page="workbench" aria-label="Workbench">WORKBENCH</a></li>
-      <li role="listitem"><a href="handbook.html"  class="apex-nav-link" data-page="handbook"  aria-label="Handbook">HANDBOOK</a></li>
-    </ul>
     <button class="apex-nav-toggle" id="navToggle" type="button"
             aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">
       <span aria-hidden="true"></span>
@@ -294,21 +289,8 @@ function injectNavStyles() {
   s.id = "apex-nav-styles";
   s.textContent = `
     apex-nav { display: block; }
-    .apex-nav-left { display:flex; align-items:center; gap:16px; }
-    .apex-nav-brand { display:flex; align-items:center; line-height:1; }
-    .apex-nav-status { display:flex; align-items:center; padding:0 14px; border-left:1px solid var(--border); height:28px; }
-    .apex-nav-status-label { color:var(--neon); letter-spacing:0.12em; font-size:0.65rem; }
-    .apex-theme-toggle { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border:none; border-radius:4px; background:transparent; cursor:pointer; transition:background-color 120ms,opacity 120ms; flex-shrink:0; }
-    .apex-theme-toggle svg { display:block; margin:auto; }
-    .apex-theme-toggle:hover, .apex-theme-toggle:focus-visible { background:var(--bg-panel-alt); }
-    .apex-theme-toggle:focus-visible { outline:1px solid var(--neon); outline-offset:1px; }
-    .apex-theme-toggle:hover svg path, .apex-theme-toggle:hover svg circle, .apex-theme-toggle:hover svg line { fill:var(--neon)!important; stroke:var(--neon)!important; }
-    .apex-keyhints { display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--bg-panel); border:1px solid var(--border); padding:6px 16px; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-muted); letter-spacing:0.1em; z-index:2000; white-space:nowrap; pointer-events:none; }
-    .apex-keyhints.visible { display:block; }
-    .apex-keyhints kbd { color:var(--text-secondary); margin:0 4px; padding:1px 5px; border:1px solid var(--border); font-family:var(--font-mono); font-size:0.6rem; }
-    html.theme-switching * { transition:background-color 180ms ease-out,border-color 140ms ease-out,color 100ms ease-out!important; }
+    .apex-theme-toggle:hover svg path, .apex-theme-toggle:hover svg circle, .apex-theme-toggle:hover svg line { fill:var(--accent)!important; stroke:var(--accent)!important; }
     @media(max-width:380px){ .apex-nav-brand svg{ width:46px;overflow:hidden; } }
-    @media(max-width:480px){ .apex-nav-status{ display:none; } }
   `;
   document.head.appendChild(s);
 }

@@ -1,61 +1,109 @@
 /*-- SECTION: GOOGLE FONTS IMPORT --*/
 
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Barlow+Condensed:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
 
 /* ============================================================
-   APEXSTRATEGY — DESIGN SYSTEM v1.0
-   Engineering-grade telemetry UI for motorsport analysis.
-   Every decision is intentional. No accidents. No defaults.
+   APEXSTRATEGY — DESIGN SYSTEM v2.0 "PODIUM"
+   Cinematic race-engineering UI. Carbon black, one racing-red
+   accent, condensed display type, generous air between zones.
+
+   Radius system (one rule, everywhere):
+     cards / panels ... 16px   (--r-card)
+     inputs / small ... 10px   (--r-sm)
+     tabs / pills ..... 999px  (--r-pill)
+
+   Status vocabulary (unchanged, JS depends on it):
+     optimal → --neon (green) · warning → --warning (amber)
+     critical → --danger (red)
+   Brand/interactive accent is --accent (racing red).
    ============================================================ */
 
 /*-- SECTION: CSS CUSTOM PROPERTIES --*/
 
 :root {
-  /* -- Backgrounds -- */
-  --bg-primary: #0b0d11;
-  --bg-panel: #13161c;
-  --bg-panel-alt: #1a1e26;
+  /* -- Surfaces -- */
+  --bg-primary: #0b0b0e;
+  --bg-panel: #131317;
+  --bg-panel-alt: #1a1a21;
+  --bg-panel-hover: #202028;
 
   /* -- Borders -- */
-  --border: #252b36;
-  --border-active: #00ff66;
+  --border: #232329;
+  --border-strong: #35353f;
+  --border-active: #ff3b2f;
 
   /* -- Text -- */
-  --text-primary: #f0f3f6;
-  --text-secondary: #8892a0;
-  --text-muted: #4a5568;
+  --text-primary: #f2f1ee;
+  --text-secondary: #a6a5ad;
+  --text-muted: #6b6a74;
 
-  /* -- Signal Colors -- */
-  --neon: #00ff66;
-  --danger: #ff3333;
-  --warning: #ffaa00;
+  /* -- Brand accent: racing red -- */
+  --accent: #ff3b2f;
+  --accent-strong: #ff6b60; /* small text on dark */
+  --accent-ink: #ffffff; /* text on accent fill */
+  --accent-soft: rgba(255, 59, 47, 0.1);
 
-  /* -- Circuit Type Accent -- */
-  --accent-technical: #00ff66;
-  --accent-highspeed: #ffaa00;
-  --accent-street: #8888ff;
+  /* -- Signal colors (status vocabulary) -- */
+  --neon: #34d17b; /* optimal / live */
+  --warning: #ffb02e;
+  --danger: #ff453a;
+
+  /* -- Circuit type accents -- */
+  --accent-technical: #34d17b;
+  --accent-highspeed: #ffb02e;
+  --accent-street: #7d8cff;
 
   /* -- Typography -- */
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-ui: "Archivo", "Helvetica Neue", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --font-ui: "Barlow Condensed", sans-serif;
 
-  /* -- Timing (Kowalski framework) -- */
-  --t-fast: 100ms;
-  --t-mid: 180ms;
-  --t-slow: 280ms;
-  --ease-out: cubic-bezier(
-    0.2,
-    0,
-    0,
-    1
-  ); /* quick out, hard settle — default for all state changes */
-  --ease-morph: cubic-bezier(
-    0.4,
-    0,
-    0.2,
-    1
-  ); /* in-out morph for shape/size transitions */
-  --ease-steps-8: steps(8, end); /* clocked/digital feel — spinner, scanline */
+  /* -- Shape -- */
+  --r-card: 16px;
+  --r-sm: 10px;
+  --r-pill: 999px;
+
+  /* -- Motion -- */
+  --t-fast: 120ms;
+  --t-mid: 220ms;
+  --t-slow: 360ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-morph: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* -- Layout -- */
+  --page-max: 1240px;
+  --page-pad: clamp(20px, 4vw, 48px);
+}
+
+/*-- SECTION: LIGHT MODE TOKENS --*/
+/* Applied via data-theme="light" on <html> (nav.js theme toggle). */
+
+[data-theme="light"] {
+  --bg-primary: #f4f4f5;
+  --bg-panel: #ffffff;
+  --bg-panel-alt: #ececee;
+  --bg-panel-hover: #e4e4e8;
+
+  --border: #dcdce1;
+  --border-strong: #c3c3cb;
+  --border-active: #d92c1f;
+
+  --text-primary: #141417;
+  --text-secondary: #55555e;
+  --text-muted: #8b8b95;
+
+  --accent: #d92c1f;
+  --accent-strong: #b32015;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(217, 44, 31, 0.08);
+
+  --neon: #0e8f4d;
+  --warning: #a86403;
+  --danger: #c8231d;
+
+  --accent-technical: #0e8f4d;
+  --accent-highspeed: #a86403;
+  --accent-street: #4a5de0;
 }
 
 /*-- SECTION: BASE RESET --*/
@@ -66,7 +114,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  border-radius: 0; /* strong default — the look stays square, but nothing fights itself */
 }
 
 html {
@@ -78,62 +125,49 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* -- Selection: neon highlight — ownership over the cursor -- */
 ::selection {
-  background: var(--neon);
-  color: var(--bg-primary);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
-::-moz-selection {
-  background: var(--neon);
-  color: var(--bg-primary);
-}
-
-/* -- Scrollbar: keep it on-brand -- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
+  border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-/* -- Anchors: inherit color context by default -- */
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* -- Lists: unstyled by default -- */
 ul,
 ol {
   list-style: none;
 }
 
-/* -- Images: block prevents inline-baseline gap -- */
 img,
 svg {
   display: block;
   max-width: 100%;
 }
 
-/* -- Buttons: raw reset — styled per component -- */
 button {
   background: none;
   border: none;
@@ -144,82 +178,48 @@ button {
   padding: 0;
 }
 
-/* -- Focus ring: always visible, always branded -- */
 :focus-visible {
-  outline: 1px solid var(--neon);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-
 :focus:not(:focus-visible) {
   outline: none;
 }
 
+/* Theme-switch crossfade (nav.js adds .theme-switching briefly) */
+html.theme-switching * {
+  transition:
+    background-color 180ms ease-out,
+    border-color 140ms ease-out,
+    color 100ms ease-out !important;
+}
+
 /*-- SECTION: TYPOGRAPHY --*/
 
-/* -- .apex-mono: applied to any element needing engineering readout feel -- */
-.apex-mono {
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-}
-
-/* -- .apex-readout: large numeric telemetry values (RPM, speed, etc.) -- */
-.apex-readout {
-  font-family: var(--font-mono);
-  font-size: 1.8rem;
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
   font-weight: 700;
-  color: var(--neon);
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-/* -- .apex-label: channel/data identifier, always uppercase -- */
-.apex-label {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.2;
-}
-
-/* -- .apex-value: standard inline data value -- */
-.apex-value {
-  font-family: var(--font-mono);
-  font-size: 1rem;
+  letter-spacing: 0.01em;
+  line-height: 1.02;
   color: var(--text-primary);
 }
 
-/* -- Headings: all mono, no exceptions -- */
-h1,
-h2,
-h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-mono);
-  color: var(--text-primary);
+  font-family: var(--font-ui);
   font-weight: 700;
-  line-height: 1.2;
-}
-
-h1 {
-  font-size: 1.6rem;
-}
-h2 {
-  font-size: 1.25rem;
-}
-h3 {
-  font-size: 1rem;
-}
-h4 {
-  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.3;
 }
 
 p {
   color: var(--text-secondary);
   font-family: var(--font-ui);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1.7;
 }
 
@@ -227,2467 +227,294 @@ code,
 pre {
   font-family: var(--font-mono);
   font-size: 0.85rem;
-  color: var(--neon);
+  color: var(--accent-strong);
   background: var(--bg-panel-alt);
   padding: 2px 6px;
-  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
-pre {
-  padding: 16px;
-  overflow-x: auto;
-  border: 1px solid var(--border);
+/* -- Section heading combo: display title + short lede -- */
+.section-title {
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
 }
 
-/*-- SECTION: TELEMETRY PANEL (core component) --*/
-
-/* -- Base panel: the structural chassis -- */
-.tele-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  padding: 0; /* inner sections handle their own padding */
-  position: relative;
-  overflow: hidden;
-}
-
-/* -- Panel header: top bar with title + meta controls -- */
-.tele-panel-header {
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-panel-alt);
-  gap: 12px;
-}
-
-.tele-panel-title {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
+.section-lede {
+  font-size: 1.02rem;
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
+  max-width: 58ch;
+  margin-top: 12px;
+}
+
+/* -- .apex-mono: engineering readout feel -- */
+.apex-mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* -- .apex-readout: large numeric telemetry values -- */
+.apex-readout {
+  font-family: var(--font-mono);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+/* -- .apex-label: small channel identifier -- */
+.apex-label {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  line-height: 1.3;
 }
 
-/* -- Panel body: primary content zone -- */
-.tele-panel-body {
-  padding: 16px;
+/* -- .apex-value: standard inline data value -- */
+.apex-value {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-primary);
 }
 
-/* -- Panel footer: action row / legend row -- */
-.tele-panel-footer {
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel-alt);
-  display: flex;
+.apex-value.optimal {
+  color: var(--neon);
+}
+.apex-value.warning {
+  color: var(--warning);
+}
+.apex-value.critical {
+  color: var(--danger);
+}
+
+/*-- SECTION: BUTTONS --*/
+
+.btn-apex {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 26px;
+  height: 48px;
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out),
+    transform 80ms var(--ease-out);
 }
 
-/*-- SECTION: CORNER BRACKETS (visual signature) --*/
-
-/* -- .bracket-corners: apply to any tele-panel or major section.
-      Parent must be position: relative (enforced by .tele-panel).
-      Creates top-left and bottom-right "L" bracket corners.
-      The 2px arm = engineered precision, not decoration.       -- */
-
-.bracket-corners {
-  position: relative; /* ensure brackets are anchored */
+.btn-apex:active {
+  transform: scale(0.97);
 }
 
-.bracket-corners::before,
-.bracket-corners::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  z-index: 2;
-  /* scale(0.95) base — Kowalski: no element born from zero */
-  pointer-events: none;
+.btn-accent {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-ink);
 }
 
-/* -- Top-left bracket -- */
-.bracket-corners::before {
-  top: 0;
-  left: 0;
-  border-top: 2px solid var(--neon);
-  border-left: 2px solid var(--neon);
+.btn-accent:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #ffffff;
 }
 
-/* -- Bottom-right bracket -- */
-.bracket-corners::after {
-  bottom: 0;
-  right: 0;
-  border-bottom: 2px solid var(--neon);
-  border-right: 2px solid var(--neon);
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
 }
 
-/* -- Variant: bracket corners on hover only (for cards) -- */
-.bracket-corners-hover::before,
-.bracket-corners-hover::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity var(--t-mid) var(--ease-out);
-  pointer-events: none;
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
-.bracket-corners-hover::before {
-  top: 0;
-  left: 0;
-  border-top: 2px solid var(--neon);
-  border-left: 2px solid var(--neon);
-}
-
-.bracket-corners-hover::after {
-  bottom: 0;
-  right: 0;
-  border-bottom: 2px solid var(--neon);
-  border-right: 2px solid var(--neon);
-}
-
-.bracket-corners-hover:hover::before,
-.bracket-corners-hover:hover::after {
-  opacity: 1;
+/* Legacy alias kept for JS-injected markup */
+.btn-neon {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-ink);
+  border-radius: var(--r-pill);
 }
 
 /*-- SECTION: NAVIGATION --*/
 
-/* -- .apex-nav: sticky site-wide nav bar — always visible -- */
 .apex-nav {
-  background: var(--bg-panel);
+  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  height: 52px;
+  padding: 0 var(--page-pad);
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 1000;
-  /* No blur, no glass — hard surface only */
 }
 
-/* -- Brand logotype: APEX [neon] + STRATEGY [white] -- */
-.apex-nav-brand {
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-decoration: none;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.apex-nav-left {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 16px;
+}
+
+.apex-nav-brand {
+  display: flex;
+  align-items: center;
+  line-height: 1;
   flex-shrink: 0;
 }
 
-.apex-nav-brand .brand-apex {
-  color: var(--neon);
+.apex-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.apex-nav-brand .brand-sep {
-  color: var(--border);
-  margin: 0 6px;
-  font-weight: 400;
-}
-
-/* -- Link list -- */
 .apex-nav-links {
   display: flex;
-  gap: 0;
-  list-style: none;
-  height: 52px;
-  align-items: stretch;
+  gap: 4px;
+  align-items: center;
+  margin-right: 8px;
 }
 
-/* -- Individual nav link -- */
 .apex-nav-link {
   font-family: var(--font-ui);
   font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  padding: 0 18px;
-  height: 52px;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
   display: flex;
   align-items: center;
-  border-bottom: 3px solid transparent;
-  border-top: 3px solid transparent; /* ghost — keeps height stable */
-  text-decoration: none;
-  transition: color var(--t-fast) var(--ease-out);
   white-space: nowrap;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
 }
 
 .apex-nav-link:hover {
   color: var(--text-primary);
+  background: var(--bg-panel-alt);
 }
 
 .apex-nav-link.active,
 .apex-nav-link[aria-current="page"] {
-  color: var(--neon);
-  border-bottom-color: var(--neon);
+  color: var(--accent-ink);
+  background: var(--accent);
 }
 
-/* -- Nav right slot: holds weather + status indicator -- */
-.apex-nav-right {
+/* -- Theme toggle -- */
+.apex-theme-toggle {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast),
+    border-color var(--t-fast);
   flex-shrink: 0;
 }
 
-/* -- Mobile hamburger toggle -- */
+.apex-theme-toggle svg {
+  display: block;
+  margin: auto;
+  flex-shrink: 0;
+}
+
+.apex-theme-toggle:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-panel-alt);
+}
+
+/* -- Mobile hamburger -- */
 .apex-nav-toggle {
-  display: none; /* shown via media query */
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--border);
+  border-radius: var(--r-pill);
   background: transparent;
   cursor: pointer;
   flex-direction: column;
   gap: 5px;
-  padding: 8px;
+  padding: 11px 10px;
   transition: border-color var(--t-fast) var(--ease-out);
 }
 
 .apex-nav-toggle:hover {
-  border-color: var(--neon);
+  border-color: var(--accent);
 }
 
 .apex-nav-toggle span {
   display: block;
   width: 100%;
-  height: 1px;
+  height: 1.5px;
+  border-radius: 2px;
   background: var(--text-primary);
   transition:
-    background var(--t-fast) var(--ease-out),
     transform var(--t-mid) var(--ease-morph),
     opacity var(--t-fast) var(--ease-out);
 }
 
-/* -- Hamburger → X animation when .nav-open is on .apex-nav -- */
 .apex-nav.nav-open .apex-nav-toggle span:nth-child(1) {
-  transform: translateY(6px) rotate(45deg);
+  transform: translateY(6.5px) rotate(45deg);
 }
 .apex-nav.nav-open .apex-nav-toggle span:nth-child(2) {
   opacity: 0;
   transform: scaleX(0);
 }
 .apex-nav.nav-open .apex-nav-toggle span:nth-child(3) {
-  transform: translateY(-6px) rotate(-45deg);
+  transform: translateY(-6.5px) rotate(-45deg);
 }
 
-/*-- SECTION: SEARCH AND FILTER BAR --*/
+/*-- SECTION: PAGE SHELL HELPERS --*/
 
-/* -- Container that holds search + filters in a row -- */
-.apex-filter-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: stretch;
+.shell {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad);
 }
 
-/* -- Text search input -- */
-.apex-search-bar {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  width: 100%;
-  height: 36px;
-  line-height: 1;
-  transition: border-color var(--t-fast) var(--ease-out);
-  letter-spacing: 0.02em;
+.band {
+  padding-top: clamp(64px, 10vw, 128px);
+  padding-bottom: clamp(64px, 10vw, 128px);
 }
 
-.apex-search-bar::placeholder {
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: 0.75rem;
+.band-tight {
+  padding-top: clamp(40px, 6vw, 72px);
+  padding-bottom: clamp(40px, 6vw, 72px);
 }
 
-.apex-search-bar:focus {
-  border-color: var(--neon);
-  outline: none;
-  box-shadow: none; /* override Bootstrap glow — zero tolerance */
-}
-
-/* -- Select / dropdown filter -- */
-.apex-select {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 8px 32px 8px 12px;
-  height: 36px;
-  cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  transition: border-color var(--t-fast) var(--ease-out);
-  /* Custom chevron arrow — neon, no system chrome */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff66'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 8px 5px;
-  min-width: 140px;
-}
-
-.apex-select:focus {
-  border-color: var(--neon);
-  outline: none;
-  box-shadow: none;
-}
-
-.apex-select option {
-  background: var(--bg-panel);
-  color: var(--text-primary);
-}
-
-/* -- Label + input group wrapper -- */
-.apex-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.apex-field-label {
-  font-family: var(--font-ui);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/*-- SECTION: CIRCUIT CARDS (home page) --*/
-
-/* -- Card grid wrapper -- */
-.circuit-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1px; /* gap is the border illusion */
-  background: var(--border); /* bleeds through gaps */
-}
-
-/* -- Individual circuit card -- */
-.circuit-card {
-  background: var(--bg-panel); /* #13161c — distinct from page bg #0b0d11 */
-  border: 1px solid var(--border);
-  padding: 0;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden; /* back to hidden — brackets clip cleanly at edge */
-  transition:
-    border-color 120ms var(--ease-out),
-    background 120ms var(--ease-out);
-  transform: translateZ(0);
-}
-
-/* -- Hover: border snaps to neon, background lifts to panel-alt -- */
-.circuit-card:hover {
-  border-color: var(--neon);
-  background: var(--bg-panel-alt); /* #1a1e26 — visible step up from panel */
-}
-
-/* -- Corner bracket pair: ::before = top-left, ::after = bottom-right --
-   These are the visual "arming" signal. Both start invisible and snap
-   into place on hover — 120ms, no easing delay, hardware feel.         */
-.circuit-card::before,
-.circuit-card::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  opacity: 0;
-  transition: opacity 120ms var(--ease-out);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.circuit-card::before {
-  top: -1px;
-  left: -1px;
-  border-top: 2px solid var(--neon);
-  border-left: 2px solid var(--neon);
-}
-
-.circuit-card::after {
-  bottom: -1px;
-  right: -1px;
-  border-bottom: 2px solid var(--neon);
-  border-right: 2px solid var(--neon);
-}
-
-.circuit-card:hover::before,
-.circuit-card:hover::after {
-  opacity: 1;
-}
-
-/* -- Circuit name lights neon on card hover -- */
-.circuit-card:hover .circuit-card-name {
-  color: var(--neon);
-  transition: color 120ms var(--ease-out);
-}
-
-/* -- Link arrow nudges right on hover — mechanical "arm" feel -- */
-.circuit-card:hover .circuit-card-link {
-  color: var(--neon);
-  background: var(--bg-panel-alt);
-  padding-right: 12px; /* nudges the text without layout shift */
-  transition:
-    color 120ms var(--ease-out),
-    padding-right 120ms var(--ease-out),
-    background 120ms var(--ease-out);
-}
-
-/* -- Card active press: Kowalski physical feedback -- */
-.circuit-card:active {
-  transform: scale(0.98);
-  transition: transform 80ms var(--ease-out);
-}
-
-/* -- Card header: circuit name + flag -- */
-.circuit-card-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.circuit-card-name {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-}
-
-.circuit-card-country {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.circuit-card-flag {
-  font-size: 1.4rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* -- Card body: telemetry stats grid -- */
-.circuit-card-body {
-  padding: 12px 16px;
-}
-
-.circuit-card-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 8px;
-}
-
-/* -- Individual stat within the meta grid -- */
-.circuit-card-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-/* -- Circuit type badge -- */
-.circuit-card-type {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border: 1px solid;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
-}
-
-.circuit-card-type.type-technical {
-  border-color: var(--accent-technical);
-  color: var(--accent-technical);
-}
-
-.circuit-card-type.type-highspeed {
-  border-color: var(--accent-highspeed);
-  color: var(--accent-highspeed);
-}
-
-.circuit-card-type.type-street {
-  border-color: var(--accent-street);
-  color: var(--accent-street);
-}
-
-/* -- Card footer: "View Analysis →" action row -- */
-/* -- Card footer link: "LOAD WORKBENCH →"
-   Uses CSS stretched-link pattern — ::before covers the entire card,
-   making it clickable as a semantic <a> without JavaScript.
-   position: static (not relative) so ::before is contained by .circuit-card.  -- */
-.circuit-card-link {
-  display: block;
-  padding: 10px 16px;
+.band-divider {
   border-top: 1px solid var(--border);
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  text-align: right;
-  text-decoration: none;
-  position: static; /* DO NOT set relative — ::before must anchor to .circuit-card */
-  transition:
-    color var(--t-fast) var(--ease-out),
-    background var(--t-fast) var(--ease-out);
 }
 
-/* Stretched overlay — covers the entire .circuit-card (nearest position:relative ancestor) */
-.circuit-card-link::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1; /* sits above card content, below decorative ::after brackets */
-}
-
-.circuit-card:hover .circuit-card-link,
-.circuit-card-link:hover {
-  color: var(--neon);
-  background: var(--bg-panel-alt);
-}
-
-/* -- Empty state: no results after filter/search -- */
-.circuit-grid-empty {
-  grid-column: 1 / -1;
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
-  border: 1px dashed var(--border);
-}
-
-.circuit-grid-empty span {
-  display: block;
-  color: var(--danger);
-  font-size: 0.7rem;
-  margin-top: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-/*-- SECTION: STATUS INDICATORS --*/
-
-/* -- Inline dot — signal health at a glance -- */
-.status-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 6px;
-  flex-shrink: 0;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-}
-
-.status-live {
-  background: var(--neon);
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.status-error {
-  background: var(--danger);
-}
-
-.status-loading {
-  background: var(--warning);
-  animation: pulse 1s ease-in-out infinite;
-}
-
-.status-offline {
-  background: var(--text-muted);
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* -- Inline status label with dot bundled -- */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.status-badge.live {
-  color: var(--neon);
-}
-.status-badge.error {
-  color: var(--danger);
-}
-.status-badge.warn {
-  color: var(--warning);
-}
-
-/*-- SECTION: LOADING STATE --*/
-
-/* -- Square spinner: the hardest edge in motorsport UI -- */
-.apex-spinner {
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--neon);
-  border-top: 1px solid transparent;
-  animation: spin 0.7s linear infinite;
-  flex-shrink: 0;
-  /* border-radius: 0 already enforced by * reset — this is a square */
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* -- Spinner size variants -- */
-.apex-spinner.spinner-sm {
-  width: 16px;
-  height: 16px;
-}
-
-.apex-spinner.spinner-lg {
-  width: 40px;
-  height: 40px;
-  border-width: 2px;
-}
-
-/* -- Loading overlay for panels -- */
-.apex-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 48px 24px;
-  min-height: 160px;
-}
-
-.apex-loading-text {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* -- Skeleton lines: flat panel-alt block + 1px neon scanline, steps()-clocked.
-      No gradient shimmer — that's the generic SaaS look. Flat + scan = on brief. -- */
-.skeleton-line {
-  background: var(--bg-panel-alt);
-  height: 10px;
-  margin-bottom: 8px;
-  position: relative;
-  overflow: hidden;
-}
-
-.skeleton-line.sk-lg {
-  height: 18px;
-}
-.skeleton-line.sk-sm {
-  height: 7px;
-}
-.skeleton-line.sk-w-full {
-  width: 100%;
-}
-.skeleton-line.sk-w-3q {
-  width: 75%;
-}
-.skeleton-line.sk-w-half {
-  width: 50%;
-}
-.skeleton-line.sk-w-third {
-  width: 33%;
-}
-
-/* skeleton scanline lives inside reduced-motion guard — it's ambient, not data */
-
-/* -- Error state -- */
-.apex-error {
-  padding: 24px 16px;
-  border: 1px solid var(--danger);
-  background: rgba(255, 51, 51, 0.04);
-}
-
-.apex-error-title {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--danger);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.apex-error-msg {
-  font-family: var(--font-ui);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.apex-error-retry {
-  margin-top: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  cursor: pointer;
-  transition:
-    border-color var(--t-fast) var(--ease-out),
-    color var(--t-fast) var(--ease-out);
-}
-
-.apex-error-retry:hover {
-  border-color: var(--neon);
-  color: var(--neon);
-}
-
-.apex-error-retry:active {
-  transform: scale(0.97);
-}
-
-/*-- SECTION: WORKBENCH TABS --*/
-
-/* -- Tab navigation bar: the engineer's workbench switcher -- */
-.workbench-nav {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel-alt);
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  /* No scrollbar on tab row */
-  scrollbar-width: none;
-}
-
-.workbench-nav::-webkit-scrollbar {
-  display: none;
-}
-
-/* -- Individual tab button — no bootstrap data-bs-toggle allowed -- */
-.workbench-tab {
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 14px 20px;
-  color: var(--text-secondary);
-  border: none;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent; /* ghost — balances height */
-  background: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color var(--t-fast) var(--ease-out),
-    border-color var(--t-fast) var(--ease-out),
-    background var(--t-fast) var(--ease-out);
-}
-
-.workbench-tab:hover {
-  color: var(--text-primary);
-  background: rgba(240, 243, 246, 0.02);
-}
-
-/* -- Active tab: top border signal + lighter background -- */
-.workbench-tab.tab-active {
-  color: var(--neon);
-  border-top-color: var(--neon);
-  background: var(--bg-panel);
-}
-
-.workbench-tab:active {
-  transform: scale(0.97);
-}
-
-/* -- Tab content panes — JS toggles .pane-active -- */
-.workbench-pane {
-  display: none;
-}
-
-.workbench-pane.pane-active {
-  display: block;
-  animation: pane-enter var(--t-slow) var(--ease-out);
-}
-
-@keyframes pane-enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* -- Tab counter badge (e.g. "TYRES · 4") -- */
-.tab-count {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-family: var(--font-mono);
-  padding: 1px 4px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  margin-left: 6px;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-  letter-spacing: 0;
-}
-
-.workbench-tab.tab-active .tab-count {
-  border-color: rgba(0, 255, 102, 0.3);
-  color: rgba(0, 255, 102, 0.6);
-}
-
-/*-- SECTION: DATA GRID (workbench readouts) --*/
-
-/* -- The core readout grid: n-wide array of data cells -- */
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1px; /* gap = the visual border between cells */
-  background: var(--border); /* visible through the 1px gaps */
-}
-
-/* -- Individual data cell -- */
-.data-cell {
-  background: var(--bg-panel);
-  padding: 14px 16px;
-  position: relative;
-}
-
-/* -- Cell header: channel label -- */
-.data-cell-label {
-  font-family: var(--font-ui);
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
-/* -- Cell value: the number -- */
-.data-cell-value {
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 4px;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-/* -- Value signal states -- */
-.data-cell-value.optimal {
-  color: var(--neon);
-}
-.data-cell-value.warning {
-  color: var(--warning);
-}
-.data-cell-value.critical {
-  color: var(--danger);
-}
-
-/* -- Unit annotation — smaller, muted -- */
-.data-cell-unit {
-  font-size: 0.62rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  margin-left: 3px;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-/* -- Delta: small change indicator below value -- */
-.data-cell-delta {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-  letter-spacing: 0.04em;
-}
-
-.data-cell-delta.delta-up {
-  color: var(--neon);
-}
-.data-cell-delta.delta-down {
-  color: var(--danger);
-}
-
-/*-- SECTION: RECOMMENDATION BLOCK --*/
-
-/* -- The strategy recommendation card: left-border accent signal -- */
-.rec-block {
-  border-left: 2px solid var(--neon);
-  padding: 12px 16px;
-  background: var(--bg-panel-alt);
-  margin-bottom: 1px;
-  position: relative;
-  transition: background var(--t-fast) var(--ease-out);
-}
-
-.rec-block:last-child {
-  margin-bottom: 0;
-}
-
-.rec-block:hover {
-  background: var(
-    --bg-panel
-  ); /* was rgba(26,30,38,.8) — hardcoded dark, broken in light mode */
-}
-
-/* -- Warning level: amber border signal -- */
-.rec-block.rec-warning {
-  border-left-color: var(--warning);
-}
-
-/* -- Critical level: danger border + danger tint fill -- */
-.rec-block.rec-critical {
-  border-left-color: var(--danger);
-  background: rgba(255, 51, 51, 0.05);
-}
-
-/* -- Recommendation channel title -- */
-.rec-title {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  line-height: 1;
-}
-
-/* -- The actual recommended value -- */
-.rec-value {
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 4px;
-  letter-spacing: 0.02em;
-}
-
-/* -- Strategic reasoning: prose detail, ui font -- */
-.rec-reason {
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: 6px;
-  line-height: 1.55;
-}
-
-/* -- Optional: inline diff showing change from current -- */
-.rec-diff {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  margin-left: 8px;
-  padding: 1px 5px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  vertical-align: middle;
-}
-
-.rec-diff.diff-pos {
-  color: var(--neon);
-  border-color: rgba(0, 255, 102, 0.25);
-}
-.rec-diff.diff-neg {
-  color: var(--danger);
-  border-color: rgba(255, 51, 51, 0.25);
-}
-
-/*-- SECTION: HANDBOOK (Page 3) --*/
-
-/* -- Glossary/reference entry: term + definition -- */
-.handbook-entry {
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.handbook-entry:last-child {
-  border-bottom: none;
-}
-
-.handbook-entry:first-child {
-  padding-top: 0;
-}
-
-/* -- Term: neon signal = this is what you're looking for -- */
-.handbook-term {
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--neon);
-  margin-bottom: 4px;
-  letter-spacing: 0.03em;
-}
-
-/* -- Definition: readable, not cramped -- */
-.handbook-def {
-  font-family: var(--font-ui);
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* -- Optional: category tag on handbook entries -- */
-.handbook-category {
-  font-family: var(--font-ui);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  padding: 1px 6px;
-  display: inline-block;
-  margin-bottom: 4px;
-}
-
-/* -- Handbook section divider: labeled separator -- */
-.handbook-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 24px 0 16px;
-}
-
-.handbook-divider-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.handbook-divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* -- Search result highlight within handbook -- */
-.handbook-highlight {
-  background: rgba(0, 255, 102, 0.15);
-  color: var(--neon);
-  padding: 0 2px;
-}
-
-/*-- SECTION: WEATHER WIDGET --*/
-
-/* -- Compact weather strip for nav bar -- */
-.weather-strip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  padding: 4px 10px;
-  letter-spacing: 0.04em;
-}
-
-.weather-strip .weather-temp {
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-.weather-strip .weather-loc {
-  color: var(--text-muted);
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* -- Expanded weather panel for analysis page -- */
-.weather-panel-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1px;
-  background: var(--border);
-}
-
-.weather-cell {
-  background: var(--bg-panel);
-  padding: 12px 14px;
-}
-
-/*-- SECTION: PAGE LAYOUT SCAFFOLDING --*/
-
-/* -- Main content wrapper: respects sticky nav -- */
-.apex-main {
-  min-height: calc(100vh - 52px);
-  padding: 24px;
-}
-
-/* -- Page header block: title + subtitle + actions -- */
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-/* .page-header-left — intentionally unstyled; child elements (page-title, page-subtitle) handle their own layout */
-
-.page-title {
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.04em;
-  line-height: 1.1;
-}
-
-.page-subtitle {
-  font-family: var(--font-ui);
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.page-header-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-/* -- Section spacing within page -- */
-.section-gap {
-  margin-top: 24px;
-}
-
-.section-gap-lg {
-  margin-top: 40px;
-}
-
-/* -- Divider: labeled horizontal rule -- */
-.apex-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 20px 0;
-  border: none;
-}
-
-/*-- SECTION: BUTTONS --*/
-
-/* -- Primary action button -- */
-.btn-apex {
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition:
-    color var(--t-fast) var(--ease-out),
-    border-color var(--t-fast) var(--ease-out),
-    background var(--t-fast) var(--ease-out);
-  white-space: nowrap;
-}
-
-.btn-apex:active {
-  transform: scale(0.97); /* Kowalski physical press */
-}
-
-/* -- Ghost variant: neon border, transparent fill -- */
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-  border-color: var(--neon);
-  color: var(--neon);
-}
-
-/* -- Solid neon fill variant -- */
-.btn-neon {
-  background: var(--neon);
-  border: 1px solid var(--neon);
-  color: var(--bg-primary);
-  font-weight: 700;
-}
-
-.btn-neon:hover {
-  background: rgba(0, 255, 102, 0.85);
-}
-
-/* -- Danger variant -- */
-.btn-danger {
-  background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-}
-
-.btn-danger:hover {
-  background: rgba(255, 51, 51, 0.08);
-}
-
-/*-- SECTION: TABLES --*/
-
-/* -- Engineering data table -- */
-.apex-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-}
-
-.apex-table thead {
-  background: var(--bg-panel-alt);
-}
-
-.apex-table th {
-  font-family: var(--font-ui);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 10px 14px;
-  text-align: left;
-  border-bottom: 2px solid var(--border);
-  white-space: nowrap;
-}
-
-.apex-table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-  vertical-align: middle;
-}
-
-.apex-table tbody tr:hover td {
-  background: var(--bg-panel-alt);
-}
-
-.apex-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/*-- SECTION: BADGES AND TAGS --*/
-
-/* -- Generic data tag / badge -- */
-.apex-tag {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.apex-tag.tag-neon {
-  color: var(--neon);
-  border-color: rgba(0, 255, 102, 0.3);
-}
-.apex-tag.tag-danger {
-  color: var(--danger);
-  border-color: rgba(255, 51, 51, 0.3);
-}
-.apex-tag.tag-warning {
-  color: var(--warning);
-  border-color: rgba(255, 170, 0, 0.3);
-}
-
-/*-- SECTION: RESPONSIVE OVERRIDES --*/
-
-/* ---- Tablet: ≤ 768px ---- */
-@media (max-width: 768px) {
-  .apex-main {
-    padding: 16px;
-  }
-
-  /* -- Nav: collapse to hamburger -- */
-  .apex-nav-links {
-    display: none;
-    position: fixed;
-    top: 52px;
-    left: 0;
-    right: 0;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border);
-    flex-direction: column;
-    height: auto;
-    z-index: 999;
-    padding: 8px 0;
-  }
-
-  .apex-nav-links.nav-open {
-    display: flex;
-  }
-
-  .apex-nav-link {
-    height: auto;
-    padding: 14px 24px;
-    border-bottom: none;
-    border-top: none;
-    border-left: 3px solid transparent;
-    width: 100%;
-  }
-
-  .apex-nav-link.active {
-    border-left-color: var(--neon);
-    border-bottom: none;
-    background: var(--bg-panel-alt);
-  }
-
-  .apex-nav-toggle {
-    display: flex; /* show hamburger */
-  }
-
-  .apex-nav-right {
-    gap: 8px;
-  }
-
-  /* -- Data grid: 2 columns on tablet -- */
-  .data-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* -- Circuit meta: single column -- */
-  .circuit-card-meta {
-    grid-template-columns: 1fr;
-  }
-
-  .circuit-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
-
-  /* -- Page header: stack on mobile -- */
-  .page-header {
-    flex-direction: column;
-  }
-
-  /* -- Weather strip: hide on very small nav -- */
-  .weather-strip {
-    display: none;
-  }
-}
-
-/* ---- Mobile: ≤ 480px ---- */
-@media (max-width: 480px) {
-  .apex-main {
-    padding: 12px;
-  }
-
-  /* -- Data grid: single column on phone -- */
-  .data-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* -- Tab font size reduction on narrow screens -- */
-  .workbench-tab {
-    padding: 12px 12px;
-    font-size: 0.65rem;
-  }
-
-  /* -- Circuit grid: full width cards -- */
-  .circuit-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* -- Readout: scale down on small screens -- */
-  .apex-readout {
-    font-size: 1.4rem;
-  }
-
-  .data-cell-value {
-    font-size: 1.2rem;
-  }
-
-  .page-title {
-    font-size: 1rem;
-  }
-
-  h1 {
-    font-size: 1.2rem;
-  }
-  h2 {
-    font-size: 1rem;
-  }
-
-  .apex-filter-bar {
-    flex-direction: column;
-  }
-
-  .apex-select {
-    min-width: 100%;
-  }
-}
-
-/* -- Reduced motion: respect system preference -- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/*-- SECTION: AMBIENT ANIMATION HOOKS --*/
-/* All motion behind prefers-reduced-motion: no-preference.
-   These are the "it's alive" layer — wire up in HTML/JS by adding these
-   classes; the CSS does the rest.                                         */
-
-@media (prefers-reduced-motion: no-preference) {
-  /* -- 1. Blinking block cursor — append to any header via JS innerHTML -- */
-  .apex-cursor::after {
-    content: "▮";
-    display: inline-block;
-    color: var(--neon);
-    margin-left: 4px;
-    animation: cursor-blink 1s steps(1, end) infinite;
-  }
-
-  @keyframes cursor-blink {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
-
-  /* -- 2. Live dot: opacity pulse + expanding square ring on ::after -- */
-  .status-live {
-    animation: live-pulse 1.6s ease-in-out infinite;
-  }
-
-  @keyframes live-pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.35;
-    }
-  }
-
-  /* Square expanding ring — no border-radius so it stays a square halo */
-  .status-live::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 6px;
-    height: 6px;
-    border: 1px solid var(--neon);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1);
-    animation: live-ring 1.6s ease-out infinite;
-  }
-
-  /* status-dot needs relative positioning for the ring to anchor */
-  .status-dot {
-    position: relative;
-  }
-
-  @keyframes live-ring {
-    0% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0.6;
-    }
-    100% {
-      transform: translate(-50%, -50%) scale(3.5);
-      opacity: 0;
-    }
-  }
-
-  /* -- 3. Hero scanline — 1px neon line sweeping the hero panel, steps()-clocked -- */
-  /* Apply .hero-scanline to the .tele-panel that is the page centrepiece.
-     The line is a ::before on a sibling wrapper — add <div class="hero-scanline"></div>
-     inside the panel and position: relative on its parent.                              */
-  .hero-scanline {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--neon);
-    opacity: 0.07;
-    pointer-events: none;
-    z-index: 10;
-    animation: hero-sweep 4s steps(80, end) infinite;
-  }
-
-  @keyframes hero-sweep {
-    0% {
-      top: 0%;
-      opacity: 0.07;
-    }
-    95% {
-      top: 100%;
-      opacity: 0.07;
-    }
-    100% {
-      top: 100%;
-      opacity: 0;
-    }
-  }
-
-  /* -- 4. Skeleton scanline — 1px neon line across flat skeleton blocks -- */
-  .skeleton-line::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -2px;
-    width: 2px;
-    height: 100%;
-    background: var(--neon);
-    opacity: 0.2;
-    animation: skeleton-scan 1.3s steps(28, end) infinite;
-  }
-
-  @keyframes skeleton-scan {
-    0% {
-      left: -2px;
-    }
-    100% {
-      left: 100%;
-    }
-  }
-
-  /* -- 5. Value-change flash — add class via JS on data update, remove after 200ms -- */
-  /* .flash-up: new value is better / higher  (neon)   */
-  /* .flash-down: new value is worse / lower  (danger) */
-  .flash-up {
-    animation: flash-neon 200ms var(--ease-out) forwards;
-  }
-
-  .flash-down {
-    animation: flash-danger 200ms var(--ease-out) forwards;
-  }
-
-  @keyframes flash-neon {
-    0% {
-      background: rgba(0, 255, 102, 0.18);
-      border-color: var(--neon);
-    }
-    100% {
-      background: transparent;
-      border-color: var(--border);
-    }
-  }
-
-  @keyframes flash-danger {
-    0% {
-      background: rgba(255, 51, 51, 0.14);
-      border-color: var(--danger);
-    }
-    100% {
-      background: transparent;
-      border-color: var(--border);
-    }
-  }
-
-  /* -- 6. Tab pane wipe — new pane clips in left-to-right with a neon leading edge -- */
-  /* Applied automatically by TabController on .pane-active swap */
-  .pane-wipe-enter {
-    animation: pane-wipe 180ms var(--ease-out) forwards;
-  }
-
-  @keyframes pane-wipe {
-    from {
-      clip-path: inset(0 100% 0 0);
-      opacity: 0.4;
-    }
-    to {
-      clip-path: inset(0 0% 0 0);
-      opacity: 1;
-    }
-  }
-
-  /* -- 7. Card stagger entrance — JS adds .card-enter staggered per card -- */
-  .card-enter {
-    animation: card-rise 200ms var(--ease-out) both;
-  }
-
-  @keyframes card-rise {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* -- 8. Power-on boot sequence hooks -- */
-  /* .boot-draw: borders draw themselves in (used on .tele-panel during boot) */
-  .boot-draw {
-    animation: border-draw 300ms steps(12, end) both;
-  }
-
-  @keyframes border-draw {
-    from {
-      clip-path: inset(0 100% 100% 0);
-    }
-    to {
-      clip-path: inset(0 0% 0% 0);
-    }
-  }
-
-  /* .boot-fade-in: for text elements that appear after borders settle */
-  .boot-fade-in {
-    animation: boot-fade 160ms var(--ease-out) both;
-  }
-
-  @keyframes boot-fade {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-} /* end prefers-reduced-motion: no-preference */
-
-/*-- SECTION: UTILITY CLASSES --*/
-
-/* -- Color utilities -- */
-.text-neon {
-  color: var(--neon) !important;
-}
-.text-danger {
-  color: var(--danger) !important;
-}
-.text-warning {
-  color: var(--warning) !important;
-}
-.text-muted {
-  color: var(--text-muted) !important;
-}
-.text-secondary {
-  color: var(--text-secondary) !important;
-}
-.text-primary {
-  color: var(--text-primary) !important;
-}
-
-/* -- Font utilities -- */
-.text-mono {
-  font-family: var(--font-mono) !important;
-}
-.text-ui {
-  font-family: var(--font-ui) !important;
-}
-.text-upper {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* -- Border utilities -- */
-.border-neon {
-  border-color: var(--neon) !important;
-}
-.border-danger {
-  border-color: var(--danger) !important;
-}
-
-/* -- Visibility -- */
-.hidden {
-  display: none !important;
-}
-.invisible {
-  visibility: hidden;
-}
-.visible {
-  visibility: visible;
-}
-
-/* -- Sizing -- */
-.w-full {
-  width: 100%;
-}
-.h-full {
-  height: 100%;
-}
-
-/* -- Margin-top scale -- */
-.mt-1 {
-  margin-top: 4px;
-}
-.mt-2 {
-  margin-top: 8px;
-}
-.mt-3 {
-  margin-top: 16px;
-}
-.mt-4 {
-  margin-top: 24px;
-}
-.mt-5 {
-  margin-top: 32px;
-}
-.mt-6 {
-  margin-top: 48px;
-}
-
-/* -- Margin-bottom scale -- */
-.mb-1 {
-  margin-bottom: 4px;
-}
-.mb-2 {
-  margin-bottom: 8px;
-}
-.mb-3 {
-  margin-bottom: 16px;
-}
-.mb-4 {
-  margin-bottom: 24px;
-}
-
-/* -- Padding utilities -- */
-.p-0 {
-  padding: 0 !important;
-}
-.p-panel {
-  padding: 16px;
-}
-
-/* -- Flex utilities -- */
-.d-flex {
-  display: flex;
-}
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.align-center {
-  align-items: center;
-}
-.gap-1 {
-  gap: 4px;
-}
-.gap-2 {
-  gap: 8px;
-}
-.gap-3 {
-  gap: 16px;
-}
-.gap-4 {
-  gap: 24px;
-}
-
-/* -- Text alignment -- */
-.text-right {
-  text-align: right;
-}
-.text-left {
-  text-align: left;
-}
-.text-center {
-  text-align: center;
-}
-
-/* -- Overflow -- */
-.overflow-hidden {
-  overflow: hidden;
-}
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* -- Position -- */
-.relative {
-  position: relative;
-}
-.absolute {
-  position: absolute;
-}
-
-/* -- Cursor -- */
-.cursor-pointer {
-  cursor: pointer;
-}
-.cursor-default {
-  cursor: default;
-}
-
-/* -- No pointer events (for decorative elements) -- */
-.no-pointer {
-  pointer-events: none;
-}
-
-/* -- Opacity states -- */
-.opacity-50 {
-  opacity: 0.5;
-}
-.opacity-25 {
-  opacity: 0.25;
-}
-
-/*-- SECTION: TAB CONTROLLER STATES --*/
-
-/* Disabled tab — used for WET STRATEGY tab under dry conditions */
-.tab-disabled {
-  opacity: 0.35;
-  pointer-events: none;
-  cursor: not-allowed;
-}
-
-/* Focus ring for keyboard users — 1px neon, no Bootstrap blue glow */
-.workbench-tab:focus-visible {
-  outline: 1px solid var(--neon);
-  outline-offset: -1px;
-  box-shadow: none;
-}
-
-/*-- SECTION: LIGHT MODE THEME --*/
-/*
-   Light mode uses HSL-inverted luminance of the dark palette while
-   keeping the same cool blue-gray hue temperature. Everything still
-   reads as the same family — same instrument, different lighting.
-
-   Applied by setting data-theme="light" on <html>.
-   NavigationController writes this attribute and persists to localStorage.
-*/
-
-[data-theme="light"] {
-  /* Panels are white "cards" lifted off a light slate page — the
-     conventional light-mode direction (brighter = closer to the user)
-     instead of mirroring dark mode's darker-page/lighter-panel logic,
-     which read as recessed, muddy wells. Header strips (bg-panel-alt)
-     get a soft tint to separate them from the white card body. */
-  --bg-primary: #eef1f7; /* light cool slate page bg                     */
-  --bg-panel: #ffffff; /* panel surface — white card, lifted off page  */
-  --bg-panel-alt: #e6e9f2; /* header/strip tint — sits between page & card */
-  --border: #c3cbdc; /* soft slate border — crisp on white, not heavy */
-  --border-active: #057a45; /* neon, darkened for light-bg contrast         */
-
-  --text-primary: #11151d; /* near-black, blue-cast                        */
-  --text-secondary: #2c3548; /* dark slate                                   */
-  --text-muted: #6b7690; /* medium slate                                 */
-
-  /* Teal-leaning green reads cleaner against cool slate than a pure
-     grass green, which vibrated against the gray panels. */
-  --neon: #057a45; /* legible teal-green on light backgrounds      */
-  --danger: #c81e3a; /* warm red — vivid but still dark enough for AA */
-  --warning: #b5650a; /* warm amber — less muddy-brown than before    */
-
-  /* accent colours for circuit type badges */
-  --accent-technical: #057a45;
-  --accent-highspeed: #b5650a;
-  --accent-street: #4a5de0;
-}
-
-/* Custom select arrow: re-encode chevron in light-mode neon */
-[data-theme="light"] .apex-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23057a45'/%3E%3C/svg%3E");
-}
-
-/* Scrollbar: lighten for light mode */
-[data-theme="light"] ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: var(--border);
-}
-
-/* Selection highlight: keep neon but darker */
-[data-theme="light"] ::selection {
-  background: var(--neon);
-  color: #ffffff;
-}
-
-/* Spinner: override so it stays visible on light bg */
-[data-theme="light"] .apex-spinner {
-  border-color: var(--neon);
-  border-top-color: transparent;
-}
-
-/* Square live-dot ring: light mode needs same neon override */
-[data-theme="light"] .status-live::after {
-  border-color: var(--neon);
-}
-
-/* Skeleton lines: flat bg slightly darker in light mode */
-[data-theme="light"] .skeleton-line {
-  background: var(--bg-panel-alt);
-}
-
-/* Hero scanline: subtler on light bg */
-[data-theme="light"] .hero-scanline {
-  opacity: 0.04;
-}
-
-/* Recommendation block accent lines adapt via CSS vars automatically. */
-/* Circuit type badges: already use --accent-* vars, update via above. */
-
-/* Bootstrap overrides for light mode — kill its white bg assumptions */
-[data-theme="light"] .container,
-[data-theme="light"] .container-fluid {
-  --bs-body-bg: var(--bg-primary);
-  --bs-body-color: var(--text-primary);
-}
-
-/*-- SECTION: TASK 10 — POLISH & RESPONSIVE ADDITIONS --*/
-
-/* ── Page header ───────────────────────────────────────────── */
-.page-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.page-header h1 {
-  font-size: 1.4rem;
-  margin: 4px 0;
-}
-
-/* ── Search bar strip ──────────────────────────────────────── */
-.search-bar-strip {
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
-}
-
-/* ── Card entrance animation ───────────────────────────────── */
-@media (prefers-reduced-motion: no-preference) {
-  .circuit-card {
-    animation: fadeSlideIn 0.2s var(--ease-out) both;
-  }
-
-  @keyframes fadeSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Stagger first 8 visible cards */
-  .col-12:nth-child(1) .circuit-card {
-    animation-delay: 0.02s;
-  }
-  .col-12:nth-child(2) .circuit-card {
-    animation-delay: 0.04s;
-  }
-  .col-12:nth-child(3) .circuit-card {
-    animation-delay: 0.06s;
-  }
-  .col-12:nth-child(4) .circuit-card {
-    animation-delay: 0.08s;
-  }
-  .col-12:nth-child(5) .circuit-card {
-    animation-delay: 0.1s;
-  }
-  .col-12:nth-child(6) .circuit-card {
-    animation-delay: 0.12s;
-  }
-  .col-12:nth-child(7) .circuit-card {
-    animation-delay: 0.14s;
-  }
-  .col-12:nth-child(8) .circuit-card {
-    animation-delay: 0.16s;
-  }
-}
-
-/* ── Workbench responsive ──────────────────────────────────── */
-@media (max-width: 768px) {
-  .page-header {
-    padding: 12px 16px;
-  }
-  .page-header h1 {
-    font-size: 1.1rem;
-  }
-  .search-bar-strip {
-    padding: 10px 12px;
-  }
-  .workbench-nav {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .data-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .wb-split-left {
-    border-right: none !important;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-@media (max-width: 480px) {
-  .data-grid {
-    grid-template-columns: 1fr;
-  }
-  .apex-readout {
-    font-size: 1.4rem;
-  }
-}
-
-/* ── Handbook responsive ───────────────────────────────────── */
-@media (max-width: 768px) {
-  .handbook-entry {
-    padding: 12px 0;
-  }
-}
-
-/* ── Print ─────────────────────────────────────────────────── */
-@media print {
-  .apex-nav,
-  .workbench-nav,
-  .apex-footer {
-    display: none;
-  }
-  body {
-    background: white;
-    color: black;
-  }
-  .tele-panel {
-    border: 1px solid #ccc;
-  }
-}
-
-/*-- SECTION: FOOTER (<apex-footer> custom element, js/footer.js) --*/
-
-apex-footer {
-  display: block;
-}
-
-.apex-footer {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel);
-}
-
-.apex-footer-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding: 20px 24px 16px;
-}
-
-.apex-footer-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.apex-footer-logo {
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-primary);
-}
-
-.apex-footer-logo-accent {
-  color: var(--neon);
-}
-
-.apex-footer-tagline {
-  font-family: var(--font-ui);
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.apex-footer-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.apex-footer-links a {
-  font-family: var(--font-ui);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color var(--t-fast) var(--ease-out);
-}
-
-.apex-footer-links a:hover {
-  color: var(--neon);
-}
-
-.apex-footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 12px 24px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel-alt);
-}
-
-.apex-footer-copy,
-.apex-footer-meta {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
-.apex-footer-sep {
-  color: var(--border);
-  margin: 0 6px;
-}
-
-@media (max-width: 576px) {
-  .apex-footer-top {
-    padding: 16px 16px 14px;
-  }
-  .apex-footer-bottom {
-    padding: 10px 16px;
-  }
-  .apex-footer-links {
-    gap: 16px;
-  }
-}
-
-/*-- SECTION: RACE WEEKEND TIMELINE --*/
-
-.timeline-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-top: none; /* sits flush against circuit header */
-}
-
-.timeline-selector {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.timeline-selector::-webkit-scrollbar {
-  display: none;
-}
-
-.timeline-btn {
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 11px 20px;
-  background: transparent;
-  border: none;
-  border-right: 1px solid var(--border);
-  border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  transition:
-    color 100ms var(--ease-out),
-    background 100ms var(--ease-out),
-    border-bottom-color 100ms var(--ease-out);
-}
-
-.timeline-btn:last-child {
-  border-right: none;
-}
-
-.timeline-btn:hover {
-  color: var(--text-primary);
-  background: rgba(240, 243, 246, 0.02);
-}
-
-.timeline-btn.active {
-  background: var(--bg-panel-alt);
-  color: var(--neon);
-  border-bottom-color: var(--neon);
-}
-
-.timeline-btn:active {
-  transform: scale(0.97);
-}
-
-/* Live dot inside LIVE button */
-.timeline-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  background: var(--neon);
-  flex-shrink: 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .timeline-btn.active .timeline-dot {
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-}
-
-/* Hour offset label */
-.timeline-offset {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--text-muted);
-  letter-spacing: 0.06em;
-  margin-left: 2px;
-}
-
-.timeline-btn.active .timeline-offset {
-  color: rgba(0, 255, 102, 0.5);
-}
-
-/* Status strip below timeline buttons */
-.timeline-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 14px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel-alt);
-  font-size: 0.62rem;
-  min-height: 24px;
-}
-
-/* Rain-alert on RACE button when forecast predicts rain */
-.timeline-btn.forecast-rain {
-  color: var(--warning);
-}
-
-.timeline-btn.forecast-rain .timeline-offset {
-  color: rgba(255, 170, 0, 0.5);
-}
-
-/*-- SECTION: DEGRADATION BAR CHARTS --*/
-
-.deg-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.deg-row:last-child {
-  margin-bottom: 0;
-}
-
-.deg-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  width: 36px;
-  flex-shrink: 0;
-  text-align: right;
-}
-
-.deg-track {
-  flex: 1;
-  height: 8px;
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Tick marks at 25 / 50 / 75 % — visual calibration */
-.deg-track::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent calc(25% - 1px),
-    var(--border) calc(25% - 1px),
-    var(--border) 25%,
-    transparent 25%
-  );
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.deg-fill {
-  height: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
-  transition: width 500ms var(--ease-out);
-  z-index: 0;
-}
-
-/* Warning stripe overlay when deg > 75% */
-.deg-fill.deg-critical {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 0, 0, 0.2) 3px,
-    rgba(0, 0, 0, 0.2) 6px
-  );
-}
-
-.deg-pct {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  width: 34px;
-  flex-shrink: 0;
-  text-align: right;
-  letter-spacing: 0.02em;
-}
-
-.deg-pct.pct-critical {
-  color: var(--danger);
-}
-.deg-pct.pct-warning {
-  color: var(--warning);
-}
-.deg-pct.pct-good {
-  color: var(--neon);
-}
-
-@media (max-width: 480px) {
-  .timeline-btn {
-    padding: 10px 12px;
-    font-size: 0.65rem;
-  }
-}
-
-/*-- SECTION: CRT SCANLINE OVERLAY --*/
-
-/* Subtle horizontal-line texture over the entire UI.
-   Gives a physical monitor feel without obscuring content. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.06) 2px,
-    rgba(0, 0, 0, 0.06) 4px
-  );
-  pointer-events: none;
-  z-index: 9998;
-  mix-blend-mode: multiply;
-}
-
-[data-theme="light"] body::after {
-  opacity: 0.35; /* subtler on light backgrounds */
-}
-
-/*-- SECTION: HERO SECTION --*/
+/*-- SECTION: HERO (index.html) --*/
 
 .hero-section {
   position: relative;
@@ -2695,16 +522,31 @@ body::after {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: stretch;
   overflow: hidden;
   background: var(--bg-primary);
 }
 
-/* Vanta.js NET mounts here — covers the full section */
 .hero-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
+  opacity: 0.85;
+}
+
+/* Soft vignette so text always sits on a calm zone */
+.hero-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 90% at 18% 40%,
+      var(--bg-primary) 0%,
+      transparent 55%
+    ),
+    linear-gradient(to top, var(--bg-primary), transparent 30%);
 }
 
 .hero-content {
@@ -2713,216 +555,102 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 80px 60px 60px;
-  max-width: 1400px;
+  gap: clamp(32px, 5vw, 72px);
+  padding: 88px var(--page-pad) 64px;
+  max-width: var(--page-max);
   margin: 0 auto;
   width: 100%;
 }
 
-/* -- Left: text column -- */
 .hero-text {
-  flex: 1 1 480px;
-  max-width: 600px;
+  flex: 1 1 520px;
+  max-width: 640px;
 }
 
 .hero-pre-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--font-ui);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 20px;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  margin-bottom: 28px;
+  min-height: 2.2em;
 }
 
 .hero-headline {
-  font-family: var(--font-mono);
-  font-size: clamp(3.2rem, 8vw, 7rem);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.02em;
+  font-size: clamp(4rem, 11vw, 8.6rem);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
   margin-bottom: 24px;
-  display: block;
 }
 
-.hero-word-apex {
-  display: block;
-  color: var(--neon);
+.hero-headline .accent-word {
+  color: var(--accent);
 }
 
-.hero-word-strat {
-  display: block;
-  color: var(--text-primary);
-}
-
-.hero-tagline {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+.hero-sub {
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
+  line-height: 1.65;
+  max-width: 46ch;
   margin-bottom: 40px;
-  line-height: 1.6;
-  min-height: 1.3em; /* reserve space during decode animation */
 }
 
-/* -- Stats row -- */
-.hero-stats {
+.hero-actions {
   display: flex;
   align-items: center;
-  gap: 0;
-  margin-bottom: 44px;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.hero-stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0 24px 0 0;
-}
-
-.hero-stat-item:first-child {
-  padding-left: 0;
-}
-
-.hero-stat-num {
-  font-family: var(--font-mono);
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--neon);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.hero-stat-label {
-  font-family: var(--font-ui);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-.hero-stat-sep {
-  width: 1px;
-  height: 36px;
-  background: var(--border);
-  margin: 0 24px 0 0;
-  flex-shrink: 0;
-}
-
-/* -- CTA button -- */
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--bg-primary);
-  background: var(--neon);
-  padding: 14px 28px;
-  text-decoration: none;
-  border: 2px solid var(--neon);
-  transition:
-    background 140ms ease-out,
-    color 140ms ease-out,
-    transform 80ms ease-out;
-  cursor: pointer;
-}
-
-.hero-cta:hover {
-  background: transparent;
-  color: var(--neon);
-}
-
-.hero-cta:active {
-  transform: scale(0.97);
-}
-
-.hero-cta-arrow {
-  font-size: 1rem;
-  transition: transform 200ms ease-out;
-}
-
-.hero-cta:hover .hero-cta-arrow {
-  transform: translateY(3px);
-}
-
-/* -- Right: focal circuit graphic column -- */
+/* -- Right column: spinning 3D circuit -- */
 .hero-canvas-wrap {
   flex: 0 0 auto;
-  width: clamp(280px, 38vw, 520px);
+  width: clamp(280px, 36vw, 500px);
   aspect-ratio: 1;
   position: relative;
 }
 
-/* Soft radial glow sitting behind the rotor — stands in for the old
-   Three.js halo sphere lapping the racing line. */
 .hero-circuit-glow {
   position: absolute;
-  inset: -16%;
+  inset: -12%;
   z-index: 0;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--neon) 38%, transparent) 0%,
-    color-mix(in srgb, var(--neon) 14%, transparent) 45%,
-    transparent 72%
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 45%,
+    transparent 70%
   );
-  filter: blur(4px);
+  filter: blur(6px);
   pointer-events: none;
 }
 
-/* Concentric telemetry rings — echoes the two lapping rings from the
-   original 3D scene. Gentle independent breathing animation. */
 .hero-circuit-ring {
   position: absolute;
   z-index: 0;
   border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--neon) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   pointer-events: none;
 }
 
 .hero-circuit-ring--outer {
-  inset: -9%;
-  opacity: 0.3;
+  inset: -7%;
+  opacity: 0.35;
 }
 
 .hero-circuit-ring--inner {
-  inset: 7%;
-  opacity: 0.2;
+  inset: 9%;
+  opacity: 0.22;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .hero-circuit-ring--outer {
-    animation: hero-ring-pulse 4.5s ease-in-out infinite;
-  }
-  .hero-circuit-ring--inner {
-    animation: hero-ring-pulse 4.5s ease-in-out infinite reverse;
-    animation-delay: 0.6s;
-  }
-
-  @keyframes hero-ring-pulse {
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 0.2;
-    }
-    50% {
-      transform: scale(1.045);
-      opacity: 0.4;
-    }
-  }
-}
-
-/* Outer stage: establishes the 3D viewing perspective + centres the rotor */
 .hero-circuit-spin {
   position: relative;
   z-index: 1;
@@ -2931,13 +659,13 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--neon);
+  color: var(--accent);
   perspective: 1000px;
-  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--neon) 60%, transparent));
+  filter: drop-shadow(
+    0 0 26px color-mix(in srgb, var(--accent) 45%, transparent)
+  );
 }
 
-/* The rotor is the thing that actually spins, tilted slightly like the
-   old Three.js camera angle so the 3D-ness reads even at rest. */
 .hero-circuit-rotor {
   position: relative;
   width: 72%;
@@ -2946,10 +674,6 @@ body::after {
   transform: rotateX(14deg);
 }
 
-/* Front/back faces hold an identical copy of the inlined SVG. Showing
-   the back face (rotated 180deg, not mirrored) instead of letting the
-   front face's backside show through keeps the artwork readable at
-   every angle — a card-flip rather than a flat plane spinning in place. */
 .hero-circuit-face {
   position: absolute;
   inset: 0;
@@ -2969,9 +693,1864 @@ body::after {
   transform: rotateY(180deg);
 }
 
+/*-- SECTION: STATS BAND (under hero) --*/
+
+.stats-band {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.stats-band-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat-item {
+  padding: 30px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  border-left: 1px solid var(--border);
+}
+
+.stat-item:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.stat-item + .stat-item {
+  padding-left: clamp(16px, 3vw, 40px);
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.stat-num.stat-live {
+  color: var(--neon);
+}
+
+.stat-label {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/*-- SECTION: HOW IT WORKS (index) --*/
+
+.how-band .shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 5fr) 7fr;
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+}
+
+.how-sticky {
+  position: sticky;
+  top: 104px;
+}
+
+.how-steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.how-step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 24px;
+  padding: 34px 0;
+  border-top: 1px solid var(--border);
+  align-items: start;
+}
+
+.how-step:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.how-step-glyph {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-card);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.how-step-glyph svg {
+  width: 30px;
+  height: 30px;
+}
+
+.how-step h3 {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.how-step p {
+  max-width: 52ch;
+}
+
+/*-- SECTION: CIRCUIT BROWSER (index) --*/
+
+.browser-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.browser-count {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.browser-count .count-num {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+}
+
+.browser-count .count-label {
+  font-family: var(--font-ui);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 6px;
+}
+
+/* -- Toolbar: search + filters -- */
+.browser-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.browser-toolbar .toolbar-search {
+  flex: 1 1 280px;
+  position: relative;
+}
+
+.toolbar-search svg {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.apex-search-bar {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  padding: 0 20px 0 44px;
+  width: 100%;
+  height: 48px;
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+
+.apex-search-bar::placeholder {
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.apex-search-bar:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: none;
+}
+
+.apex-select {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 42px 0 20px;
+  height: 48px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: border-color var(--t-fast) var(--ease-out);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888890'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 9px 6px;
+  min-width: 150px;
+}
+
+.apex-select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: none;
+}
+
+.apex-select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.apex-field-label {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* -- Results counter line -- */
+.results-counter {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/*-- SECTION: CIRCUIT CARDS --*/
+
+.circuit-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition:
+    border-color var(--t-mid) var(--ease-out),
+    transform var(--t-mid) var(--ease-out),
+    box-shadow var(--t-mid) var(--ease-out);
+}
+
+.circuit-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+}
+
+.circuit-card:active {
+  transform: scale(0.985);
+}
+
+/* Track outline artwork zone */
+.cc-map {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  color: var(--text-muted);
+  background:
+    radial-gradient(
+      90% 120% at 50% 0%,
+      color-mix(in srgb, var(--accent) 6%, transparent),
+      transparent 60%
+    ),
+    var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border);
+  transition: color var(--t-mid) var(--ease-out);
+}
+
+.circuit-card:hover .cc-map {
+  color: var(--accent);
+}
+
+.cc-map svg {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+}
+
+.cc-map .cc-map-fallback {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Flag chip floating on the artwork */
+.cc-flag {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 1.15rem;
+  line-height: 1;
+  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 6px 10px;
+  backdrop-filter: blur(6px);
+}
+
+.cc-body {
+  padding: 20px 22px 16px;
+  flex: 1;
+}
+
+.cc-name {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text-primary);
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.circuit-card:hover .cc-name {
+  color: var(--accent-strong);
+}
+
+.cc-place {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.cc-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.cc-dims {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+/* Demand mini-stats row */
+.cc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.cc-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cc-stat .apex-value {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Full-card stretched link (covers the card, sits above content) */
+.circuit-card-link {
+  position: static;
+  display: block;
+  padding: 13px 22px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: transparent;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.circuit-card-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.circuit-card:hover .circuit-card-link {
+  background: var(--accent-soft);
+}
+
+/* -- Circuit type badge (shared with handbook) -- */
+.circuit-card-type {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: var(--r-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+}
+
+.circuit-card-type.type-technical {
+  border-color: color-mix(in srgb, var(--accent-technical) 45%, transparent);
+  color: var(--accent-technical);
+}
+
+.circuit-card-type.type-highspeed {
+  border-color: color-mix(in srgb, var(--accent-highspeed) 45%, transparent);
+  color: var(--accent-highspeed);
+}
+
+.circuit-card-type.type-street {
+  border-color: color-mix(in srgb, var(--accent-street) 45%, transparent);
+  color: var(--accent-street);
+}
+
+.circuit-card-type.type-hybrid {
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+
+/* -- Empty state -- */
+.browser-empty {
+  padding: 96px 24px;
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-card);
+}
+
+.browser-empty .empty-glyph {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.browser-empty .empty-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/*-- SECTION: STATUS INDICATORS --*/
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+}
+
+.status-live {
+  background: var(--neon);
+}
+.status-error {
+  background: var(--danger);
+}
+.status-loading {
+  background: var(--warning);
+}
+.status-offline {
+  background: var(--text-muted);
+}
+
+/*-- SECTION: LOADING / ERROR STATES --*/
+
+.apex-spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Generic panel card — kept for JS-injected markup (workbench picker) */
+.tele-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.tele-panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tele-panel-body {
+  padding: 20px;
+}
+
+/* Bracket corners retired in v2 — class kept as a no-op so any
+   leftover markup renders cleanly. */
+.bracket-corners::before,
+.bracket-corners::after {
+  content: none;
+}
+
+/*-- SECTION: TABS (workbench + handbook — custom UI requirement) --*/
+
+.workbench-nav {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workbench-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.workbench-tab {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  border-radius: var(--r-pill);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+}
+
+.workbench-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-panel-alt);
+}
+
+.workbench-tab.tab-active {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.workbench-tab:active {
+  transform: scale(0.97);
+}
+
+.workbench-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.tab-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Rain alert on the WET tab */
+.workbench-tab.tab-rain-alert {
+  color: var(--warning);
+}
+
+.workbench-tab.tab-rain-alert.tab-active {
+  color: #1a1200;
+  background: var(--warning);
+}
+
+/* -- Panes -- */
+.workbench-pane {
+  display: none;
+}
+
+.workbench-pane.pane-active {
+  display: block;
+  animation: pane-enter var(--t-slow) var(--ease-out);
+}
+
+@keyframes pane-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*-- SECTION: DATA GRID (workbench readout tiles) --*/
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.data-cell {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 20px 22px;
+  position: relative;
+}
+
+.data-cell-label {
+  font-family: var(--font-ui);
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.data-cell-value {
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 8px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.data-cell-value.optimal,
+.data-cell.optimal .data-cell-value {
+  color: var(--neon);
+}
+.data-cell-value.warning,
+.data-cell.warning .data-cell-value {
+  color: var(--warning);
+}
+.data-cell-value.critical,
+.data-cell.critical .data-cell-value {
+  color: var(--danger);
+}
+
+.data-cell-unit {
+  font-size: 0.66rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-left: 5px;
+  font-weight: 400;
+}
+
+/*-- SECTION: RECOMMENDATION BLOCKS --*/
+
+.rec-block {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--neon);
+  border-radius: var(--r-sm);
+  padding: 16px 20px;
+  background: var(--bg-panel);
+  margin-bottom: 10px;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.rec-block:last-child {
+  margin-bottom: 0;
+}
+
+.rec-block.rec-warning {
+  border-left-color: var(--warning);
+}
+
+.rec-block.rec-critical {
+  border-left-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 5%, var(--bg-panel));
+}
+
+.rec-title {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.rec-value {
+  font-family: var(--font-mono);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 5px;
+}
+
+.rec-reason {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/*-- SECTION: RACE WEEKEND TIMELINE (workbench) --*/
+
+.wb-timeline {
+  padding: 0 var(--page-pad);
+  max-width: var(--page-max);
+  margin: -28px auto 0; /* overlaps the hero band edge for depth */
+  position: relative;
+  z-index: 5;
+}
+
+.wb-timeline-inner {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: 0 20px 44px -24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  flex-wrap: wrap;
+}
+
+.wb-timeline-label {
+  font-family: var(--font-ui);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+
+.timeline-selector {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.timeline-selector::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-btn {
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 18px;
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+}
+
+.timeline-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-panel-alt);
+}
+
+.timeline-btn.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.timeline-btn:active {
+  transform: scale(0.97);
+}
+
+.timeline-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--neon);
+  flex-shrink: 0;
+}
+
+.timeline-btn.active .timeline-dot {
+  background: var(--accent-ink);
+}
+
+.timeline-offset {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.timeline-btn.active .timeline-offset {
+  color: color-mix(in srgb, var(--accent-ink) 70%, transparent);
+}
+
+.timeline-btn.forecast-rain {
+  color: var(--warning);
+}
+
+.timeline-btn.forecast-rain.active {
+  background: var(--warning);
+  color: #1a1200;
+}
+
+/*-- SECTION: WORKBENCH HERO --*/
+
+.wb-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      110% 130% at 85% 0%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 55%
+    ),
+    var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  padding: clamp(40px, 6vw, 72px) 0 clamp(56px, 7vw, 88px);
+}
+
+.wb-hero-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+  display: grid;
+  grid-template-columns: minmax(300px, 7fr) minmax(240px, 5fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.wb-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.wb-back:hover {
+  color: var(--accent-strong);
+}
+
+.wb-hero h1 {
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  line-height: 0.95;
+  max-width: 14ch;
+}
+
+.wb-circuit-meta {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin-top: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wb-circuit-meta .slash {
+  color: var(--border-strong);
+  margin: 0 8px;
+}
+
+.wb-verdict {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-top: 14px;
+  max-width: 52ch;
+  min-height: 1.4em;
+  line-height: 1.65;
+}
+
+/* -- Big track map -- */
+.wb-hero-map {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wb-hero-map svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  aspect-ratio: 10 / 7;
+}
+
+.wb-map-name {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* -- Circuit fact strip inside hero -- */
+.wb-facts {
+  max-width: var(--page-max);
+  margin: clamp(32px, 5vw, 56px) auto 0;
+  padding: 0 var(--page-pad);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 56px);
+  position: relative;
+  z-index: 1;
+}
+
+.circuit-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.circuit-stat-val {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+/* -- Rain canvas overlay -- */
+.rain-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+/*-- SECTION: WEATHER STRIP (workbench) --*/
+
+.wb-weather {
+  max-width: var(--page-max);
+  margin: 40px auto 0;
+  padding: 0 var(--page-pad);
+}
+
+.wb-weather-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  flex-wrap: wrap;
+}
+
+.wb-weather-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.wb-weather-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#dataAge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.weather-readout-row {
+  display: flex;
+  gap: clamp(20px, 3.5vw, 48px);
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+}
+
+.weather-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 70px;
+}
+
+/* -- Condition glyph, right edge of the weather card -- */
+.wb-weather-icon {
+  margin-left: auto;
+  width: 64px;
+  height: 64px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.wb-weather-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wb-weather-icon.wx-clear {
+  color: var(--warning);
+}
+.wb-weather-icon.wx-rain,
+.wb-weather-icon.wx-drizzle {
+  color: #4da3ff;
+}
+.wb-weather-icon.wx-storm {
+  color: var(--warning);
+}
+.wb-weather-icon.wx-snow {
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .wb-weather-card {
+    position: relative;
+  }
+
+  .wb-weather-icon {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    width: 44px;
+    height: 44px;
+    margin-left: 0;
+  }
+}
+
+/*-- SECTION: WORKBENCH MAIN / PANES --*/
+
+.wb-main-shell {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 44px) var(--page-pad) clamp(72px, 9vw, 120px);
+}
+
+.workbench-panes {
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+/* Split row inside panes */
+.wb-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.wb-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+.wb-panel-header {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wb-panel-body {
+  padding: 22px;
+}
+
+.wb-panel-body.flush {
+  padding: 10px;
+}
+
+.wb-panel-body.flush .rec-block {
+  border: none;
+  border-left: 3px solid var(--neon);
+  border-radius: var(--r-sm);
+  background: var(--bg-panel-alt);
+}
+
+.wb-panel-body.flush .rec-block.rec-warning {
+  border-left-color: var(--warning);
+}
+
+.wb-panel-body.flush .rec-block.rec-critical {
+  border-left-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 7%, var(--bg-panel-alt));
+}
+
+.compound-readout {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--neon);
+  line-height: 1;
+  min-height: 1.1em;
+}
+
+#compoundReason {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 14px;
+}
+
+#aeroNotes {
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding: 22px;
+}
+
+/*-- SECTION: DEGRADATION CHART --*/
+
+.deg-panel {
+  margin-top: 14px;
+}
+
+.deg-chart-wrap {
+  padding: 18px 22px 14px;
+}
+
+.deg-chart-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+@media (min-width: 700px) {
+  .deg-chart-wrap svg {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+}
+
+.deg-axis-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.deg-legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.deg-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.deg-legend-swatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.deg-legend-label {
+  font-family: var(--font-ui);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.deg-legend-val {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.deg-legend-axis {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/*-- SECTION: WET STRATEGY PANE --*/
+
+.wet-banner {
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  padding: 28px 30px;
+  margin-bottom: 14px;
+}
+
+#wetStatusReadout {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+#wetStatusReadout.dry {
+  color: var(--neon);
+}
+#wetStatusReadout.wet {
+  color: var(--warning);
+}
+#wetStatusReadout.heavy {
+  color: var(--danger);
+}
+
+#wetStatusSub {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.dry-panel {
+  padding: clamp(56px, 8vw, 96px) 24px;
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-card);
+}
+
+.dry-panel .dry-glyph {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  color: var(--neon);
+  margin-bottom: 10px;
+}
+
+.dry-panel .dry-sub {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  max-width: 46ch;
+  margin: 0 auto;
+}
+
+#wetDetailsGrid .wb-rec-list {
+  margin-top: 14px;
+}
+
+/*-- SECTION: WORKBENCH LOADING / ERROR --*/
+
+/* Zero vertical padding of its own — otherwise it leaves a large
+   empty gap between the weather strip and the tabs when both the
+   loading and error states inside it are hidden. */
+.wb-state-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+}
+
+#loadingState {
+  text-align: center;
+  padding: clamp(56px, 8vw, 96px) 24px;
+}
+
+#loadingState .apex-spinner {
+  margin: 0 auto 24px;
+  width: 34px;
+  height: 34px;
+}
+
+#loadingState p {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  line-height: 2;
+  text-transform: uppercase;
+}
+
+#errorState {
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--danger) 5%, var(--bg-panel));
+  padding: 28px 30px;
+  margin: clamp(32px, 5vw, 56px) 0;
+}
+
+#errorState .rec-title {
+  color: var(--danger);
+}
+
+/*-- SECTION: HANDBOOK --*/
+
+.hb-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(
+      100% 140% at 90% 0%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 55%
+    ),
+    var(--bg-primary);
+  padding: clamp(56px, 9vw, 112px) 0;
+}
+
+.hb-hero-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+}
+
+.hb-hero h1 {
+  font-size: clamp(3.2rem, 8vw, 6.4rem);
+  line-height: 0.92;
+}
+
+.hb-hero .section-lede {
+  margin-top: 18px;
+}
+
+.hb-shell {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(36px, 5vw, 56px) var(--page-pad) clamp(72px, 9vw, 120px);
+}
+
+.hb-panes {
+  margin-top: clamp(32px, 5vw, 48px);
+}
+
+/* -- Glossary -- */
+.handbook-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.handbook-entry {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 24px 26px;
+}
+
+.handbook-term {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.handbook-term::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-top: 10px;
+}
+
+.handbook-def {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+/* -- Compound cards -- */
+.compound-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.compound-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.compound-card-accent {
+  height: 5px;
+  width: 100%;
+}
+
+.compound-card-body {
+  padding: 22px 24px;
+  flex: 1;
+}
+
+.compound-name {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.compound-temp {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 8px 0 18px;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rating-label {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  width: 84px;
+  flex-shrink: 0;
+}
+
+.rating-bar-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bg-panel-alt);
+  position: relative;
+  overflow: hidden;
+}
+
+.rating-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.rating-num {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+  width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.compound-desc {
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 14px;
+}
+
+/* -- Aero chapter -- */
+.aero-section {
+  max-width: 860px;
+  padding: clamp(28px, 4vw, 40px) 0;
+  border-top: 1px solid var(--border);
+}
+
+.aero-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.aero-section-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.aero-section-body {
+  font-family: var(--font-ui);
+  font-size: 0.94rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.aero-angle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+/* -- Track type cards -- */
+.track-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.track-type-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+.track-type-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.track-type-name {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.track-type-body {
+  padding: 22px 24px;
+}
+
+.track-examples {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.track-desc {
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+
+.track-priorities-title {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.track-priority-item {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  padding: 6px 0 6px 18px;
+  position: relative;
+}
+
+.track-priority-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/*-- SECTION: FOOTER --*/
+
+apex-footer {
+  display: block;
+}
+
+.apex-footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.apex-footer-top {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 64px) var(--page-pad);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.apex-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+}
+
+.apex-footer-logo {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.apex-footer-logo-accent {
+  color: var(--accent);
+}
+
+.apex-footer-tagline {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.apex-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apex-footer-links a {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.apex-footer-links a:hover {
+  color: var(--accent-strong);
+}
+
+.apex-footer-bottom {
+  border-top: 1px solid var(--border);
+}
+
+.apex-footer-bottom-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 18px var(--page-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.apex-footer-copy,
+.apex-footer-meta {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/*-- SECTION: KEYBOARD HINTS (nav.js) --*/
+
+.apex-keyhints {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 8px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  z-index: 2000;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.apex-keyhints.visible {
+  display: block;
+}
+
+.apex-keyhints kbd {
+  color: var(--text-secondary);
+  margin: 0 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+/*-- SECTION: UTILITY CLASSES --*/
+
+.text-neon {
+  color: var(--neon) !important;
+}
+.text-accent {
+  color: var(--accent) !important;
+}
+.text-danger {
+  color: var(--danger) !important;
+}
+.text-warning {
+  color: var(--warning) !important;
+}
+.text-muted {
+  color: var(--text-muted) !important;
+}
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+.text-primary {
+  color: var(--text-primary) !important;
+}
+.text-mono {
+  font-family: var(--font-mono) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/*-- SECTION: MOTION --*/
+/* All ambient motion is gated behind prefers-reduced-motion. */
+
+/* Hero entrance reveal (index) — respects --d custom delay */
+.hero-reveal {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: no-preference) {
+  .hero-reveal {
+    opacity: 0;
+    animation: hero-rise 700ms var(--ease-out) forwards;
+    animation-delay: var(--d, 0ms);
+  }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Spinning 3D circuit rotor */
   .hero-circuit-rotor {
-    animation: hero-circuit-rotate-3d 16s linear infinite;
+    animation: hero-circuit-rotate-3d 18s linear infinite;
   }
 
   @keyframes hero-circuit-rotate-3d {
@@ -2982,148 +2561,323 @@ body::after {
       transform: rotateX(14deg) rotateY(360deg);
     }
   }
-}
 
-.hero-canvas-label {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--neon);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .hero-canvas-label {
-    animation: pulse 2s ease-in-out infinite;
+  .hero-circuit-ring--outer {
+    animation: hero-ring-pulse 5s ease-in-out infinite;
   }
-}
-
-/* -- Scroll indicator -- */
-.hero-scroll-indicator {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-}
-
-.hero-scroll-line {
-  width: 1px;
-  height: 48px;
-  background: linear-gradient(to bottom, var(--neon), transparent);
-  margin: 0 auto;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .hero-scroll-line {
-    animation: scroll-drop 1.8s ease-in-out infinite;
+  .hero-circuit-ring--inner {
+    animation: hero-ring-pulse 5s ease-in-out infinite reverse;
+    animation-delay: 0.6s;
   }
 
-  @keyframes scroll-drop {
-    0% {
-      opacity: 0;
-      transform: scaleY(0);
-      transform-origin: top;
+  @keyframes hero-ring-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.2;
     }
     50% {
+      transform: scale(1.04);
+      opacity: 0.4;
+    }
+  }
+
+  /* Live status dot pulse */
+  .status-live {
+    animation: live-pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes live-pulse {
+    0%,
+    100% {
       opacity: 1;
-      transform: scaleY(1);
-      transform-origin: top;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  .timeline-btn.active .timeline-dot {
+    animation: live-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Card stagger entrance — JS adds .card-enter with per-card delay */
+  .card-enter {
+    animation: card-rise 320ms var(--ease-out) both;
+  }
+
+  @keyframes card-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Tab pane wipe (TabController adds .pane-wipe-enter) */
+  .pane-wipe-enter {
+    animation: pane-wipe 240ms var(--ease-out) forwards;
+  }
+
+  @keyframes pane-wipe {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Value-change flash (anim.js flashCell) */
+  .flash-up {
+    animation: flash-neon 240ms var(--ease-out) forwards;
+  }
+
+  .flash-down {
+    animation: flash-danger 240ms var(--ease-out) forwards;
+  }
+
+  @keyframes flash-neon {
+    0% {
+      background: color-mix(in srgb, var(--neon) 16%, transparent);
     }
     100% {
-      opacity: 0;
-      transform: scaleY(1);
-      transform-origin: bottom;
+      background: transparent;
     }
+  }
+
+  @keyframes flash-danger {
+    0% {
+      background: color-mix(in srgb, var(--danger) 14%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+
+  /* Scroll-reveal for sections (IntersectionObserver adds .in-view) */
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 700ms var(--ease-out);
+  }
+
+  .reveal-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* -- Hero responsive -- */
+/* Reduced motion: kill everything */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*-- SECTION: RESPONSIVE --*/
+
+/* ---- ≤ 1024px ---- */
+@media (max-width: 1024px) {
+  .how-band .shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .how-sticky {
+    position: static;
+  }
+
+  .wb-hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .wb-hero-map {
+    order: -1;
+  }
+
+  .wb-hero-map svg {
+    max-width: 300px;
+  }
+
+  .handbook-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .track-type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- ≤ 900px (hero stacks) ---- */
 @media (max-width: 900px) {
   .hero-content {
     flex-direction: column;
-    padding: 60px 24px 48px;
-    text-align: left;
+    align-items: flex-start;
+    padding-top: 64px;
+    padding-bottom: 48px;
   }
 
   .hero-canvas-wrap {
-    width: clamp(160px, 46vw, 280px);
-    aspect-ratio: 1;
-    margin: 8px auto 0;
+    width: clamp(200px, 52vw, 320px);
+    margin: 0 auto;
     order: 2;
   }
 
-  .hero-headline {
-    font-size: clamp(2.6rem, 12vw, 5rem);
+  .stats-band-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-item:nth-child(odd) {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .stat-item:nth-child(even) {
+    padding-left: clamp(16px, 4vw, 40px);
   }
 }
 
-@media (max-width: 480px) {
-  .hero-content {
-    padding: 48px 16px 36px;
-    gap: 28px;
+/* ---- ≤ 768px ---- */
+@media (max-width: 768px) {
+  /* Nav: collapse to hamburger sheet */
+  .apex-nav-links {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 12px;
+    right: 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.5);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    z-index: 999;
+    padding: 10px;
   }
-  .hero-cta {
-    padding: 12px 20px;
-    font-size: 0.72rem;
-  }
-  .hero-stat-num {
-    font-size: 1.8rem;
-  }
-  .hero-stats {
-    gap: 8px 0;
-  }
-  .hero-canvas-wrap {
-    width: clamp(140px, 42vw, 220px);
-    margin-top: 4px;
-  }
-  .hero-circuit-rotor {
-    width: 70%;
-    height: 70%;
-  }
-}
 
-/*-- SECTION: TRACK MINIMAP --*/
+  .apex-nav-links.nav-open {
+    display: flex;
+  }
 
-.track-minimap-panel {
-  flex-shrink: 0;
-  width: 200px;
-  min-height: 140px;
-}
+  .apex-nav-link {
+    padding: 14px 18px;
+    border-radius: var(--r-sm);
+  }
 
-.track-minimap-body {
-  padding: 10px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .apex-nav-toggle {
+    display: flex;
+  }
 
-#trackMapSvg path {
-  transition:
-    stroke 400ms ease-out,
-    stroke-dashoffset 1.4s cubic-bezier(0.2, 0, 0, 1);
-}
+  .wb-split {
+    grid-template-columns: 1fr;
+  }
 
-/* Minimap responsive — hide on small screens, space is needed for weather */
-@media (max-width: 900px) {
-  .track-minimap-panel {
+  .wb-timeline-label {
+    width: 100%;
+    padding: 6px 14px 2px;
+  }
+
+  .timeline-btn {
+    padding: 11px 10px;
+    font-size: 0.66rem;
+  }
+
+  .timeline-offset {
     display: none;
   }
+
+  .cc-meta {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .workbench-nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
-/*-- SECTION: RAIN CANVAS --*/
+/* ---- ≤ 480px ---- */
+@media (max-width: 480px) {
+  .data-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 
-.rain-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 600ms ease;
+  .apex-readout {
+    font-size: 1.8rem;
+  }
+
+  .data-cell-value {
+    font-size: 1.3rem;
+  }
+
+  .compound-readout {
+    font-size: 2rem;
+  }
+
+  .browser-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* In column layout the row flex-basis (280px) would become HEIGHT,
+     leaving a tall empty box with a floating search icon. */
+  .browser-toolbar .toolbar-search {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .apex-select {
+    min-width: 100%;
+  }
+
+  .browser-count .count-num {
+    font-size: 2.2rem;
+  }
+
+  .hero-actions .btn-apex {
+    width: 100%;
+  }
+
+  .stats-band-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-num {
+    font-size: 1.9rem;
+  }
+}
+
+/*-- SECTION: PRINT --*/
+
+@media print {
+  .apex-nav,
+  .workbench-nav,
+  .apex-footer,
+  .wb-timeline {
+    display: none;
+  }
+  body {
+    background: white;
+    color: black;
+  }
 }

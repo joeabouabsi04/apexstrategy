@@ -9,6 +9,7 @@ import {
   filterCircuitsByRegion,
 } from "./circuits.js";
 import { animateValue } from "./anim.js";
+import { fetchTrackMap } from "./trackmaps.js";
 
 /*-- SECTION: LOOKUP --*/
 
@@ -44,6 +45,7 @@ export class HomeController {
 
   _init() {
     this._bindEvents();
+    this._initScrollReveals();
     this.renderCircuits(this._circuits);
     this._animateTotalBadge();
   }
@@ -54,6 +56,27 @@ export class HomeController {
       duration: 800,
       decimals: 0,
     });
+  }
+
+  /** Fade-up sections as they enter the viewport (.reveal-on-scroll). */
+  _initScrollReveals() {
+    const els = document.querySelectorAll(".reveal-on-scroll");
+    if (!els.length || !("IntersectionObserver" in window)) {
+      els.forEach((el) => el.classList.add("in-view"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in-view");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+    els.forEach((el) => io.observe(el));
   }
 
   _bindEvents() {
@@ -96,31 +119,30 @@ export class HomeController {
 
   _buildCardHTML(circuit) {
     const typeClass = TYPE_CLASS_MAP[circuit.type] ?? "type-hybrid";
-    const typeLabel = circuit.type.toUpperCase().replace(/-/g, "\u2011");
+    const typeLabel = circuit.type.toUpperCase().replace(/-/g, "‑");
     const dfState = DEMAND_STATE[circuit.baseDownforce] ?? "";
     const tyrState = DEMAND_STATE[circuit.tyreWear] ?? "";
     const brkState = DEMAND_STATE[circuit.brakingDemand] ?? "";
     return /* html */ `
       <article class="circuit-card" data-id="${circuit.id}" data-type="${circuit.type}"
                data-region="${circuit.region}" role="article"
-               aria-label="${circuit.name} — ${circuit.country}">
-        <div class="circuit-card-header">
-          <div>
-            <div class="circuit-card-name">${circuit.shortName.toUpperCase()}</div>
-            <div class="circuit-card-country">${circuit.city.toUpperCase()}&nbsp;·&nbsp;${circuit.country.toUpperCase()}</div>
-          </div>
-          <span class="circuit-card-flag" role="img" aria-label="${circuit.country} flag">${circuit.flag}</span>
+               aria-label="${circuit.name}, ${circuit.country}">
+        <div class="cc-map" data-trackmap="${circuit.id}" aria-hidden="true">
+          <span class="cc-map-fallback">${circuit.shortName.toUpperCase()}</span>
+          <span class="cc-flag" role="img" aria-label="${circuit.country} flag">${circuit.flag}</span>
         </div>
-        <div class="circuit-card-body">
-          <div class="card-type-row">
+        <div class="cc-body">
+          <div class="cc-name">${circuit.shortName.toUpperCase()}</div>
+          <div class="cc-place">${circuit.city}&nbsp;·&nbsp;${circuit.country}</div>
+          <div class="cc-tags">
             <span class="circuit-card-type ${typeClass}">${typeLabel}</span>
-            <span class="apex-label card-dims">${circuit.length}&nbsp;KM&nbsp;·&nbsp;${circuit.turns}&nbsp;TURNS</span>
+            <span class="cc-dims">${circuit.length}&nbsp;KM&nbsp;·&nbsp;${circuit.turns}&nbsp;TURNS</span>
           </div>
-          <div class="circuit-card-meta">
-            <div class="circuit-card-stat"><span class="apex-label">DOWNFORCE</span><span class="apex-value ${dfState}">${circuit.baseDownforce.toUpperCase()}</span></div>
-            <div class="circuit-card-stat"><span class="apex-label">TYRE WEAR</span><span class="apex-value ${tyrState}">${circuit.tyreWear.toUpperCase()}</span></div>
-            <div class="circuit-card-stat"><span class="apex-label">BRAKING</span><span class="apex-value ${brkState}">${circuit.brakingDemand.toUpperCase()}</span></div>
-          </div>
+        </div>
+        <div class="cc-meta">
+          <div class="cc-stat"><span class="apex-label">Downforce</span><span class="apex-value ${dfState}">${circuit.baseDownforce.toUpperCase()}</span></div>
+          <div class="cc-stat"><span class="apex-label">Tyre wear</span><span class="apex-value ${tyrState}">${circuit.tyreWear.toUpperCase()}</span></div>
+          <div class="cc-stat"><span class="apex-label">Braking</span><span class="apex-value ${brkState}">${circuit.brakingDemand.toUpperCase()}</span></div>
         </div>
         <a href="workbench.html?circuit=${circuit.id}" class="circuit-card-link"
            aria-label="Open ${circuit.shortName} in Workbench">LOAD WORKBENCH&nbsp;→</a>
@@ -139,24 +161,48 @@ export class HomeController {
     this._listEl.innerHTML = circuits
       .map(
         (c, i) =>
-          `<div class="col-12 col-sm-6 col-lg-4 col-xl-3 card-enter" style="animation-delay:${Math.min(i * 22, 200)}ms">${this._buildCardHTML(c)}</div>`,
+          `<div class="col-12 col-md-6 col-xl-4 card-enter" style="animation-delay:${Math.min(i * 30, 260)}ms">${this._buildCardHTML(c)}</div>`,
       )
       .join("");
+
+    // Hydrate the card artwork with the real track outlines
+    this._hydrateTrackMaps();
 
     // Tilt.js — 3D perspective on mousemove
     if (window.VanillaTilt) {
       window.VanillaTilt.init(this._listEl.querySelectorAll(".circuit-card"), {
-        max: 6,
+        max: 5,
         speed: 300,
         glare: false,
-        scale: 1.02,
-        perspective: 900,
+        scale: 1.015,
+        perspective: 1000,
       });
     }
   }
 
+  /**
+   * Fetches tracks/{id}.svg for every rendered card and inlines it
+   * into the .cc-map artwork zone. Inlining (rather than <img>) lets
+   * the outline pick up `color: currentColor` so it recolours on
+   * hover and theme change. Results are cached by trackmaps.js.
+   */
+  _hydrateTrackMaps() {
+    this._listEl.querySelectorAll("[data-trackmap]").forEach(async (zone) => {
+      const svgText = await fetchTrackMap(zone.dataset.trackmap);
+      if (!svgText || !zone.isConnected) return;
+      const flag = zone.querySelector(".cc-flag")?.outerHTML ?? "";
+      zone.innerHTML = svgText + flag;
+      const svg = zone.querySelector("svg");
+      if (!svg) return;
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+      svg.setAttribute("fill", "currentColor");
+      svg.setAttribute("aria-hidden", "true");
+    });
+  }
+
   _updateCounter(shown) {
     if (this._counterEl)
-      this._counterEl.textContent = `SHOWING ${shown || "—"} OF ${this._circuits.length} CIRCUITS`;
+      this._counterEl.textContent = `SHOWING ${shown || "0"} OF ${this._circuits.length} CIRCUITS`;
   }
 }

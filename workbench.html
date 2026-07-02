@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>APEXSTRATEGY // TUNING WORKBENCH</title>
+    <title>ApexStrategy · Tuning Workbench</title>
     <meta
       name="description"
       content="ApexStrategy Tuning Workbench — live weather-driven setup recommendations for any circuit."
     />
-    <meta name="theme-color" content="#0b0d11" />
-    <meta property="og:title" content="ApexStrategy // Tuning Workbench" />
+    <meta name="theme-color" content="#0b0b0e" />
+    <meta property="og:title" content="ApexStrategy · Tuning Workbench" />
     <meta
       property="og:description"
       content="Live weather-driven engineering setup recommendations for any circuit."
@@ -21,477 +21,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     />
     <link rel="stylesheet" href="css/style.css" />
-
-    <style>
-      /*-- PAGE: workbench.html — Tuning Workbench --*/
-
-      /* ═══════════════════════════════════════════════════════════
-         TASK 1 — Timeline panel: full-width, equal columns
-         Sits immediately below the navbar, above the circuit header.
-         #timelinePanel is shown/hidden by WorkbenchController (JS).
-         ═══════════════════════════════════════════════════════════ */
-      #timelinePanel {
-        /* Flush against the nav's border-bottom; no top border needed. */
-        border-top: none;
-        border-left: none;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding: 0;
-        background: var(--bg-panel-alt);
-      }
-
-      /* 4 equal columns instead of a left-aligned scrolling flex row */
-      #timelinePanel .timeline-selector {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        overflow: visible; /* override .timeline-selector overflow-x:auto */
-      }
-
-      #timelinePanel .timeline-btn {
-        justify-content: center; /* center text within each equal cell */
-        flex-shrink: unset; /* not relevant in grid context */
-        border-right: 1px solid var(--border);
-      }
-
-      #timelinePanel .timeline-btn:last-child {
-        border-right: none;
-      }
-
-      /* ═══════════════════════════════════════════════════════════
-         TASK 4 — Circuit header: CSS Grid layout
-         Three-column top row (title | weather | minimap) +
-         a full-width stats row that spans all columns below.
-         ═══════════════════════════════════════════════════════════ */
-      .wb-header {
-        display: grid;
-        grid-template-columns: 1fr auto auto;
-        grid-template-rows: auto auto;
-        align-items: stretch;
-        gap: 0;
-        /* Padding moved to .wb-header-left so stats row is edge-to-edge */
-        padding: 0;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-panel);
-        position: relative;
-        overflow: hidden; /* contains rain canvas + scanline */
-      }
-
-      /* ── Left column ─────────────────────────────────────────── */
-      .wb-header-left {
-        padding: 18px 24px;
-        min-width: 0; /* allow grid cell to shrink */
-      }
-
-      .wb-header-left .module-label {
-        font-family: var(--font-mono);
-        font-size: 0.6rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        display: block;
-        margin-bottom: 6px;
-      }
-
-      .wb-header-left h1 {
-        font-size: 1.25rem;
-        letter-spacing: 0.05em;
-        line-height: 1;
-        max-width: 54ch;
-      }
-
-      .wb-circuit-meta {
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        color: var(--text-muted);
-        margin-top: 6px;
-        letter-spacing: 0.06em;
-      }
-
-      .wb-circuit-meta .slash {
-        color: var(--border);
-        margin: 0 6px;
-      }
-
-      .wb-verdict {
-        font-family: var(--font-ui);
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        margin-top: 8px;
-        font-style: italic;
-        letter-spacing: 0.02em;
-        min-height: 1.2em;
-      }
-
-      /* ── Weather panel (centre column) ───────────────────────── */
-      #weatherStatus {
-        min-width: 230px;
-        /* Override .tele-panel's all-sides border; only a left separator */
-        border: none;
-        border-left: 1px solid var(--border);
-      }
-
-      .weather-readout-row {
-        display: flex;
-        gap: 20px;
-        margin-top: 10px;
-        flex-wrap: wrap;
-      }
-
-      .weather-field {
-        min-width: 56px;
-      }
-
-      #dataAge {
-        font-family: var(--font-mono);
-        font-size: 0.6rem;
-        color: var(--text-muted);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      /* ── Minimap panel (right column) ────────────────────────── */
-      #trackMinimapPanel {
-        border: none;
-        border-left: 1px solid var(--border);
-      }
-
-      /* ── Circuit stats row (spans all 3 columns) ─────────────── */
-      .wb-circuit-stats {
-        grid-column: 1 / -1; /* span full width */
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        padding: 0;
-        border-top: 1px solid var(--border);
-        /* Same surface as .wb-header above it — keeps the circuit-info
-           block visually unified with the header, distinct from the
-           bg-panel-alt tab nav / panes below where the real tools live. */
-        background: var(--bg-panel);
-      }
-
-      .circuit-stat-item {
-        padding: 10px 20px;
-        border-right: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-
-      .circuit-stat-item:last-child {
-        border-right: none;
-      }
-
-      .circuit-stat-val {
-        font-family: var(--font-mono);
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: var(--neon);
-        margin-top: 2px;
-        letter-spacing: 0.02em;
-      }
-
-      /* ── Loading / error states ─────────────────────────────── */
-      #loadingState {
-        margin: 24px;
-        padding: 56px 24px;
-        text-align: center;
-      }
-
-      #loadingState .apex-spinner {
-        margin: 0 auto 20px;
-        width: 28px;
-        height: 28px;
-      }
-
-      #loadingState p {
-        font-family: var(--font-mono);
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        letter-spacing: 0.08em;
-        line-height: 1.8;
-      }
-
-      #errorState {
-        margin: 24px;
-      }
-
-      /* ── Workbench main ──────────────────────────────────────── */
-      #workbenchMain {
-        border-top: none;
-      }
-
-      /* WET tab alert when raining */
-      .tab-rain-alert {
-        color: var(--warning) !important;
-        border-top-color: var(--warning) !important;
-      }
-
-      .tab-rain-alert.tab-active {
-        color: var(--warning) !important;
-        border-top-color: var(--warning) !important;
-        background: rgba(255, 170, 0, 0.06) !important;
-      }
-
-      /* ── Pane 1: Tyres ──────────────────────────────────────── */
-      #pressureGrid {
-        border-bottom: 1px solid var(--border);
-      }
-
-      .compound-readout {
-        font-family: var(--font-mono);
-        font-size: 1.55rem;
-        font-weight: 700;
-        color: var(--neon);
-        line-height: 1;
-        letter-spacing: 0.03em;
-        min-height: 1.6rem;
-      }
-
-      #compoundReason {
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        line-height: 1.65;
-        margin-top: 10px;
-      }
-
-      /* ═══════════════════════════════════════════════════════════
-         TASK 3 — Degradation chart container
-         The SVG chart is injected by _renderDegradationGraphs().
-         ═══════════════════════════════════════════════════════════ */
-      #degradationGraphs {
-        padding: 0;
-      }
-
-      .deg-chart-wrap {
-        padding: 12px 16px 10px;
-      }
-
-      .deg-chart-wrap svg {
-        display: block;
-        width: 100%;
-        height: auto;
-        overflow: visible;
-      }
-
-      /* On wide viewports the chart's fixed aspect ratio (≈2:1) made it
-         balloon to several hundred px tall. Cap its rendered width so it
-         stays a sane, readable size on desktop; phones are unaffected. */
-      @media (min-width: 700px) {
-        .deg-chart-wrap svg {
-          max-width: 520px;
-          margin: 0 auto;
-        }
-      }
-
-      /* Axis tick labels inside the SVG */
-      .deg-axis-label {
-        font-family: var(--font-mono);
-        font-size: 8px;
-        fill: var(--text-muted);
-        letter-spacing: 0.04em;
-      }
-
-      /* Legend strip below the chart */
-      .deg-legend {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border);
-      }
-
-      .deg-legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .deg-legend-swatch {
-        width: 14px;
-        height: 3px;
-        border-radius: 1px;
-        flex-shrink: 0;
-      }
-
-      .deg-legend-label {
-        font-family: var(--font-mono);
-        font-size: 0.62rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        letter-spacing: 0.06em;
-      }
-
-      .deg-legend-val {
-        font-family: var(--font-mono);
-        font-size: 0.62rem;
-        font-weight: 700;
-        color: var(--text-muted);
-      }
-
-      .deg-legend-axis {
-        margin-left: auto;
-        font-family: var(--font-mono);
-        font-size: 0.58rem;
-        color: var(--text-muted);
-        letter-spacing: 0.1em;
-      }
-
-      /* ── Pane 2: Aero ───────────────────────────────────────── */
-      #aeroGrid {
-        border-bottom: 1px solid var(--border);
-      }
-
-      #aeroNotes {
-        font-family: var(--font-ui);
-        font-size: 0.84rem;
-        color: var(--text-secondary);
-        line-height: 1.7;
-        padding: 16px;
-      }
-
-      /* ── Pane 3: Wet Strategy ───────────────────────────────── */
-      #wetStatusBanner {
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      #wetStatusReadout {
-        font-family: var(--font-mono);
-        font-size: 1.35rem;
-        font-weight: 700;
-        line-height: 1;
-        letter-spacing: 0.04em;
-      }
-
-      #wetStatusReadout.dry {
-        color: var(--neon);
-      }
-      #wetStatusReadout.wet {
-        color: var(--warning);
-      }
-      #wetStatusReadout.heavy {
-        color: var(--danger);
-      }
-
-      #wetStatusSub {
-        font-family: var(--font-ui);
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        letter-spacing: 0.08em;
-        margin-top: 6px;
-        text-transform: uppercase;
-      }
-
-      #dryConditionsPanel {
-        padding: 56px 24px;
-        text-align: center;
-      }
-
-      #dryConditionsPanel .dry-glyph {
-        font-family: var(--font-mono);
-        font-size: 1.05rem;
-        color: var(--neon);
-        margin-bottom: 10px;
-      }
-
-      #dryConditionsPanel .dry-sub {
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-top: 8px;
-      }
-
-      #wetDetailsGrid .data-grid {
-        border-bottom: 1px solid var(--border);
-      }
-
-      #wetDetailsGrid .wb-rec-list {
-        padding: 0;
-      }
-
-      /* ── Split rows inside panes ─────────────────────────────── */
-      .wb-split {
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      .wb-split-left {
-        flex: 1 1 280px;
-        border-right: 1px solid var(--border);
-        min-width: 0;
-      }
-
-      .wb-split-right {
-        flex: 1 1 280px;
-        min-width: 0;
-      }
-
-      /* ── Responsive ─────────────────────────────────────────── */
-
-      /* At 900px the minimap hides (existing rule in style.css).
-         Collapse to two-column grid cleanly. */
-      @media (max-width: 900px) {
-        .wb-header {
-          grid-template-columns: 1fr auto;
-        }
-      }
-
-      /* Below 768px stack header panels vertically */
-      @media (max-width: 768px) {
-        .wb-header {
-          grid-template-columns: 1fr;
-        }
-
-        #weatherStatus {
-          border-left: none;
-          border-top: 1px solid var(--border);
-          min-width: 0;
-        }
-
-        .wb-split-left {
-          border-right: none;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .circuit-stat-item {
-          padding: 8px 16px;
-        }
-      }
-
-      /* Narrow phones: compact timeline buttons */
-      @media (max-width: 480px) {
-        .wb-header-left h1 {
-          font-size: 1rem;
-        }
-
-        .compound-readout {
-          font-size: 1.2rem;
-        }
-
-        #wetStatusReadout {
-          font-size: 1rem;
-        }
-
-        #timelinePanel .timeline-btn {
-          padding: 10px 6px;
-          font-size: 0.6rem;
-          letter-spacing: 0.04em;
-          gap: 4px;
-        }
-
-        /* Hide the offset label (+24H) on very small screens to save space */
-        #timelinePanel .timeline-offset {
-          display: none;
-        }
-
-        .timeline-dot {
-          width: 4px;
-          height: 4px;
-        }
-      }
-    </style>
   </head>
 
   <body class="boot-pending">
@@ -499,602 +28,580 @@
     <apex-nav></apex-nav>
 
     <!-- ═══════════════════════════════════════════════════════
-       TASK 1 — RACE WEEKEND TIMELINE SELECTOR
-       Moved here: immediately below navbar, above circuit header.
-       Hidden by default; WorkbenchController._showWorkbench()
-       removes the "hidden" class once forecast data is ready.
-
-       TASK 2 — Status bar (timeline-status div) REMOVED.
-       ═══════════════════════════════════════════════════════ -->
-    <div
-      id="timelinePanel"
-      class="hidden"
-      aria-label="Race weekend session selector"
-    >
-      <div
-        class="timeline-selector"
-        role="tablist"
-        aria-label="Weekend sessions"
-      >
-        <button
-          class="timeline-btn active"
-          data-session="now"
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-label="Live current conditions"
-        >
-          <span class="timeline-dot" aria-hidden="true"></span>LIVE (NOW)
-        </button>
-        <button
-          class="timeline-btn"
-          data-session="practice"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-label="Practice session forecast (24 hours ahead)"
-        >
-          PRACTICE <span class="timeline-offset">+24H</span>
-        </button>
-        <button
-          class="timeline-btn"
-          data-session="quali"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-label="Qualifying session forecast (48 hours ahead)"
-        >
-          QUALI <span class="timeline-offset">+48H</span>
-        </button>
-        <button
-          class="timeline-btn"
-          data-session="race"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-label="Race day forecast (72 hours ahead)"
-        >
-          RACE <span class="timeline-offset">+72H</span>
-        </button>
-      </div>
-      <!-- TASK 2: .timeline-status bar intentionally omitted -->
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-       TASK 4 — CIRCUIT + WEATHER HEADER
-       Converted from flex to CSS Grid.
-       Row 1: title column | weather panel | minimap panel
-       Row 2: circuit stats strip (spans all columns)
+       CIRCUIT HERO — identity, verdict, big track map, facts
        ═══════════════════════════════════════════════════════ -->
     <section
-      class="wb-header bracket-corners"
+      class="wb-hero"
       id="circuitHeader"
       aria-label="Circuit information and live conditions"
     >
-      <div class="hero-scanline" aria-hidden="true"></div>
-
-      <!-- Rain canvas — activated by WorkbenchController when isRaining -->
+      <!-- Rain canvas — activated by WorkbenchController when raining -->
       <canvas id="rainCanvas" class="rain-canvas" aria-hidden="true"></canvas>
 
-      <!-- Col 1: Circuit name, meta, verdict -->
-      <div class="wb-header-left">
-        <span class="module-label" aria-hidden="true"
-          >MODULE 02 // TUNING WORKBENCH</span
-        >
-        <h1 class="apex-mono apex-cursor" id="circuitTitle">LOADING...</h1>
-        <p
-          class="wb-circuit-meta"
-          id="circuitMeta"
-          aria-label="Circuit details"
-        >
-          <span class="slash" aria-hidden="true">—</span>
-          <span id="circuitCountry">--</span>
-          <span class="slash" aria-hidden="true">//</span>
-          <span id="circuitType">--</span>
-          <span class="slash" aria-hidden="true">//</span>
-          <span id="circuitLength">--</span>
-        </p>
-        <p class="wb-verdict" id="conditionsVerdict" aria-live="polite">
-          &nbsp;<!-- decoded in when data arrives -->
-        </p>
+      <div class="wb-hero-inner">
+        <!-- Left: circuit identity -->
+        <div class="wb-hero-text">
+          <a href="index.html" class="wb-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 12H5m6-7-7 7 7 7" />
+            </svg>
+            All circuits
+          </a>
+
+          <h1 id="circuitTitle">LOADING...</h1>
+
+          <p
+            class="wb-circuit-meta"
+            id="circuitMeta"
+            aria-label="Circuit details"
+          >
+            <span id="circuitCountry">--</span>
+            <span class="slash" aria-hidden="true">/</span>
+            <span id="circuitType">--</span>
+            <span class="slash" aria-hidden="true">/</span>
+            <span id="circuitLength">--</span>
+          </p>
+
+          <p class="wb-verdict" id="conditionsVerdict" aria-live="polite">
+            &nbsp;<!-- decoded in when data arrives -->
+          </p>
+        </div>
+
+        <!-- Right: track layout -->
+        <div class="wb-hero-map" aria-label="Circuit track layout">
+          <svg
+            id="trackMapSvg"
+            viewBox="0 0 200 140"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <!-- path injected by WorkbenchController._renderMinimap() -->
+          </svg>
+          <span class="wb-map-name" id="minimapName">--</span>
+        </div>
       </div>
 
-      <!-- Col 2: Live conditions weather panel -->
+      <!-- Circuit specification facts -->
       <div
-        class="tele-panel"
-        id="weatherStatus"
+        class="wb-facts"
         role="complementary"
-        aria-label="Live weather conditions"
+        aria-label="Circuit specifications"
       >
-        <div class="tele-panel-header">
-          <span class="apex-label">LIVE CONDITIONS</span>
-          <div style="display: flex; align-items: center; gap: 8px">
-            <span id="dataAge" aria-live="polite">--</span>
+        <div class="circuit-stat-item">
+          <span class="apex-label">Circuit length</span>
+          <span class="circuit-stat-val" id="statLength">--</span>
+        </div>
+        <div class="circuit-stat-item">
+          <span class="apex-label">Total turns</span>
+          <span class="circuit-stat-val" id="statTurns">--</span>
+        </div>
+        <div class="circuit-stat-item">
+          <span class="apex-label">Lap record</span>
+          <span class="circuit-stat-val" id="statLapRecord">--</span>
+        </div>
+        <div class="circuit-stat-item">
+          <span class="apex-label">Altitude</span>
+          <span class="circuit-stat-val" id="statAltitude">--</span>
+        </div>
+        <div class="circuit-stat-item">
+          <span class="apex-label">Surface grip</span>
+          <span class="circuit-stat-val" id="statGrip">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+       RACE WEEKEND TIMELINE — floats over the hero edge.
+       Hidden until forecast data is ready (WorkbenchController).
+       Each button re-runs SetupEngine on a forecast slice.
+       ═══════════════════════════════════════════════════════ -->
+    <div
+      id="timelinePanel"
+      class="wb-timeline hidden"
+      aria-label="Race weekend session selector"
+    >
+      <div class="wb-timeline-inner">
+        <span class="wb-timeline-label">Race weekend</span>
+        <div
+          class="timeline-selector"
+          role="tablist"
+          aria-label="Weekend sessions"
+        >
+          <button
+            class="timeline-btn active"
+            data-session="now"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-label="Live current conditions"
+          >
+            <span class="timeline-dot" aria-hidden="true"></span>LIVE
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="practice"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Practice session forecast (24 hours ahead)"
+          >
+            PRACTICE <span class="timeline-offset">+24H</span>
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="quali"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Qualifying session forecast (48 hours ahead)"
+          >
+            QUALI <span class="timeline-offset">+48H</span>
+          </button>
+          <button
+            class="timeline-btn"
+            data-session="race"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-label="Race day forecast (72 hours ahead)"
+          >
+            RACE <span class="timeline-offset">+72H</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+       LIVE CONDITIONS STRIP
+       ═══════════════════════════════════════════════════════ -->
+    <section
+      class="wb-weather"
+      id="weatherStatus"
+      aria-label="Live weather conditions"
+    >
+      <div class="wb-weather-card">
+        <div class="wb-weather-head">
+          <div class="wb-weather-title">
             <span
               class="status-dot status-loading"
               id="weatherDot"
               role="status"
               aria-label="Weather data status"
             ></span>
+            <span class="apex-label">Live conditions</span>
           </div>
-        </div>
-        <div class="tele-panel-body">
           <div class="apex-readout" id="tempReadout" aria-label="Temperature">
             --°C
           </div>
-          <div class="weather-readout-row">
-            <div class="weather-field">
-              <div class="apex-label">WIND</div>
-              <div class="apex-value text-mono" id="windReadout">-- km/h</div>
-            </div>
-            <div class="weather-field">
-              <div class="apex-label">WEATHER</div>
-              <div class="apex-value text-mono" id="condReadout">--</div>
-            </div>
-            <div class="weather-field">
-              <div class="apex-label">HUMIDITY</div>
-              <div class="apex-value text-mono" id="humidReadout">--%</div>
-            </div>
-            <div class="weather-field">
-              <div class="apex-label">TRACK EST.</div>
-              <div class="apex-value text-mono" id="trackTempHeader">--°C</div>
-            </div>
+          <span id="dataAge" aria-live="polite">--</span>
+        </div>
+
+        <div class="weather-readout-row">
+          <div class="weather-field">
+            <span class="apex-label">Wind</span>
+            <span class="apex-value text-mono" id="windReadout">-- km/h</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Col 3: Track minimap -->
-      <div
-        class="tele-panel track-minimap-panel"
-        id="trackMinimapPanel"
-        aria-label="Circuit track layout"
-      >
-        <div class="tele-panel-header">
-          <span class="apex-label">TRACK LAYOUT</span>
-          <span
-            class="apex-label"
-            id="minimapName"
-            style="color: var(--text-muted)"
-            >--</span
-          >
-        </div>
-        <div class="track-minimap-body">
-          <svg
-            id="trackMapSvg"
-            viewBox="0 0 200 140"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-            style="width: 100%; height: 100%; display: block"
-          >
-            <!-- path injected by WorkbenchController._renderMinimap() -->
-          </svg>
-        </div>
-      </div>
-
-      <!-- Row 2 (spans all cols): Circuit specification stats
-           TASK 4: moved from bottom of page into the header container. -->
-      <div
-        class="wb-circuit-stats"
-        role="complementary"
-        aria-label="Circuit specifications"
-      >
-        <div class="circuit-stat-item">
-          <div class="apex-label">CIRCUIT LENGTH</div>
-          <div class="circuit-stat-val" id="statLength">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">TOTAL TURNS</div>
-          <div class="circuit-stat-val" id="statTurns">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">LAP RECORD</div>
-          <div
-            class="circuit-stat-val"
-            id="statLapRecord"
-            style="font-size: 0.75rem"
-          >
-            --
+          <div class="weather-field">
+            <span class="apex-label">Weather</span>
+            <span class="apex-value text-mono" id="condReadout">--</span>
+          </div>
+          <div class="weather-field">
+            <span class="apex-label">Humidity</span>
+            <span class="apex-value text-mono" id="humidReadout">--%</span>
+          </div>
+          <div class="weather-field">
+            <span class="apex-label">Track est.</span>
+            <span class="apex-value text-mono" id="trackTempHeader">--°C</span>
           </div>
         </div>
 
-        <div class="circuit-stat-item">
-          <div class="apex-label">ALTITUDE</div>
-          <div class="circuit-stat-val" id="statAltitude">--</div>
-        </div>
-
-        <div class="circuit-stat-item">
-          <div class="apex-label">SURFACE GRIP</div>
-          <div class="circuit-stat-val" id="statGrip">--</div>
-        </div>
+        <!-- Condition glyph — swapped by WorkbenchController to match
+             the current weather (sun / clouds / rain / storm / ...) -->
+        <div class="wb-weather-icon" id="weatherIcon" aria-hidden="true"></div>
       </div>
     </section>
 
     <!-- ═══════════════════════════════════════════════════════
        LOADING STATE
        ═══════════════════════════════════════════════════════ -->
-    <div id="loadingState" class="tele-panel" role="status" aria-live="polite">
-      <div class="apex-spinner" aria-hidden="true"></div>
-      <p>
-        FETCHING LIVE TELEMETRY...<br />
-        <span id="loadingCircuit" style="color: var(--neon)">--</span>
-      </p>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-       ERROR STATE
-       ═══════════════════════════════════════════════════════ -->
-    <div
-      id="errorState"
-      class="hidden rec-block rec-critical"
-      role="alert"
-      aria-live="assertive"
-    >
-      <div class="rec-title">// API CONNECTION FAILURE</div>
-      <div class="rec-value" id="errorMessage">UNKNOWN ERROR</div>
-      <div class="rec-reason">
-        Check your API key in <code>js/WeatherService.js</code> and your network
-        connection. A free key is available at openweathermap.org/api.
+    <div class="wb-state-shell">
+      <div id="loadingState" role="status" aria-live="polite">
+        <div class="apex-spinner" aria-hidden="true"></div>
+        <p>
+          FETCHING LIVE TELEMETRY<br />
+          <span id="loadingCircuit" class="text-accent">--</span>
+        </p>
       </div>
-      <button
-        id="retryBtn"
-        class="btn-apex btn-ghost"
-        type="button"
-        style="margin-top: 14px"
+
+      <!-- ═════════════════════════════════════════════════════
+         ERROR STATE
+         ═════════════════════════════════════════════════════ -->
+      <div
+        id="errorState"
+        class="hidden rec-block rec-critical"
+        role="alert"
+        aria-live="assertive"
       >
-        ↺ RETRY CONNECTION
-      </button>
+        <div class="rec-title">API connection failure</div>
+        <div class="rec-value" id="errorMessage">UNKNOWN ERROR</div>
+        <div class="rec-reason">
+          Check your API key in <code>js/config.js</code> and your network
+          connection. A free key is available at openweathermap.org/api.
+        </div>
+        <button
+          id="retryBtn"
+          class="btn-apex btn-ghost"
+          type="button"
+          style="margin-top: 18px"
+        >
+          RETRY CONNECTION
+        </button>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
        MAIN WORKBENCH — hidden until data loads
-       NOTE: Timeline selector and circuit stats strip have both
-       been moved out of this container (Tasks 1 & 4).
        ═══════════════════════════════════════════════════════ -->
     <div id="workbenchMain" class="hidden">
-      <!-- ── TAB NAVIGATION ──────────────────────────────────── -->
-      <div
-        class="workbench-nav"
-        role="tablist"
-        aria-label="Setup analysis categories"
-      >
-        <button
-          class="workbench-tab tab-active"
-          data-tab="tyres"
-          role="tab"
-          id="apex-tab-tyres"
-          aria-selected="true"
-          aria-controls="apex-pane-tyres"
+      <div class="wb-main-shell">
+        <!-- ── TAB NAVIGATION ─────────────────────────────────
+           CUSTOM UI REQUIREMENT: tabbed navigation implemented
+           in JavaScript (js/TabController.js — ES6 class with
+           ARIA roles + arrow-key keyboard navigation).        -->
+        <div
+          class="workbench-nav"
+          role="tablist"
+          aria-label="Setup analysis categories"
         >
-          ⬡&nbsp;TYRES &amp; PRESSURES
-        </button>
-        <button
-          class="workbench-tab"
-          data-tab="aero"
-          role="tab"
-          id="apex-tab-aero"
-          aria-selected="false"
-          aria-controls="apex-pane-aero"
-        >
-          ◈&nbsp;AERODYNAMICS
-        </button>
-        <button
-          class="workbench-tab"
-          data-tab="wet"
-          role="tab"
-          id="apex-tab-wet"
-          aria-selected="false"
-          aria-controls="apex-pane-wet"
-        >
-          ◎&nbsp;WET STRATEGY
-        </button>
-      </div>
-
-      <!-- ── TAB PANES ────────────────────────────────────────── -->
-      <div class="workbench-panes">
-        <!-- ╔═══════════════════════════════════════════════════╗
-           ║  PANE 1 — TYRES & PRESSURES                      ║
-           ╚═══════════════════════════════════════════════════╝ -->
-        <article
-          class="workbench-pane pane-active"
-          data-pane="tyres"
-          id="apex-pane-tyres"
-          role="tabpanel"
-          aria-labelledby="apex-tab-tyres"
-        >
-          <!-- Pressure readouts: 4-cell data grid -->
-          <div
-            class="data-grid bracket-corners"
-            id="pressureGrid"
-            aria-label="Tyre pressure readouts"
+          <button
+            class="workbench-tab tab-active"
+            data-tab="tyres"
+            role="tab"
+            id="apex-tab-tyres"
+            aria-selected="true"
+            aria-controls="apex-pane-tyres"
           >
-            <div class="data-cell">
-              <div class="data-cell-label">FRONT PRESSURE</div>
-              <div class="data-cell-value" id="frontPsiCell">
-                <span id="frontPsi">--</span
-                ><span class="data-cell-unit">PSI</span>
+            Tyres &amp; Pressures
+          </button>
+          <button
+            class="workbench-tab"
+            data-tab="aero"
+            role="tab"
+            id="apex-tab-aero"
+            aria-selected="false"
+            aria-controls="apex-pane-aero"
+          >
+            Aerodynamics
+          </button>
+          <button
+            class="workbench-tab"
+            data-tab="wet"
+            role="tab"
+            id="apex-tab-wet"
+            aria-selected="false"
+            aria-controls="apex-pane-wet"
+          >
+            Wet Strategy
+          </button>
+        </div>
+
+        <!-- ── TAB PANES ──────────────────────────────────────── -->
+        <div class="workbench-panes">
+          <!-- ╔═══════════════════════════════════════════════════╗
+             ║  PANE 1 — TYRES & PRESSURES                       ║
+             ╚═══════════════════════════════════════════════════╝ -->
+          <article
+            class="workbench-pane pane-active"
+            data-pane="tyres"
+            id="apex-pane-tyres"
+            role="tabpanel"
+            aria-labelledby="apex-tab-tyres"
+          >
+            <!-- Pressure readouts -->
+            <div
+              class="data-grid"
+              id="pressureGrid"
+              aria-label="Tyre pressure readouts"
+            >
+              <div class="data-cell">
+                <div class="data-cell-label">Front pressure</div>
+                <div class="data-cell-value" id="frontPsiCell">
+                  <span id="frontPsi">--</span
+                  ><span class="data-cell-unit">PSI</span>
+                </div>
+              </div>
+
+              <div class="data-cell">
+                <div class="data-cell-label">Rear pressure</div>
+                <div class="data-cell-value" id="rearPsiCell">
+                  <span id="rearPsi">--</span
+                  ><span class="data-cell-unit">PSI</span>
+                </div>
+              </div>
+
+              <div class="data-cell">
+                <div class="data-cell-label">Front (kPa)</div>
+                <div class="data-cell-value" id="frontKpaCell">
+                  <span id="frontKpa">--</span
+                  ><span class="data-cell-unit">kPa</span>
+                </div>
+              </div>
+
+              <div class="data-cell">
+                <div class="data-cell-label">Rear (kPa)</div>
+                <div class="data-cell-value" id="rearKpaCell">
+                  <span id="rearKpa">--</span
+                  ><span class="data-cell-unit">kPa</span>
+                </div>
               </div>
             </div>
+            <!-- /pressureGrid -->
 
-            <div class="data-cell">
-              <div class="data-cell-label">REAR PRESSURE</div>
-              <div class="data-cell-value" id="rearPsiCell">
-                <span id="rearPsi">--</span
-                ><span class="data-cell-unit">PSI</span>
+            <!-- Compound + Conditions split -->
+            <div class="wb-split">
+              <!-- Left: Compound recommendation -->
+              <div class="wb-panel">
+                <div class="wb-panel-header">
+                  <span class="apex-label">Compound selection</span>
+                  <span
+                    class="status-dot"
+                    id="compoundStatusDot"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+                <div class="wb-panel-body">
+                  <div
+                    class="compound-readout"
+                    id="compoundReadout"
+                    aria-label="Recommended tyre compound"
+                  >
+                    --
+                  </div>
+                  <div id="compoundReason">--</div>
+                </div>
+              </div>
+
+              <!-- Right: Track conditions -->
+              <div class="wb-panel">
+                <div class="wb-panel-header">
+                  <span class="apex-label">Track conditions</span>
+                </div>
+                <div class="wb-panel-body flush">
+                  <div class="rec-block" id="trackTempBlock">
+                    <div class="rec-title">Track temp estimate</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">
+                      Calculated from ambient + solar conditions
+                    </div>
+                  </div>
+
+                  <div class="rec-block" id="ambientTempBlock">
+                    <div class="rec-title">Ambient temp</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">
+                      Air temperature at circuit level
+                    </div>
+                  </div>
+
+                  <div class="rec-block" id="pressureStatusBlock">
+                    <div class="rec-title">Pressure status</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">--</div>
+                  </div>
+                </div>
               </div>
             </div>
+            <!-- /wb-split tyres -->
 
-            <div class="data-cell">
-              <div class="data-cell-label">FRONT (kPa)</div>
-              <div class="data-cell-value" id="frontKpaCell">
-                <span id="frontKpa">--</span
-                ><span class="data-cell-unit">kPa</span>
-              </div>
-            </div>
-
-            <div class="data-cell">
-              <div class="data-cell-label">REAR (kPa)</div>
-              <div class="data-cell-value" id="rearKpaCell">
-                <span id="rearKpa">--</span
-                ><span class="data-cell-unit">kPa</span>
-              </div>
-            </div>
-          </div>
-          <!-- /pressureGrid -->
-
-          <!-- Compound + Conditions split -->
-          <div class="wb-split">
-            <!-- Left: Compound recommendation -->
-            <div class="wb-split-left">
-              <div class="tele-panel-header">
-                <span class="apex-label">COMPOUND SELECTION</span>
-                <span
-                  class="status-dot"
-                  id="compoundStatusDot"
-                  aria-hidden="true"
-                ></span>
-              </div>
-              <div class="tele-panel-body">
-                <div
-                  class="compound-readout"
-                  id="compoundReadout"
-                  aria-label="Recommended tyre compound"
+            <!-- Degradation SVG chart (injected by controller) -->
+            <div class="wb-panel deg-panel">
+              <div class="wb-panel-header">
+                <span class="apex-label"
+                  >Projected degradation · % performance vs laps</span
                 >
+                <span class="apex-label" id="degradationSession"
+                  >LIVE (NOW)</span
+                >
+              </div>
+              <div
+                id="degradationGraphs"
+                aria-label="Tyre compound degradation curves"
+              >
+                <!-- SVG chart rendered by _renderDegradationGraphs() -->
+              </div>
+            </div>
+          </article>
+          <!-- /pane tyres -->
+
+          <!-- ╔═══════════════════════════════════════════════════╗
+             ║  PANE 2 — AERODYNAMICS                            ║
+             ╚═══════════════════════════════════════════════════╝ -->
+          <article
+            class="workbench-pane"
+            data-pane="aero"
+            id="apex-pane-aero"
+            role="tabpanel"
+            aria-labelledby="apex-tab-aero"
+          >
+            <!-- Wing angle readouts -->
+            <div
+              class="data-grid"
+              id="aeroGrid"
+              aria-label="Aerodynamic setup readouts"
+            >
+              <div class="data-cell">
+                <div class="data-cell-label">Front wing</div>
+                <div class="data-cell-value" id="frontWingCell">
+                  <span id="frontWing">--</span
+                  ><span class="data-cell-unit">DEG</span>
+                </div>
+              </div>
+
+              <div class="data-cell">
+                <div class="data-cell-label">Rear wing</div>
+                <div class="data-cell-value" id="rearWingCell">
+                  <span id="rearWing">--</span
+                  ><span class="data-cell-unit">DEG</span>
+                </div>
+              </div>
+
+              <div class="data-cell">
+                <div class="data-cell-label">Drag coeff.</div>
+                <div class="data-cell-value" id="dragCoeffCell">
+                  <span id="dragCoeff">--</span>
+                </div>
+              </div>
+            </div>
+            <!-- /aeroGrid -->
+
+            <!-- Wind analysis + Engineering notes -->
+            <div class="wb-split">
+              <div class="wb-panel">
+                <div class="wb-panel-header">
+                  <span class="apex-label">Wind analysis</span>
+                </div>
+                <div class="wb-panel-body flush">
+                  <div class="rec-block" id="windSpeedBlock">
+                    <div class="rec-title">Wind speed</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">--</div>
+                  </div>
+
+                  <div class="rec-block" id="windDirBlock">
+                    <div class="rec-title">Wind direction</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">
+                      Relative circuit exposure: estimated
+                    </div>
+                  </div>
+
+                  <div class="rec-block" id="drsBlock">
+                    <div class="rec-title">DRS status</div>
+                    <div class="rec-value">--</div>
+                    <div class="rec-reason">--</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wb-panel">
+                <div class="wb-panel-header">
+                  <span class="apex-label">Engineering notes</span>
+                </div>
+                <div id="aeroNotes" aria-label="Aerodynamic engineering notes">
                   --
                 </div>
-                <div id="compoundReason">--</div>
               </div>
             </div>
+            <!-- /wb-split aero -->
+          </article>
+          <!-- /pane aero -->
 
-            <!-- Right: Track conditions rec-blocks -->
-            <div class="wb-split-right">
-              <div class="tele-panel-header">
-                <span class="apex-label">TRACK CONDITIONS</span>
+          <!-- ╔═══════════════════════════════════════════════════╗
+             ║  PANE 3 — WET STRATEGY                            ║
+             ╚═══════════════════════════════════════════════════╝ -->
+          <article
+            class="workbench-pane"
+            data-pane="wet"
+            id="apex-pane-wet"
+            role="tabpanel"
+            aria-labelledby="apex-tab-wet"
+          >
+            <!-- Status banner -->
+            <div class="wet-banner" id="wetStatusBanner">
+              <div id="wetStatusReadout" aria-live="polite">CHECKING...</div>
+              <div id="wetStatusSub">AWAITING WEATHER DATA</div>
+            </div>
+
+            <!-- Wet details: shown only when raining -->
+            <div id="wetDetailsGrid" class="hidden">
+              <div class="data-grid">
+                <div class="data-cell">
+                  <div class="data-cell-label">Rainfall</div>
+                  <div class="data-cell-value" id="rainfallCell">
+                    <span id="rainfallBlock">--</span
+                    ><span class="data-cell-unit">mm/h</span>
+                  </div>
+                </div>
+                <div class="data-cell">
+                  <div class="data-cell-label">Aquaplane risk</div>
+                  <div class="data-cell-value" id="aquaplaneBlock">--</div>
+                </div>
+                <div class="data-cell">
+                  <div class="data-cell-label">Visibility</div>
+                  <div class="data-cell-value" id="visibilityCell">
+                    <span id="visibilityBlock">--</span
+                    ><span class="data-cell-unit">km</span>
+                  </div>
+                </div>
               </div>
-              <div class="tele-panel-body" style="padding: 0">
-                <div class="rec-block" id="trackTempBlock">
-                  <div class="rec-title">TRACK TEMP ESTIMATE</div>
+
+              <div class="wb-rec-list">
+                <div class="rec-block" id="wetCompoundBlock">
+                  <div class="rec-title">Wet compound</div>
+                  <div class="rec-value">--</div>
+                  <div class="rec-reason">--</div>
+                </div>
+
+                <div class="rec-block" id="brakeBiasBlock">
+                  <div class="rec-title">Brake bias</div>
                   <div class="rec-value">--</div>
                   <div class="rec-reason">
-                    Calculated from ambient + solar conditions
+                    Increased front bias stabilises rear under threshold
+                    braking on low-grip surface
                   </div>
                 </div>
 
-                <div class="rec-block" id="ambientTempBlock">
-                  <div class="rec-title">AMBIENT TEMP</div>
-                  <div class="rec-value">--</div>
-                  <div class="rec-reason">Air temperature at circuit level</div>
-                </div>
-
-                <div class="rec-block" id="pressureStatusBlock">
-                  <div class="rec-title">PRESSURE STATUS</div>
-                  <div class="rec-value">--</div>
-                  <div class="rec-reason">--</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- /wb-split tyres -->
-
-          <!-- TASK 3 — Degradation SVG chart (replaces progress bars)
-               Content is injected by WorkbenchController._renderDegradationGraphs() -->
-          <div
-            class="tele-panel-header"
-            style="margin-top: 1px; border-top: 1px solid var(--border)"
-          >
-            <span class="apex-label"
-              >PROJECTED DEGRADATION CURVE — % PERFORMANCE VS LAPS</span
-            >
-            <span
-              class="apex-label"
-              id="degradationSession"
-              style="color: var(--text-muted)"
-              >LIVE (NOW)</span
-            >
-          </div>
-          <div
-            id="degradationGraphs"
-            aria-label="Tyre compound degradation curves"
-          >
-            <!-- SVG chart rendered by _renderDegradationGraphs() on data load -->
-          </div>
-        </article>
-        <!-- /pane tyres -->
-
-        <!-- ╔═══════════════════════════════════════════════════╗
-           ║  PANE 2 — AERODYNAMICS                            ║
-           ╚═══════════════════════════════════════════════════╝ -->
-        <article
-          class="workbench-pane"
-          data-pane="aero"
-          id="apex-pane-aero"
-          role="tabpanel"
-          aria-labelledby="apex-tab-aero"
-        >
-          <!-- Wing angle data grid: 3 cells -->
-          <div
-            class="data-grid"
-            id="aeroGrid"
-            aria-label="Aerodynamic setup readouts"
-          >
-            <div class="data-cell">
-              <div class="data-cell-label">FRONT WING</div>
-              <div class="data-cell-value" id="frontWingCell">
-                <span id="frontWing">--</span
-                ><span class="data-cell-unit">DEG</span>
-              </div>
-            </div>
-
-            <div class="data-cell">
-              <div class="data-cell-label">REAR WING</div>
-              <div class="data-cell-value" id="rearWingCell">
-                <span id="rearWing">--</span
-                ><span class="data-cell-unit">DEG</span>
-              </div>
-            </div>
-
-            <div class="data-cell">
-              <div class="data-cell-label">DRAG COEFF.</div>
-              <div class="data-cell-value" id="dragCoeffCell">
-                <span id="dragCoeff">--</span>
-              </div>
-            </div>
-          </div>
-          <!-- /aeroGrid -->
-
-          <!-- Wind analysis + Engineering notes split -->
-          <div class="wb-split">
-            <!-- Left: Wind analysis -->
-            <div class="wb-split-left">
-              <div class="tele-panel-header">
-                <span class="apex-label">WIND ANALYSIS</span>
-              </div>
-              <div class="tele-panel-body" style="padding: 0">
-                <div class="rec-block" id="windSpeedBlock">
-                  <div class="rec-title">WIND SPEED</div>
-                  <div class="rec-value">--</div>
-                  <div class="rec-reason">--</div>
-                </div>
-
-                <div class="rec-block" id="windDirBlock">
-                  <div class="rec-title">WIND DIRECTION</div>
+                <div class="rec-block" id="engineMapBlock">
+                  <div class="rec-title">Engine map</div>
                   <div class="rec-value">--</div>
                   <div class="rec-reason">
-                    Relative circuit exposure: estimated
+                    Reduced peak torque delivery prevents wheel spin on corner
+                    exit
                   </div>
                 </div>
 
-                <div class="rec-block" id="drsBlock">
-                  <div class="rec-title">DRS STATUS</div>
+                <div class="rec-block rec-warning" id="pitWindowBlock">
+                  <div class="rec-title">Pit window</div>
                   <div class="rec-value">--</div>
                   <div class="rec-reason">--</div>
                 </div>
               </div>
             </div>
+            <!-- /wetDetailsGrid -->
 
-            <!-- Right: Engineering notes -->
-            <div class="wb-split-right">
-              <div class="tele-panel-header">
-                <span class="apex-label">ENGINEERING NOTES</span>
-              </div>
-              <div id="aeroNotes" aria-label="Aerodynamic engineering notes">
-                --
-              </div>
+            <!-- Dry conditions panel -->
+            <div id="dryConditionsPanel" class="dry-panel hidden">
+              <p class="dry-glyph">Dry conditions confirmed</p>
+              <p class="dry-sub">
+                No wet setup modifications required. Standard dry configuration
+                applies. Monitor the forecast for session changes.
+              </p>
             </div>
-          </div>
-          <!-- /wb-split aero -->
-        </article>
-        <!-- /pane aero -->
-
-        <!-- ╔═══════════════════════════════════════════════════╗
-           ║  PANE 3 — WET STRATEGY                            ║
-           ╚═══════════════════════════════════════════════════╝ -->
-        <article
-          class="workbench-pane"
-          data-pane="wet"
-          id="apex-pane-wet"
-          role="tabpanel"
-          aria-labelledby="apex-tab-wet"
-        >
-          <!-- Status banner -->
-          <div id="wetStatusBanner">
-            <div id="wetStatusReadout" aria-live="polite">CHECKING...</div>
-            <div id="wetStatusSub">AWAITING WEATHER DATA</div>
-          </div>
-
-          <!-- Wet details: shown only when raining -->
-          <div id="wetDetailsGrid" class="hidden">
-            <div class="data-grid">
-              <div class="data-cell">
-                <div class="data-cell-label">RAINFALL</div>
-                <div class="data-cell-value" id="rainfallCell">
-                  <span id="rainfallBlock">--</span
-                  ><span class="data-cell-unit">mm/h</span>
-                </div>
-              </div>
-              <div class="data-cell">
-                <div class="data-cell-label">AQUAPLANE RISK</div>
-                <div class="data-cell-value" id="aquaplaneBlock">--</div>
-              </div>
-              <div class="data-cell">
-                <div class="data-cell-label">VISIBILITY</div>
-                <div class="data-cell-value" id="visibilityCell">
-                  <span id="visibilityBlock">--</span
-                  ><span class="data-cell-unit">km</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="wb-rec-list">
-              <div class="rec-block" id="wetCompoundBlock">
-                <div class="rec-title">WET COMPOUND</div>
-                <div class="rec-value">--</div>
-                <div class="rec-reason">--</div>
-              </div>
-
-              <div class="rec-block" id="brakeBiasBlock">
-                <div class="rec-title">BRAKE BIAS</div>
-                <div class="rec-value">--</div>
-                <div class="rec-reason">
-                  Increased front bias stabilises rear under threshold braking
-                  on low-grip surface
-                </div>
-              </div>
-
-              <div class="rec-block" id="engineMapBlock">
-                <div class="rec-title">ENGINE MAP</div>
-                <div class="rec-value">--</div>
-                <div class="rec-reason">
-                  Reduced peak torque delivery prevents wheel spin on corner
-                  exit
-                </div>
-              </div>
-
-              <div class="rec-block rec-warning" id="pitWindowBlock">
-                <div class="rec-title">PIT WINDOW</div>
-                <div class="rec-value">--</div>
-                <div class="rec-reason">--</div>
-              </div>
-            </div>
-          </div>
-          <!-- /wetDetailsGrid -->
-
-          <!-- Dry conditions panel -->
-          <div id="dryConditionsPanel" class="hidden">
-            <p class="dry-glyph">// DRY CONDITIONS CONFIRMED</p>
-            <p class="dry-sub">
-              No wet setup modifications required.<br />
-              Standard dry configuration applies — monitor forecast for session
-              changes.
-            </p>
-          </div>
-        </article>
-        <!-- /pane wet -->
+          </article>
+          <!-- /pane wet -->
+        </div>
+        <!-- /workbench-panes -->
       </div>
-      <!-- /workbench-panes -->
-
-      <!-- TASK 4: circuit-stats-strip intentionally omitted — moved to #circuitHeader -->
     </div>
     <!-- /workbenchMain -->
 

@@ -4,3 +4,9 @@ js/config.js
 # Ignore operating system garbage
 .DS_Store
 Thumbs.db
+
+# AI / Agentic Framework Tooling
+.claude/
+.agents/
+CLAUDE.md
+skills-lock.json

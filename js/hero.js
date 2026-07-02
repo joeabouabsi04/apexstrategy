@@ -31,11 +31,10 @@ import { animateValue, decodeText } from "./anim.js";
 /*-- SECTION: THEME COLOURS --*/
 
 // Hex mirrors the CSS custom properties in style.css exactly:
-//   dark  → --neon #00ff66, --bg-primary #0b0d11
-//   light → --neon #057a45, --bg-primary #eef1f7
+//   grid → subtle graphite lines, dot → --accent, bg → --bg-primary
 const THEME_COLORS = {
-  dark: { neon: 0x00ff66, bg: 0x0b0d11 },
-  light: { neon: 0x057a45, bg: 0xeef1f7 },
+  dark: { grid: 0x30303a, dot: 0xff3b2f, bg: 0x0b0b0e },
+  light: { grid: 0xc6c6cd, dot: 0xd92c1f, bg: 0xf4f4f5 },
 };
 
 function themeColors(theme) {
@@ -86,7 +85,7 @@ function initBackground() {
   });
   let { w, h } = size();
 
-  const { neon, bg } = themeColors(currentTheme());
+  const { grid: gridColor, dot: dotColor, bg } = themeColors(currentTheme());
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -109,7 +108,7 @@ function initBackground() {
   const CELL = 8;
   const DIV = 48;
   const SIZE = CELL * DIV;
-  const grid = buildGrid(SIZE, DIV, neon);
+  const grid = buildGrid(SIZE, DIV, gridColor);
   scene.add(grid);
 
   // Drifting telemetry particles above the floor
@@ -123,10 +122,10 @@ function initBackground() {
   const pgeo = new THREE.BufferGeometry();
   pgeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   const pmat = new THREE.PointsMaterial({
-    color: neon,
+    color: dotColor,
     size: 0.55,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.55,
   });
   const particles = new THREE.Points(pgeo, pmat);
   scene.add(particles);
@@ -203,8 +202,8 @@ function initBackground() {
   _scenes.push({
     recolor(theme) {
       const c = themeColors(theme);
-      grid.material.color.setHex(c.neon);
-      pmat.color.setHex(c.neon);
+      grid.material.color.setHex(c.grid);
+      pmat.color.setHex(c.dot);
       scene.fog.color.setHex(c.bg);
     },
   });

@@ -9,6 +9,39 @@ import { SetupEngine } from "./SetupEngine.js";
 import { TabController } from "./TabController.js";
 import { fetchTrackMap } from "./trackmaps.js"; // local SVG fetch — replaces getTrackMap
 
+/*-- SECTION: WEATHER CONDITION ICONS --*/
+
+// Simple stroke glyphs keyed by OpenWeatherMap's `weather.main` value.
+// Rendered into #weatherIcon; colour comes from the wx-* class in CSS.
+const WX_SVG = {
+  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>`,
+  cloud: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 18a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 11.6 3.6 3.6 0 0 0 7 18.7z"/></svg>`,
+  rain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M8 18.5l-1 2.5M12.5 18.5l-1 2.5M17 18.5l-1 2.5"/></svg>`,
+  drizzle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M9 18.2l-.4 1.1M13 18.2l-.4 1.1M17 18.2l-.4 1.1"/></svg>`,
+  storm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 14a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 7.6 3.6 3.6 0 0 0 7 14.7"/><path d="M12.5 12.5 10 17h3l-1.8 4"/></svg>`,
+  snow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M8.5 18.5v.01M12 20v.01M15.5 18.5v.01M10 21.5v.01M14 22v.01"/></svg>`,
+  mist: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13M7 13h13M4 17h13"/></svg>`,
+  wind: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9.5a2.5 2.5 0 1 0-2.4-3.2M3 12h14.5a2.5 2.5 0 1 1-2.4 3.2M3 16h7.5a2 2 0 1 1-1.9 2.6"/></svg>`,
+};
+
+// weather.main → { glyph, colour class }
+const WX_MAP = {
+  clear: { svg: "sun", cls: "wx-clear" },
+  clouds: { svg: "cloud", cls: "wx-clouds" },
+  rain: { svg: "rain", cls: "wx-rain" },
+  drizzle: { svg: "drizzle", cls: "wx-drizzle" },
+  thunderstorm: { svg: "storm", cls: "wx-storm" },
+  snow: { svg: "snow", cls: "wx-snow" },
+  mist: { svg: "mist", cls: "wx-mist" },
+  smoke: { svg: "mist", cls: "wx-mist" },
+  haze: { svg: "mist", cls: "wx-mist" },
+  fog: { svg: "mist", cls: "wx-mist" },
+  dust: { svg: "mist", cls: "wx-mist" },
+  sand: { svg: "mist", cls: "wx-mist" },
+  squall: { svg: "wind", cls: "wx-mist" },
+  tornado: { svg: "wind", cls: "wx-storm" },
+};
+
 /*-- SECTION: VERDICT GENERATOR --*/
 
 function buildVerdict(conditions, circuit) {
@@ -44,7 +77,7 @@ function buildVerdict(conditions, circuit) {
         : circuit.tyreWear === "High" || circuit.tyreWear === "Very High"
           ? "watch rear degradation through medium-speed complexes"
           : "standard setup discipline applies";
-  return `${tempWord}, ${skyWord}, ${windWord} — ${note}.`;
+  return `${tempWord}, ${skyWord}, ${windWord}. ${note.charAt(0).toUpperCase()}${note.slice(1)}.`;
 }
 
 /*-- SECTION: CLASS --*/
@@ -104,7 +137,7 @@ export class WorkbenchController {
     this._setText("loadingCircuit", c.shortName.toUpperCase());
     this._setText("statLength", `${c.length} KM`);
     this._setText("statTurns", `${c.turns}`);
-    this._setText("statLapRecord", c.lapRecord);
+    this._setText("statLapRecord", (c.lapRecord ?? "--").replace(/\s*—\s*/g, " · "));
     this._setText("statAltitude", `${c.altitudeM} M`);
     this._setText("statGrip", c.surfaceGrip.toUpperCase());
 
@@ -189,15 +222,15 @@ export class WorkbenchController {
                            stroke 0.4s ease;">
       </path>
 
-      <!-- Neon lap-marker dot -->
-      <circle r="5" fill="var(--neon)" opacity="0.9">
+      <!-- Lap-marker dot -->
+      <circle r="5" fill="var(--accent)" opacity="0.9">
         <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
           <mpath href="#trackOutline"/>
         </animateMotion>
       </circle>
 
       <!-- Larger glow halo behind the dot -->
-      <circle r="10" fill="var(--neon)" opacity="0.18">
+      <circle r="10" fill="var(--accent)" opacity="0.18">
         <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
           <mpath href="#trackOutline"/>
         </animateMotion>
@@ -209,7 +242,7 @@ export class WorkbenchController {
         const outline = svg.querySelector("#trackOutline");
         if (outline) {
           outline.style.strokeDashoffset = "0";
-          outline.style.stroke = "var(--neon)";
+          outline.style.stroke = "var(--accent)";
         }
       }),
     );
@@ -588,7 +621,18 @@ export class WorkbenchController {
       decodeText(condEl, weather.weatherMain.toUpperCase(), { duration: 300 });
     const humEl = document.getElementById("humidReadout");
     if (humEl) humEl.textContent = `${weather.humidity}%`;
+    this._renderWeatherIcon(weather.weatherMain);
     this._setDotClass("weatherDot", "status-live");
+  }
+
+  /** Swaps the condition glyph in the weather card to match weather.main. */
+  _renderWeatherIcon(weatherMain) {
+    const el = document.getElementById("weatherIcon");
+    if (!el) return;
+    const key = (weatherMain ?? "").toLowerCase();
+    const entry = WX_MAP[key] ?? { svg: "cloud", cls: "wx-clouds" };
+    el.className = `wb-weather-icon ${entry.cls}`;
+    el.innerHTML = WX_SVG[entry.svg];
   }
 
   /*-- TYRE PANE --*/
@@ -741,7 +785,7 @@ export class WorkbenchController {
       this._show("dryConditionsPanel");
       this._hide("wetDetailsGrid");
       if (banner) {
-        banner.textContent = "DRY CONDITIONS — NO WET STRATEGY REQUIRED";
+        banner.textContent = "DRY CONDITIONS · NO WET STRATEGY REQUIRED";
         banner.className = "dry";
       }
       if (sub) sub.textContent = "Standard dry configuration active";
@@ -751,7 +795,7 @@ export class WorkbenchController {
       const heavy = wet.status === "critical";
       if (banner) {
         banner.textContent =
-          wet.compound + " — " + (heavy ? "CRITICAL" : "MONITORING");
+          wet.compound + " · " + (heavy ? "CRITICAL" : "MONITORING");
         banner.className = heavy ? "heavy" : "wet";
       }
       if (sub) sub.textContent = wet.recommendation;
@@ -834,13 +878,13 @@ export class WorkbenchController {
 
     const container = document.createElement("div");
     container.id = "noCircuitPanel";
-    container.style.cssText = "margin:24px;";
+    container.style.cssText = "max-width:720px;margin:40px auto 0;padding:0 var(--page-pad) 96px;";
     container.innerHTML = /* html */ `
-      <div class="tele-panel bracket-corners" style="padding:0;">
-        <div class="tele-panel-header"><span class="apex-label">// NO CIRCUIT SELECTED — PICK ONE TO BEGIN</span></div>
-        <div style="padding:12px 0 0;">
-          <div style="padding:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="wcSearch" class="apex-search-bar" style="flex:1;min-width:160px;" placeholder="FILTER CIRCUITS..." autocomplete="off">
+      <div class="tele-panel" style="padding:0;">
+        <div class="tele-panel-header"><span class="apex-label">No circuit selected · pick one to begin</span></div>
+        <div style="padding:14px 0 0;">
+          <div style="padding:0 16px 14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <input type="text" id="wcSearch" class="apex-search-bar" style="flex:1;min-width:160px;padding-left:20px;" placeholder="Filter circuits..." autocomplete="off">
             <select id="wcRegion" class="apex-select">
               <option value="">ALL REGIONS</option>
               <option value="Europe">EUROPE</option>
@@ -889,7 +933,7 @@ export class WorkbenchController {
     const el = document.getElementById("wcList");
     if (!el) return;
     if (!circuits.length) {
-      el.innerHTML = `<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">// NO CIRCUITS MATCH</div>`;
+      el.innerHTML = `<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">NO CIRCUITS MATCH</div>`;
       return;
     }
     el.innerHTML = circuits
@@ -903,7 +947,7 @@ export class WorkbenchController {
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
           <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);">${c.length} KM</span>
           <span style="font-size:1.1rem;">${c.flag}</span>
-          <span style="font-family:var(--font-ui);font-size:0.65rem;color:var(--neon);letter-spacing:0.1em;text-transform:uppercase;">LOAD →</span>
+          <span style="font-family:var(--font-ui);font-size:0.65rem;font-weight:700;color:var(--accent-strong);letter-spacing:0.1em;text-transform:uppercase;">LOAD →</span>
         </div>
       </a>`,
       )
@@ -911,7 +955,7 @@ export class WorkbenchController {
     el.querySelectorAll("a").forEach((a) => {
       a.addEventListener("mouseenter", () => {
         a.style.background = "var(--bg-panel-alt)";
-        a.style.borderLeft = "2px solid var(--neon)";
+        a.style.borderLeft = "2px solid var(--accent)";
         a.style.paddingLeft = "14px";
       });
       a.addEventListener("mouseleave", () => {

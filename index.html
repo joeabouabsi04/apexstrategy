@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>APEXSTRATEGY // COMMAND CENTER</title>
+    <title>ApexStrategy · Race the Weather</title>
     <meta
       name="description"
-      content="ApexStrategy Command Center — select a circuit and load live telemetry analysis."
+      content="ApexStrategy turns live weather forecasts into tyre, aero and wet-strategy setup calls for 20 legendary circuits."
     />
-    <meta name="theme-color" content="#0b0d11" />
-    <meta property="og:title" content="ApexStrategy // Command Center" />
+    <meta name="theme-color" content="#0b0b0e" />
+    <meta property="og:title" content="ApexStrategy · Race the Weather" />
     <meta
       property="og:description"
-      content="Select a circuit and get live weather-driven engineering setup recommendations."
+      content="Live weather-driven engineering setup recommendations for 20 legendary circuits."
     />
     <meta property="og:type" content="website" />
 
@@ -21,197 +21,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     />
     <link rel="stylesheet" href="css/style.css" />
-
-    <style>
-      /*-- PAGE: index.html — Command Center overrides --*/
-
-      /* Boot state: title is invisible until decode-in fires */
-      .boot-pending #pageTitle {
-        opacity: 0;
-      }
-      #pageTitle {
-        transition: opacity 80ms ease-out;
-      }
-
-      /* Page header strip */
-      .page-header-strip {
-        padding: 18px 24px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-        background: var(--bg-panel);
-      }
-
-      .page-header-strip .module-label {
-        font-family: var(--font-mono);
-        font-size: 0.62rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        display: block;
-        margin-bottom: 6px;
-      }
-
-      .page-header-strip h1 {
-        font-size: 1.3rem;
-        letter-spacing: 0.06em;
-        line-height: 1;
-      }
-
-      .page-header-strip .header-sub {
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        color: var(--text-muted);
-        letter-spacing: 0.08em;
-        margin-top: 6px;
-      }
-
-      .page-header-strip .header-sub .slash {
-        color: var(--border);
-        margin: 0 4px;
-      }
-
-      /* Circuit count badge — right side of header */
-      .circuit-count-badge {
-        text-align: right;
-        flex-shrink: 0;
-      }
-
-      .circuit-count-badge .count-num {
-        font-family: var(--font-mono);
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: var(--neon);
-        line-height: 1;
-        display: block;
-        letter-spacing: -0.02em;
-      }
-
-      .circuit-count-badge .count-label {
-        font-family: var(--font-ui);
-        font-size: 0.62rem;
-        font-weight: 600;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        display: block;
-        margin-top: 4px;
-      }
-
-      /* Search + filter strip */
-      .search-bar-strip {
-        padding: 12px 24px;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-panel);
-      }
-
-      /* Results counter line */
-      #resultsCounter {
-        padding: 8px 24px;
-        border-bottom: 1px solid var(--border);
-        font-size: 0.68rem;
-        background: var(--bg-primary);
-        color: var(--text-muted);
-        letter-spacing: 0.1em;
-      }
-
-      /* Grid: g-2 gives 8px gutter so cards breathe individually */
-      #circuitList {
-        border: none;
-        padding: 6px;
-      }
-
-      #circuitList .circuit-card {
-        border: 1px solid var(--border);
-        background: var(--bg-panel); /* distinct from page #0b0d11 */
-        height: 100%;
-      }
-
-      /* ID selector beats the global .circuit-card:hover — must repeat at same specificity */
-      #circuitList .circuit-card:hover {
-        background: var(--bg-panel-alt);
-        border-color: var(--neon);
-      }
-
-      /* Card type row: badge + dimensions on same line */
-      .card-type-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-
-      .card-dims {
-        font-size: 0.58rem;
-        letter-spacing: 0.1em;
-        color: var(--text-muted);
-      }
-
-      /* Hybrid type badge — not in main CSS */
-      .circuit-card-type.type-hybrid {
-        border-color: var(--text-secondary);
-        color: var(--text-secondary);
-      }
-
-      /* apex-value state colours in cards */
-      .apex-value.optimal {
-        color: var(--neon);
-      }
-      .apex-value.warning {
-        color: var(--warning);
-      }
-      .apex-value.critical {
-        color: var(--danger);
-      }
-
-      /* Empty state */
-      #emptyState {
-        padding: 64px 24px;
-        text-align: center;
-        border-bottom: 1px solid var(--border);
-      }
-
-      #emptyState .empty-glyph {
-        font-family: var(--font-mono);
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        letter-spacing: 0.08em;
-        margin-bottom: 8px;
-      }
-
-      #emptyState .empty-hint {
-        font-family: var(--font-ui);
-        font-size: 0.72rem;
-        color: var(--text-muted);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      /* Hero scanline container lives inside the page header */
-      .page-header-strip {
-        position: relative;
-        overflow: hidden;
-      }
-
-      @media (max-width: 576px) {
-        .circuit-count-badge .count-num {
-          font-size: 1.8rem;
-        }
-        .search-bar-strip {
-          padding: 10px 16px;
-        }
-        .page-header-strip {
-          padding: 14px 16px;
-        }
-        #resultsCounter {
-          padding: 6px 16px;
-        }
-      }
-    </style>
   </head>
 
   <body class="boot-pending">
@@ -219,62 +28,49 @@
     <apex-nav></apex-nav>
 
     <!-- ═══════════════════════════════════════════════════
-       HERO SECTION — full-viewport landing
+       HERO — full-viewport landing with 3D telemetry floor
        ═══════════════════════════════════════════════════ -->
-    <section
+    <header
       class="hero-section"
       id="heroSection"
       aria-label="ApexStrategy introduction"
     >
-      <!-- Custom Three.js telemetry track-floor background mounts here -->
+      <!-- Three.js telemetry track-floor background (js/hero.js) -->
       <canvas id="heroBgCanvas" class="hero-bg" aria-hidden="true"></canvas>
 
       <div class="hero-content">
-        <!-- Left column: text -->
+        <!-- Left column: message -->
         <div class="hero-text">
-          <div class="hero-pre-label hero-reveal" style="--d: 80ms">
-            <span class="status-dot status-live" aria-hidden="true"></span>
-            RACE ENGINEERING PLATFORM · SEASON 2026
-          </div>
-
-          <h1 class="hero-headline hero-reveal" style="--d: 180ms">
-            <span class="hero-word-apex">APEX</span>
-            <span class="hero-word-strat">STRATEGY</span>
-          </h1>
-
-          <p class="hero-tagline hero-reveal" id="heroTagline" style="--d: 300ms">
-            WEATHER-DRIVEN SETUP ANALYSIS · 20 ICONIC CIRCUITS
+          <p class="hero-pre-label hero-reveal" id="heroTagline" style="--d: 60ms">
+            RACE ENGINEERING PLATFORM · 2026
           </p>
 
-          <div class="hero-stats hero-reveal" role="list" style="--d: 420ms">
-            <div class="hero-stat-item" role="listitem">
-              <span class="hero-stat-num apex-mono" id="hstat1">0</span>
-              <span class="hero-stat-label">CIRCUITS</span>
-            </div>
-            <div class="hero-stat-sep" aria-hidden="true"></div>
-            <div class="hero-stat-item" role="listitem">
-              <span class="hero-stat-num apex-mono" id="hstat2">0</span>
-              <span class="hero-stat-label">SESSIONS</span>
-            </div>
-            <div class="hero-stat-sep" aria-hidden="true"></div>
-            <div class="hero-stat-item" role="listitem">
-              <span class="hero-stat-num apex-mono" id="hstat3">0</span>
-              <span class="hero-stat-label">COMPOUNDS</span>
-            </div>
-          </div>
+          <h1 class="hero-headline hero-reveal" style="--d: 160ms">
+            RACE THE<br />
+            <span class="accent-word">WEATHER</span>
+          </h1>
 
-          <a
-            href="#commandCenter"
-            class="hero-cta"
-            role="button"
-            aria-label="Scroll down to circuit selector"
-          >
-            ENTER COMMAND CENTER
-            <span class="hero-cta-arrow" aria-hidden="true">↓</span>
-          </a>
+          <p class="hero-sub hero-reveal" style="--d: 280ms">
+            Live forecasts become tyre pressures, wing angles and wet-race
+            calls for twenty legendary circuits.
+          </p>
+
+          <div class="hero-actions hero-reveal" style="--d: 400ms">
+            <a
+              href="#commandCenter"
+              class="btn-apex btn-accent hero-cta"
+              role="button"
+              aria-label="Scroll down to the circuit selector"
+            >
+              CHOOSE A CIRCUIT
+            </a>
+            <a href="handbook.html" class="btn-apex btn-ghost">
+              READ THE HANDBOOK
+            </a>
+          </div>
         </div>
 
-        <!-- Right column: spinning circuit graphic (3D card-flip via CSS) -->
+        <!-- Right column: spinning 3D circuit outline -->
         <div class="hero-canvas-wrap" aria-hidden="true">
           <div class="hero-circuit-glow"></div>
           <div class="hero-circuit-ring hero-circuit-ring--outer"></div>
@@ -285,156 +81,208 @@
               <div class="hero-circuit-face hero-circuit-face--back"></div>
             </div>
           </div>
-          <div class="hero-canvas-label">TELEMETRY ACTIVE</div>
         </div>
       </div>
+    </header>
 
-      <!-- Scroll indicator -->
-      <div class="hero-scroll-indicator" aria-hidden="true">
-        <div class="hero-scroll-line"></div>
+    <!-- ═══════════════════════════════════════════════════
+       STATS BAND — what the platform covers
+       ═══════════════════════════════════════════════════ -->
+    <section class="stats-band" aria-label="Platform coverage">
+      <div class="stats-band-inner">
+        <div class="stat-item">
+          <span class="stat-num apex-mono" id="hstat1">0</span>
+          <span class="stat-label">Circuits</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num apex-mono" id="hstat2">0</span>
+          <span class="stat-label">Weekend sessions</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num apex-mono" id="hstat3">0</span>
+          <span class="stat-label">Tyre compounds</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num stat-live">LIVE</span>
+          <span class="stat-label">Weather data</span>
+        </div>
       </div>
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-       COMMAND CENTER (existing content below hero)
+       HOW IT WORKS — forecast to setup sheet
        ═══════════════════════════════════════════════════ -->
-    <div id="commandCenter">
-      <!-- ═══════════════════════════════════════════════════
-       PAGE HEADER STRIP
-       MODULE 01 label / H1 / subtitle — circuit count right
-       ═══════════════════════════════════════════════════ -->
-      <section
-        class="page-header-strip bracket-corners"
-        aria-labelledby="pageTitle"
-      >
-        <!-- Ambient scanline — whisper-faint, "screen refresh" feel -->
-        <div class="hero-scanline" aria-hidden="true"></div>
-
-        <div class="page-header-left">
-          <span class="module-label" aria-hidden="true"
-            >MODULE 01 &nbsp;/&nbsp; COMMAND CENTER</span
-          >
-          <h1 class="apex-mono apex-cursor" id="pageTitle">COMMAND CENTER</h1>
-          <p
-            class="header-sub"
-            aria-label="Select a circuit to begin telemetry loading"
-          >
-            SELECT CIRCUIT <span class="slash" aria-hidden="true">//</span> LIVE
-            TELEMETRY LOADING
+    <section class="how-band band" aria-label="How ApexStrategy works">
+      <div class="shell">
+        <div class="how-sticky reveal-on-scroll">
+          <h2 class="section-title">
+            From forecast<br />to setup sheet
+          </h2>
+          <p class="section-lede">
+            Every recommendation is computed from two things: the circuit's
+            engineering profile and the sky above it, fetched live from
+            OpenWeatherMap.
           </p>
         </div>
 
-        <div class="circuit-count-badge" aria-label="20 circuits loaded">
-          <span class="count-num" id="totalCount" aria-live="polite">20</span>
-          <span class="count-label">CIRCUITS LOADED</span>
-        </div>
-      </section>
+        <div class="how-steps">
+          <div class="how-step reveal-on-scroll">
+            <div class="how-step-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 15c2-6 5-9 8-9s5 2 5 4-2 3-4 3-3 2-3 4 2 3 5 3" />
+              </svg>
+            </div>
+            <div>
+              <h3>Pick a circuit</h3>
+              <p>
+                Twenty tracks, each with a real engineering profile: downforce
+                demand, tyre wear, braking load, altitude and surface grip.
+              </p>
+            </div>
+          </div>
 
-      <!-- ═══════════════════════════════════════════════════
-       SEARCH AND FILTER BAR
+          <div class="how-step reveal-on-scroll">
+            <div class="how-step-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 18a4 4 0 0 0 0-8 6 6 0 0 0-11.6 1.6A3.5 3.5 0 0 0 6.5 18z" />
+                <path d="M8 21l1-1.5M12 21l1-1.5M16 21l1-1.5" />
+              </svg>
+            </div>
+            <div>
+              <h3>We read the sky</h3>
+              <p>
+                Current conditions plus the 72-hour forecast: air and track
+                temperature, wind, humidity and rainfall for every session of
+                the race weekend.
+              </p>
+            </div>
+          </div>
+
+          <div class="how-step reveal-on-scroll">
+            <div class="how-step-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h14M5 4v13a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V4" />
+                <path d="M9 9h6M9 13h6" />
+              </svg>
+            </div>
+            <div>
+              <h3>You get the setup</h3>
+              <p>
+                Tyre pressures and compound choice, wing angles and drag trim,
+                and a full wet-strategy plan when rain is coming. Flip between
+                practice, qualifying and race day without reloading.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+       CIRCUIT BROWSER — search, filter, choose
        ═══════════════════════════════════════════════════ -->
-      <section class="search-bar-strip" aria-label="Filter circuits">
-        <div class="row g-2 align-items-end">
-          <div class="col-12 col-md-5">
-            <label class="apex-field-label" for="circuitSearch">SEARCH</label>
+    <main
+      id="commandCenter"
+      class="band band-divider"
+      aria-label="Circuit selector"
+    >
+      <div class="shell">
+        <div class="browser-head reveal-on-scroll">
+          <div>
+            <h2 class="section-title">Choose your circuit</h2>
+            <p class="section-lede">
+              Search by name, country or city. Filter by circuit character or
+              region, then load the workbench.
+            </p>
+          </div>
+          <div class="browser-count" aria-label="Total circuits available">
+            <span class="count-num apex-mono" id="totalCount" aria-live="polite"
+              >20</span
+            >
+            <span class="count-label">Circuits</span>
+          </div>
+        </div>
+
+        <!-- Toolbar: search + filters -->
+        <div class="browser-toolbar" aria-label="Filter circuits">
+          <div class="toolbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
             <input
               type="text"
               id="circuitSearch"
               class="apex-search-bar"
-              placeholder="CIRCUIT, COUNTRY, CITY..."
+              placeholder="Search circuit, country, city..."
               autocomplete="off"
               spellcheck="false"
               aria-label="Search circuits by name, country, or city"
             />
           </div>
 
-          <div class="col-6 col-md-4">
-            <label class="apex-field-label" for="typeFilter"
-              >CIRCUIT TYPE</label
-            >
-            <select
-              id="typeFilter"
-              class="apex-select w-full"
-              aria-label="Filter by circuit type"
-            >
-              <option value="all">ALL TYPES</option>
-              <option value="Technical">TECHNICAL</option>
-              <option value="High-Speed">HIGH-SPEED</option>
-              <option value="Street Circuit">STREET CIRCUIT</option>
-              <option value="Hybrid">HYBRID</option>
-            </select>
-          </div>
+          <select
+            id="typeFilter"
+            class="apex-select"
+            aria-label="Filter by circuit type"
+          >
+            <option value="all">All types</option>
+            <option value="Technical">Technical</option>
+            <option value="High-Speed">High-Speed</option>
+            <option value="Street Circuit">Street Circuit</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
 
-          <div class="col-6 col-md-3">
-            <label class="apex-field-label" for="regionFilter">REGION</label>
-            <select
-              id="regionFilter"
-              class="apex-select w-full"
-              aria-label="Filter by region"
-            >
-              <option value="all">ALL REGIONS</option>
-              <option value="Europe">EUROPE</option>
-              <option value="Americas">AMERICAS</option>
-              <option value="Asia-Pacific">ASIA-PACIFIC</option>
-              <option value="Middle East">MIDDLE EAST</option>
-            </select>
-          </div>
+          <select
+            id="regionFilter"
+            class="apex-select"
+            aria-label="Filter by region"
+          >
+            <option value="all">All regions</option>
+            <option value="Europe">Europe</option>
+            <option value="Americas">Americas</option>
+            <option value="Asia-Pacific">Asia-Pacific</option>
+            <option value="Middle East">Middle East</option>
+          </select>
         </div>
-      </section>
 
-      <!-- ═══════════════════════════════════════════════════
-       RESULTS COUNTER
-       ═══════════════════════════════════════════════════ -->
-      <div
-        id="resultsCounter"
-        class="apex-label"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        SHOWING 20 OF 20 CIRCUITS
-      </div>
+        <!-- Results counter -->
+        <div
+          id="resultsCounter"
+          class="results-counter"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          SHOWING 20 OF 20 CIRCUITS
+        </div>
 
-      <!-- ═══════════════════════════════════════════════════
-       CIRCUIT GRID — cards injected by HomeController
-       ═══════════════════════════════════════════════════ -->
-      <main
-        id="circuitGrid"
-        class="container-fluid"
-        style="padding: 6px"
-        aria-label="Circuit list"
-      >
-        <div class="row g-2" id="circuitList" role="list">
+        <!-- Circuit grid — cards injected by HomeController -->
+        <div class="row g-4" id="circuitList" role="list">
           <!-- Populated by HomeController.renderCircuits() -->
         </div>
-      </main>
 
-      <!-- ═══════════════════════════════════════════════════
-       EMPTY STATE — shown when filters match nothing
-       ═══════════════════════════════════════════════════ -->
-      <div id="emptyState" class="hidden" role="status" aria-live="polite">
-        <p class="empty-glyph">// NO CIRCUITS MATCH QUERY</p>
-        <p class="empty-hint">Adjust search parameters and try again</p>
+        <!-- Empty state -->
+        <div
+          id="emptyState"
+          class="browser-empty hidden"
+          role="status"
+          aria-live="polite"
+        >
+          <p class="empty-glyph">No circuits match</p>
+          <p class="empty-hint">Adjust your search or clear the filters and try again.</p>
+        </div>
       </div>
-    </div>
-    <!-- /#commandCenter -->
+    </main>
 
     <!-- ═══════════════════════════════════════════════════
        FOOTER
        ═══════════════════════════════════════════════════ -->
     <apex-footer></apex-footer>
 
-    <!-- ═══════════════════════════════════════════════════
-       SCRIPTS — load order matters:
-       nav.js first (upgrades <apex-nav> immediately),
-       circuits.js (sets window.CIRCUITS synchronously),
-       main.js (sets window.ApexAnim, runs boot on DOMContentLoaded),
-       HomeController (reads both, runs on DOMContentLoaded)
-       ═══════════════════════════════════════════════════ -->
+    <!-- Three.js r128 + Vanilla-Tilt loaded as globals before the module -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Three.js r128, Vanta NET, Vanilla-Tilt — loaded as globals before the module -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <script type="module" src="js/main.js"></script>
   </body>
