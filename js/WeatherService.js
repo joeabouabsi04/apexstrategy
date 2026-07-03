@@ -1,12 +1,33 @@
 /* ============================================================
    APEXSTRATEGY — WEATHER SERVICE  (ES6 module)
-   No dependencies. Replace 'YOUR_API_KEY_HERE' before deploy.
-   Free key: https://openweathermap.org/api (activates ~10 min)
+
+   Key handling switches by environment:
+     • Local dev (localhost / 127.0.0.1) calls OpenWeather directly,
+       reading the key from the gitignored js/config.js.
+     • Deployed (Vercel) routes through /api/weather — a serverless
+       proxy that injects the key server-side (OPENWEATHER_API_KEY env
+       var), so the key never ships to the browser or the git repo.
+
+   config.js is imported LAZILY and only in local dev, so its absence
+   in production (it's never deployed) can never break this module.
    ============================================================ */
 
-const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+const IS_LOCAL =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1", "0.0.0.0", ""].includes(
+    window.location.hostname,
+  );
 
-import { OPENWEATHER_API_KEY } from "./config.js";
+// Cache the dynamic import promise so config.js is fetched at most once.
+let _localKeyPromise = null;
+function getLocalKey() {
+  if (!_localKeyPromise) {
+    _localKeyPromise = import("./config.js")
+      .then((m) => m.OPENWEATHER_API_KEY)
+      .catch(() => null);
+  }
+  return _localKeyPromise;
+}
 
 const COMPASS_16 = [
   "N",
@@ -32,20 +53,30 @@ const WIND_ARROWS = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
 
 export class WeatherService {
   constructor() {
-    this.API_KEY = OPENWEATHER_API_KEY;
-    this.BASE_URL = BASE_URL;
     this.cache = new Map();
     this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
   }
 
-  async fetchWeather(lat, lon, circuitId) {
-    if (!this.API_KEY || this.API_KEY === "YOUR_API_KEY_HERE") {
+  /**
+   * Builds the fetch URL for an OpenWeather endpoint ("weather" or
+   * "forecast"): the Vercel proxy in production, OpenWeather direct
+   * (with the local key) in dev.
+   */
+  async _resolveUrl(endpoint, lat, lon) {
+    if (!IS_LOCAL) {
+      return `/api/weather?endpoint=${endpoint}&lat=${lat}&lon=${lon}`;
+    }
+    const key = await getLocalKey();
+    if (!key || key === "YOUR_API_KEY_HERE") {
       throw new Error(
-        "API_KEY_MISSING: Add your OpenWeatherMap key to js/WeatherService.js. " +
+        "API_KEY_MISSING: Add your OpenWeatherMap key to js/config.js for local dev. " +
           "Free key at openweathermap.org/api · activates in ~10 minutes.",
       );
     }
+    return `https://api.openweathermap.org/data/2.5/${endpoint}?lat=${lat}&lon=${lon}&appid=${key}&units=metric`;
+  }
 
+  async fetchWeather(lat, lon, circuitId) {
     if (this.isCached(circuitId)) {
       const entry = this.cache.get(circuitId);
       console.log(
@@ -54,7 +85,7 @@ export class WeatherService {
       return entry.data;
     }
 
-    const url = `${this.BASE_URL}?lat=${lat}&lon=${lon}&appid=${this.API_KEY}&units=metric`;
+    const url = await this._resolveUrl("weather", lat, lon);
     console.log(`[WeatherService] Fetching: ${circuitId}`);
 
     let response;
@@ -164,19 +195,13 @@ export class WeatherService {
    * @returns {Promise<{now, practice, quali, race}>}
    */
   async fetchWeekendForecast(lat, lon, circuitId) {
-    if (!this.API_KEY || this.API_KEY === "YOUR_API_KEY_HERE") {
-      throw new Error(
-        "API_KEY_MISSING: Add your OpenWeatherMap key to js/WeatherService.js.",
-      );
-    }
-
     const cacheKey = `forecast_${circuitId}`;
     if (this.isCached(cacheKey)) {
       console.log(`[WeatherService] Forecast cache hit: ${circuitId}`);
       return this.cache.get(cacheKey).data;
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${this.API_KEY}&units=metric`;
+    const url = await this._resolveUrl("forecast", lat, lon);
     console.log(`[WeatherService] Fetching forecast: ${circuitId}`);
 
     let response;
