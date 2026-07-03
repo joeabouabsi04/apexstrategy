@@ -36,10 +36,27 @@
       id="circuitHeader"
       aria-label="Circuit information and live conditions"
     >
+      <!-- Circuit photo backdrop — faded in by WorkbenchController when
+           images/circuits/{id}.jpg exists (optional per circuit) -->
+      <div class="wb-hero-photo" id="circuitPhoto" aria-hidden="true"></div>
+
       <!-- Rain canvas — activated by WorkbenchController when raining -->
       <canvas id="rainCanvas" class="rain-canvas" aria-hidden="true"></canvas>
 
       <div class="wb-hero-inner">
+        <!-- Print setup sheet (window.print + @media print stylesheet) -->
+        <button
+          id="printSetupBtn"
+          class="wb-print-btn hidden"
+          type="button"
+          aria-label="Print this setup sheet"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="7" y="14" width="10" height="7" rx="1" />
+          </svg>
+          Print setup
+        </button>
         <!-- Left: circuit identity -->
         <div class="wb-hero-text">
           <a href="index.html#commandCenter" class="wb-back">
@@ -137,6 +154,10 @@
           </svg>
           <span>Race<br />Weekend</span>
         </div>
+        <!-- Each session button doubles as its own forecast card:
+             the .tl-wx slot (glyph, temp, rain %) is filled by
+             WorkbenchController._renderOutlook() from data already
+             in memory — click the weather you want to run. -->
         <div
           class="timeline-selector"
           role="tablist"
@@ -150,7 +171,10 @@
             aria-selected="true"
             aria-label="Live current conditions"
           >
-            <span class="timeline-dot" aria-hidden="true"></span>LIVE
+            <span class="tl-head"
+              ><span class="timeline-dot" aria-hidden="true"></span>LIVE</span
+            >
+            <span class="tl-wx" aria-hidden="true"></span>
           </button>
           <button
             class="timeline-btn"
@@ -160,7 +184,10 @@
             aria-selected="false"
             aria-label="Practice session forecast (24 hours ahead)"
           >
-            PRACTICE <span class="timeline-offset">+24H</span>
+            <span class="tl-head"
+              >PRACTICE <span class="timeline-offset">+24H</span></span
+            >
+            <span class="tl-wx" aria-hidden="true"></span>
           </button>
           <button
             class="timeline-btn"
@@ -170,7 +197,10 @@
             aria-selected="false"
             aria-label="Qualifying session forecast (48 hours ahead)"
           >
-            QUALI <span class="timeline-offset">+48H</span>
+            <span class="tl-head"
+              >QUALI <span class="timeline-offset">+48H</span></span
+            >
+            <span class="tl-wx" aria-hidden="true"></span>
           </button>
           <button
             class="timeline-btn"
@@ -180,7 +210,10 @@
             aria-selected="false"
             aria-label="Race day forecast (72 hours ahead)"
           >
-            RACE <span class="timeline-offset">+72H</span>
+            <span class="tl-head"
+              >RACE <span class="timeline-offset">+72H</span></span
+            >
+            <span class="tl-wx" aria-hidden="true"></span>
           </button>
         </div>
       </div>
@@ -233,6 +266,13 @@
             <span class="apex-label">Track est.</span>
             <span class="apex-value text-mono" id="trackTempHeader">--°C</span>
           </div>
+          <div class="weather-field">
+            <span class="apex-label">Units</span>
+            <div class="unit-toggle" id="unitToggle" aria-label="Temperature and speed units">
+              <button type="button" data-units="metric" class="active" aria-pressed="true">°C</button>
+              <button type="button" data-units="imperial" aria-pressed="false">°F</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -242,7 +282,19 @@
        ═══════════════════════════════════════════════════════ -->
     <div class="wb-state-shell">
       <div id="loadingState" role="status" aria-live="polite">
-        <div class="apex-spinner" aria-hidden="true"></div>
+        <!-- Skeleton placeholders shaped like the real workbench panels -->
+        <div class="wb-skeleton" aria-hidden="true">
+          <div class="sk-row">
+            <span class="sk-tile"></span>
+            <span class="sk-tile"></span>
+            <span class="sk-tile"></span>
+            <span class="sk-tile"></span>
+          </div>
+          <div class="sk-panels">
+            <span class="sk-panel"></span>
+            <span class="sk-panel"></span>
+          </div>
+        </div>
         <p>
           FETCHING LIVE TELEMETRY<br />
           <span id="loadingCircuit" class="text-accent">--</span>

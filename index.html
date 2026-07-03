@@ -180,6 +180,28 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
+       LIVE RADAR — current conditions across all 20 circuits
+       (one cached API burst, rendered by HomeController)
+       ═══════════════════════════════════════════════════ -->
+    <section
+      class="radar-band band-tight band-divider"
+      id="liveRadar"
+      aria-label="Live conditions across all circuits"
+    >
+      <div class="shell">
+        <div class="radar-head reveal-on-scroll">
+          <h2 class="section-title">Live across the calendar</h2>
+          <p class="section-lede" id="radarSummary">
+            Checking current conditions at all twenty circuits...
+          </p>
+        </div>
+        <div class="radar-strip" id="radarStrip">
+          <!-- chips injected by HomeController._initRadar() -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
        CIRCUIT BROWSER — search, filter, choose
        ═══════════════════════════════════════════════════ -->
     <main
@@ -258,6 +280,9 @@
             <option value="turns-desc">Most turns</option>
           </select>
         </div>
+
+        <!-- Recently viewed circuits (localStorage, via HomeController) -->
+        <div id="recentCircuits" class="recent-row hidden"></div>
 
         <!-- Results counter -->
         <div

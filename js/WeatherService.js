@@ -256,6 +256,8 @@ export class WeatherService {
         visibility: Math.round((entry.visibility ?? 10000) / 1000),
         cloudCover,
         isRaining,
+        // OWM probability of precipitation, 0..1 → whole percent
+        rainChance: Math.round((entry.pop ?? 0) * 100),
         // forecast uses 3h rain accumulation · divide to get hourly equivalent
         rain1h: entry.rain ? (entry.rain["3h"] ?? 0) / 3 : 0,
         trackTempEstimate: this._estimateTrackTemp(

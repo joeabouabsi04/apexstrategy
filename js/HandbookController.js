@@ -108,6 +108,10 @@ const RENDERERS = {
 
 /*-- SECTION: CONTROLLER --*/
 
+// Card selectors that count as one searchable "entry" per chapter
+const SEARCH_ITEM_SELECTOR =
+  ".handbook-entry, .compound-card, .aero-section, .track-type-card";
+
 export class HandbookController {
   constructor(navSelector, panesSelector) {
     this._nav = document.querySelector(navSelector);
@@ -119,13 +123,14 @@ export class HandbookController {
     this._build();
     // Hand the generated DOM to the shared, DOM-driven tab manager.
     this._tabs = new TabController(navSelector, panesSelector);
+    this._initSearch();
   }
 
   _build() {
     this._nav.innerHTML = HANDBOOK_CHAPTERS.map(
       (ch, i) => `
       <button class="workbench-tab${i === 0 ? " tab-active" : ""}"
-              data-tab="${ch.id}" role="tab">${ch.label}</button>`,
+              data-tab="${ch.id}" role="tab">${ch.label}<span class="tab-count hidden"></span></button>`,
     ).join("");
 
     this._panes.innerHTML = HANDBOOK_CHAPTERS.map(
@@ -133,7 +138,100 @@ export class HandbookController {
       <section class="workbench-pane${i === 0 ? " pane-active" : ""}"
                data-pane="${ch.id}" aria-label="${ch.label}">
         ${RENDERERS[ch.render]()}
+        <p class="hb-no-match hidden">No matches in this chapter. Try another tab.</p>
       </section>`,
     ).join("");
+  }
+
+  /*-- SECTION: SEARCH --*/
+
+  /**
+   * Live filter across ALL chapters: hides non-matching cards, shows a
+   * per-chapter empty state, and puts a match-count badge on each tab
+   * so it's obvious which chapters hold the results.
+   */
+  _initSearch() {
+    const input = document.getElementById("handbookSearch");
+    if (!input) return;
+
+    // Pre-compute each card's searchable text once, and cache its
+    // original markup so highlighting can always start from a clean
+    // slate instead of stacking <mark> tags on every keystroke.
+    this._originalHTML = new Map();
+    this._panes.querySelectorAll(SEARCH_ITEM_SELECTOR).forEach((el) => {
+      el.dataset.search = el.textContent.toLowerCase();
+      this._originalHTML.set(el, el.innerHTML);
+    });
+
+    let t;
+    input.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() => this._applySearch(input.value), 180);
+    });
+  }
+
+  _applySearch(query) {
+    const q = query.trim().toLowerCase();
+
+    this._panes.querySelectorAll("[data-pane]").forEach((pane) => {
+      const items = pane.querySelectorAll(SEARCH_ITEM_SELECTOR);
+      let matches = 0;
+      items.forEach((el) => {
+        // Reset to the original markup first so old highlights never
+        // compound into nested/incorrect <mark> wrapping.
+        const original = this._originalHTML.get(el);
+        if (original !== undefined) el.innerHTML = original;
+
+        const hit = !q || el.dataset.search.includes(q);
+        el.classList.toggle("hidden", !hit);
+        if (hit && q) this._highlightMatches(el, q);
+        if (hit) matches++;
+      });
+
+      pane
+        .querySelector(".hb-no-match")
+        ?.classList.toggle("hidden", !q || matches > 0);
+
+      // Match-count badge on the corresponding tab
+      const badge = this._nav.querySelector(
+        `[data-tab="${pane.dataset.pane}"] .tab-count`,
+      );
+      if (badge) {
+        badge.textContent = matches;
+        badge.classList.toggle("hidden", !q);
+      }
+    });
+  }
+
+  /**
+   * Wraps every occurrence of `query` in a <mark> inside root's text
+   * (Ctrl+F style highlighting), touching only text nodes so ratings
+   * bars, badges and inline styles are left completely untouched.
+   */
+  _highlightMatches(root, query) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue.toLowerCase().includes(query)) nodes.push(node);
+    }
+
+    nodes.forEach((textNode) => {
+      const text = textNode.nodeValue;
+      const lower = text.toLowerCase();
+      const frag = document.createDocumentFragment();
+      let i = 0;
+      let pos;
+      while ((pos = lower.indexOf(query, i)) !== -1) {
+        if (pos > i) frag.appendChild(document.createTextNode(text.slice(i, pos)));
+        const mark = document.createElement("mark");
+        mark.className = "hb-mark";
+        mark.textContent = text.slice(pos, pos + query.length);
+        frag.appendChild(mark);
+        i = pos + query.length;
+      }
+      if (i < text.length) frag.appendChild(document.createTextNode(text.slice(i)));
+      textNode.replaceWith(frag);
+    });
   }
 }

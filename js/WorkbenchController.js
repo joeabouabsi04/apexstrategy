@@ -9,39 +9,19 @@ import { SetupEngine } from "./SetupEngine.js";
 import { TabController } from "./TabController.js";
 import { fetchTrackMap } from "./trackmaps.js"; // local SVG fetch — replaces getTrackMap
 import { ApexSelect } from "./ApexSelect.js";
+import { wxFor, wxSvg } from "./wx-icons.js";
 
-/*-- SECTION: WEATHER CONDITION ICONS --*/
+/*-- SECTION: SESSION LABELS --*/
 
-// Simple stroke glyphs keyed by OpenWeatherMap's `weather.main` value.
-// Rendered into #weatherIcon; colour comes from the wx-* class in CSS.
-const WX_SVG = {
-  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>`,
-  cloud: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 18a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 11.6 3.6 3.6 0 0 0 7 18.7z"/></svg>`,
-  rain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M8 18.5l-1 2.5M12.5 18.5l-1 2.5M17 18.5l-1 2.5"/></svg>`,
-  drizzle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M9 18.2l-.4 1.1M13 18.2l-.4 1.1M17 18.2l-.4 1.1"/></svg>`,
-  storm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 14a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 7.6 3.6 3.6 0 0 0 7 14.7"/><path d="M12.5 12.5 10 17h3l-1.8 4"/></svg>`,
-  snow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15a4 4 0 0 0 .3-8A6 6 0 0 0 6.2 8.6 3.6 3.6 0 0 0 7 15.7"/><path d="M8.5 18.5v.01M12 20v.01M15.5 18.5v.01M10 21.5v.01M14 22v.01"/></svg>`,
-  mist: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13M7 13h13M4 17h13"/></svg>`,
-  wind: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9.5a2.5 2.5 0 1 0-2.4-3.2M3 12h14.5a2.5 2.5 0 1 1-2.4 3.2M3 16h7.5a2 2 0 1 1-1.9 2.6"/></svg>`,
+const SESSION_LABELS = {
+  now: "LIVE (NOW)",
+  practice: "PRACTICE (+24H)",
+  quali: "QUALIFYING (+48H)",
+  race: "RACE DAY (+72H)",
 };
 
-// weather.main → { glyph, colour class }
-const WX_MAP = {
-  clear: { svg: "sun", cls: "wx-clear" },
-  clouds: { svg: "cloud", cls: "wx-clouds" },
-  rain: { svg: "rain", cls: "wx-rain" },
-  drizzle: { svg: "drizzle", cls: "wx-drizzle" },
-  thunderstorm: { svg: "storm", cls: "wx-storm" },
-  snow: { svg: "snow", cls: "wx-snow" },
-  mist: { svg: "mist", cls: "wx-mist" },
-  smoke: { svg: "mist", cls: "wx-mist" },
-  haze: { svg: "mist", cls: "wx-mist" },
-  fog: { svg: "mist", cls: "wx-mist" },
-  dust: { svg: "mist", cls: "wx-mist" },
-  sand: { svg: "mist", cls: "wx-mist" },
-  squall: { svg: "wind", cls: "wx-mist" },
-  tornado: { svg: "wind", cls: "wx-storm" },
-};
+const RECENT_KEY = "apexRecentCircuits";
+const UNITS_KEY = "apexUnits";
 
 /*-- SECTION: VERDICT GENERATOR --*/
 
@@ -85,7 +65,13 @@ function buildVerdict(conditions, circuit) {
 
 export class WorkbenchController {
   constructor() {
-    this.circuitId = new URLSearchParams(window.location.search).get("circuit");
+    const params = new URLSearchParams(window.location.search);
+    this.circuitId = params.get("circuit");
+    // Deep-link restore: ?session=race opens straight into that view
+    const s = params.get("session");
+    this._deepLinkSession = ["practice", "quali", "race"].includes(s)
+      ? s
+      : null;
     this.circuit = null;
     this.weatherService = new WeatherService();
     this.tabController = null;
@@ -94,6 +80,11 @@ export class WorkbenchController {
     this.forecastData = null;
     this.currentWeather = null;
     this._rainFrame = null;
+    this._timelineWired = false;
+    this._units =
+      localStorage.getItem(UNITS_KEY) === "imperial" ? "imperial" : "metric";
+    this._lastWeather = null;
+    this._activeSession = "now";
   }
 
   async init() {
@@ -107,8 +98,11 @@ export class WorkbenchController {
       return;
     }
 
+    this._recordRecentCircuit(this.circuit.id);
     this._populateCircuitHeader();
     this._initTabs();
+    this._initUnitToggle();
+    this._initPrintButton();
     await this._fetchAndRender();
 
     // Keyboard hooks via CustomEvents (no window globals)
@@ -118,6 +112,20 @@ export class WorkbenchController {
       if (map[e.detail.index])
         this.tabController?.switchTo(map[e.detail.index]);
     });
+  }
+
+  /*-- RECENTLY VIEWED (read by HomeController for the home chips) --*/
+
+  _recordRecentCircuit(id) {
+    try {
+      const list = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]").filter(
+        (x) => x !== id,
+      );
+      list.unshift(id);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 4)));
+    } catch {
+      /* storage unavailable (private mode) — feature silently off */
+    }
   }
 
   /*-- CIRCUIT HEADER --*/
@@ -138,7 +146,10 @@ export class WorkbenchController {
     this._setText("loadingCircuit", c.shortName.toUpperCase());
     this._setText("statLength", `${c.length} KM`);
     this._setText("statTurns", `${c.turns}`);
-    this._setText("statLapRecord", (c.lapRecord ?? "--").replace(/\s*—\s*/g, " · "));
+    this._setText(
+      "statLapRecord",
+      (c.lapRecord ?? "--").replace(/\s*—\s*/g, " · "),
+    );
     this._setText("statAltitude", `${c.altitudeM} M`);
     this._setText("statGrip", c.surfaceGrip.toUpperCase());
 
@@ -150,6 +161,20 @@ export class WorkbenchController {
         c.description.replace(/\s*—\s*/g, ", "),
       );
       briefing.classList.remove("hidden");
+    }
+
+    // Optional circuit photo backdrop: probes images/circuits/{id}.jpg
+    // and fades it in behind the hero only if the file exists, so
+    // circuits without a photo keep the standard gradient.
+    const photo = document.getElementById("circuitPhoto");
+    if (photo) {
+      const src = `images/circuits/${c.id}.jpg`;
+      const probe = new Image();
+      probe.onload = () => {
+        photo.style.backgroundImage = `url("${src}")`;
+        document.getElementById("circuitHeader")?.classList.add("has-photo");
+      };
+      probe.src = src;
     }
 
     // 3D tilt on the hero track map (skipped under reduced motion)
@@ -394,7 +419,14 @@ export class WorkbenchController {
       this._startDataAgeTimer();
       this._applyRainAlerts(currentWeather.isRaining);
       this._initTimeline();
+      this._renderOutlook();
       this._showWorkbench();
+
+      // Deep link: apply ?session=... once, after the first full render
+      if (this._deepLinkSession) {
+        this._applySession(this._deepLinkSession, false);
+        this._deepLinkSession = null;
+      }
     } catch (err) {
       console.error("[WorkbenchController]", err);
       this._showError(err.message ?? "FETCH FAILED");
@@ -404,9 +436,8 @@ export class WorkbenchController {
   /*-- SECTION: TIMELINE --*/
 
   /**
-   * Wires up the race-weekend timeline buttons.
-   * Each click re-runs SetupEngine against its forecast block
-   * and re-renders the full workbench without a page reload.
+   * Marks rain-forecast sessions and wires the timeline buttons
+   * (listeners are attached once; refetches only refresh the flags).
    */
   _initTimeline() {
     const buttons = document.querySelectorAll(".timeline-btn");
@@ -414,51 +445,91 @@ export class WorkbenchController {
     // Mark sessions that have rain in the forecast
     buttons.forEach((btn) => {
       const s = btn.dataset.session;
-      if (s !== "now" && this.forecastData?.[s]?.isRaining) {
-        btn.classList.add("forecast-rain");
-        btn.title = `${s.toUpperCase()}: Rain forecast`;
-      }
+      const rain = s !== "now" && this.forecastData?.[s]?.isRaining;
+      btn.classList.toggle("forecast-rain", !!rain);
+      if (rain) btn.title = `${s.toUpperCase()}: Rain forecast`;
     });
 
-    // TASK 2: the redundant status bar (timelineLabel/Dot/Time) was removed.
-    // The active session is now communicated solely by the highlighted button
-    // and the degradation-panel session label.
-    const LABELS = {
-      now: "LIVE (NOW)",
-      practice: "PRACTICE (+24H)",
-      quali: "QUALIFYING (+48H)",
-      race: "RACE DAY (+72H)",
-    };
+    if (this._timelineWired) return;
+    this._timelineWired = true;
+    buttons.forEach((btn) =>
+      btn.addEventListener("click", () =>
+        this._applySession(btn.dataset.session),
+      ),
+    );
+  }
 
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        buttons.forEach((b) => {
-          b.classList.remove("active");
-          b.setAttribute("aria-selected", "false");
-        });
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
+  /**
+   * Switches the whole workbench to a weekend session: re-runs the
+   * SetupEngine on that forecast slice, re-renders every pane, and
+   * writes ?session= into the URL so the exact view is shareable.
+   */
+  _applySession(session, updateUrl = true) {
+    const weather =
+      session === "now"
+        ? this.currentWeather
+        : (this.forecastData?.[session] ?? this.currentWeather);
+    if (!weather) return;
+    this._activeSession = session;
 
-        const session = btn.dataset.session;
-        const weather = this.forecastData?.[session] ?? this.currentWeather;
-        if (!weather) return;
+    document.querySelectorAll(".timeline-btn").forEach((b) => {
+      const active = b.dataset.session === session;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+    });
 
-        this._setText(
-          "degradationSession",
-          LABELS[session] ?? session.toUpperCase(),
-        );
+    this._setText(
+      "degradationSession",
+      SESSION_LABELS[session] ?? session.toUpperCase(),
+    );
 
-        // Re-run engine against selected weather block
-        const engine = new SetupEngine(this.circuit, weather);
-        this.report = engine.generateReport();
+    const engine = new SetupEngine(this.circuit, weather);
+    this.report = engine.generateReport();
 
-        this._updateWeatherHeader(weather);
-        this._renderTyrePane(this.report);
-        this._renderAeroPane(this.report);
-        this._renderWetPane(this.report);
-        this._renderVerdict(this.report.conditions);
-        this._applyRainAlerts(weather.isRaining);
-      });
+    this._updateWeatherHeader(weather);
+    this._renderTyrePane(this.report);
+    this._renderAeroPane(this.report);
+    this._renderWetPane(this.report);
+    this._renderVerdict(this.report.conditions);
+    this._applyRainAlerts(weather.isRaining);
+
+    if (updateUrl) {
+      const params = new URLSearchParams(window.location.search);
+      if (session === "now") params.delete("session");
+      else params.set("session", session);
+      history.replaceState(null, "", `?${params.toString()}`);
+    }
+  }
+
+  /*-- SECTION: WEEKEND OUTLOOK (inside the session buttons) --*/
+
+  /**
+   * Fills each timeline button's .tl-wx slot with that session's
+   * forecast at a glance (condition glyph, temp, rain probability),
+   * so the button IS the forecast card — see the weather, click it.
+   * Wet sessions get the amber `is-wet` tint. Uses forecast data
+   * already in memory — zero extra API calls.
+   */
+  _renderOutlook() {
+    if (!this.forecastData) return;
+
+    document.querySelectorAll(".timeline-btn").forEach((btn) => {
+      const s = btn.dataset.session;
+      const w = s === "now" ? this.currentWeather : this.forecastData[s];
+      const slot = btn.querySelector(".tl-wx");
+      if (!w || !slot) return;
+
+      const wet = w.isRaining || (w.rainChance ?? 0) >= 60;
+      const sub =
+        s === "now"
+          ? (w.weatherMain ?? "--").toUpperCase()
+          : `RAIN ${w.rainChance ?? 0}%`;
+
+      btn.classList.toggle("is-wet", wet);
+      slot.innerHTML = /* html */ `
+        <span class="tl-icon ${wxFor(w.weatherMain).cls}">${wxSvg(w.weatherMain)}</span>
+        <span class="tl-temp">${this._fmtTemp(w.temp)}</span>
+        <span class="tl-sub">${sub}</span>`;
     });
   }
 
@@ -526,8 +597,7 @@ export class WorkbenchController {
 
     const n1 = (n) => Math.round(n * 10) / 10; // 1-dp coordinate rounding
     const xAt = (lap) => PAD.left + (lap / STINT_LAPS) * plotW;
-    const yAt = (perf) =>
-      PAD.top + (1 - (perf - yMin) / (yMax - yMin)) * plotH;
+    const yAt = (perf) => PAD.top + (1 - (perf - yMin) / (yMax - yMin)) * plotH;
 
     // Build each compound's polyline point string.
     const lines = series.map((s) => {
@@ -618,30 +688,79 @@ export class WorkbenchController {
     );
   }
 
+  /*-- SECTION: UNITS --*/
+
+  /** °C value → display value in the active unit system. */
+  _convTemp(c) {
+    return this._units === "imperial" ? Math.round((c * 9) / 5 + 32) : c;
+  }
+
+  _tempSuffix() {
+    return this._units === "imperial" ? "°F" : "°C";
+  }
+
+  _fmtTemp(c) {
+    return `${this._convTemp(c)}${this._tempSuffix()}`;
+  }
+
+  /** km/h value → display value + unit in the active system. */
+  _fmtWind(kmh) {
+    return this._units === "imperial"
+      ? `${Math.round(kmh * 0.621371)} mph`
+      : `${kmh} km/h`;
+  }
+
+  _initUnitToggle() {
+    const wrap = document.getElementById("unitToggle");
+    if (!wrap) return;
+    const sync = () => {
+      wrap.querySelectorAll("[data-units]").forEach((b) => {
+        const on = b.dataset.units === this._units;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    };
+    sync();
+    wrap.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-units]");
+      if (!btn || btn.dataset.units === this._units) return;
+      this._units = btn.dataset.units;
+      try {
+        localStorage.setItem(UNITS_KEY, this._units);
+      } catch {
+        /* private mode — preference just won't persist */
+      }
+      sync();
+      if (this._lastWeather) this._updateWeatherHeader(this._lastWeather);
+      this._renderOutlook();
+    });
+  }
+
   /*-- SECTION: WEATHER HEADER --*/
 
   _updateWeatherHeader(weather) {
+    this._lastWeather = weather;
     const tempEl = document.getElementById("tempReadout");
     if (tempEl) {
       tempEl.dataset.rawValue = "0";
-      animateValue(tempEl, weather.temp, {
+      animateValue(tempEl, this._convTemp(weather.temp), {
         duration: 600,
         decimals: 0,
-        suffix: "°C",
+        suffix: this._tempSuffix(),
       });
     }
     const trackHdr = document.getElementById("trackTempHeader");
     if (trackHdr) {
       trackHdr.dataset.rawValue = "0";
-      animateValue(trackHdr, weather.trackTempEstimate, {
+      animateValue(trackHdr, this._convTemp(weather.trackTempEstimate), {
         duration: 700,
         decimals: 0,
-        suffix: "°C",
+        suffix: this._tempSuffix(),
       });
     }
     const windEl = document.getElementById("windReadout");
     if (windEl)
-      windEl.textContent = `${weather.windArrow} ${weather.windSpeed} km/h ${weather.windDir}`;
+      windEl.textContent = `${weather.windArrow} ${this._fmtWind(weather.windSpeed)} ${weather.windDir}`;
     const condEl = document.getElementById("condReadout");
     if (condEl)
       decodeText(condEl, weather.weatherMain.toUpperCase(), { duration: 300 });
@@ -655,10 +774,16 @@ export class WorkbenchController {
   _renderWeatherIcon(weatherMain) {
     const el = document.getElementById("weatherIcon");
     if (!el) return;
-    const key = (weatherMain ?? "").toLowerCase();
-    const entry = WX_MAP[key] ?? { svg: "cloud", cls: "wx-clouds" };
-    el.className = `wb-weather-icon ${entry.cls}`;
-    el.innerHTML = WX_SVG[entry.svg];
+    el.className = `wb-weather-icon ${wxFor(weatherMain).cls}`;
+    el.innerHTML = wxSvg(weatherMain);
+  }
+
+  /*-- SECTION: PRINT SETUP SHEET --*/
+
+  _initPrintButton() {
+    document
+      .getElementById("printSetupBtn")
+      ?.addEventListener("click", () => window.print());
   }
 
   /*-- TYRE PANE --*/
@@ -926,7 +1051,8 @@ export class WorkbenchController {
 
     const container = document.createElement("div");
     container.id = "noCircuitPanel";
-    container.style.cssText = "max-width:720px;margin:40px auto 0;padding:0 var(--page-pad) 96px;";
+    container.style.cssText =
+      "max-width:720px;margin:40px auto 0;padding:0 var(--page-pad) 96px;";
     container.innerHTML = /* html */ `
       <div class="tele-panel" style="padding:0;">
         <div class="tele-panel-header"><span class="apex-label">No circuit selected · pick one to begin</span></div>
@@ -1029,6 +1155,7 @@ export class WorkbenchController {
     this._hide("errorState");
     this._show("workbenchMain");
     this._show("timelinePanel");
+    this._show("printSetupBtn");
     this._setDotClass("weatherDot", "status-live");
   }
   _showError(msg) {

@@ -2,10 +2,12 @@
    APEXSTRATEGY — HOME CONTROLLER  (ES6 module)
    ============================================================ */
 
-import { CIRCUITS } from "./circuits.js";
+import { CIRCUITS, getCircuitById } from "./circuits.js";
 import { animateValue } from "./anim.js";
 import { fetchTrackMap } from "./trackmaps.js";
 import { ApexSelect } from "./ApexSelect.js";
+import { WeatherService } from "./WeatherService.js";
+import { wxFor, wxSvg } from "./wx-icons.js";
 
 /*-- SECTION: LOOKUP --*/
 
@@ -54,7 +56,136 @@ export class HomeController {
     this._initScrollReveals();
     this.renderCircuits(this._circuits);
     this._animateTotalBadge();
+    this._renderRecentChips();
+    this._initRadar();
     this._scrollToHash();
+  }
+
+  /*-- SECTION: RECENTLY VIEWED CHIPS --*/
+
+  /** Chips for the last few circuits opened in the workbench
+      (ids written to localStorage by WorkbenchController). */
+  _renderRecentChips() {
+    const wrap = document.getElementById("recentCircuits");
+    if (!wrap) return;
+    let ids = [];
+    try {
+      ids = JSON.parse(localStorage.getItem("apexRecentCircuits") ?? "[]");
+    } catch {
+      return;
+    }
+    const recents = ids.map((id) => getCircuitById(id)).filter(Boolean);
+    if (!recents.length) return;
+    wrap.innerHTML =
+      `<span class="recent-label">Jump back in</span>` +
+      recents
+        .map(
+          (c) => /* html */ `
+        <a class="recent-chip" href="workbench.html?circuit=${c.id}"
+           aria-label="Open ${c.shortName} in the workbench">
+          <span aria-hidden="true">${c.flag}</span>${c.shortName.toUpperCase()}
+        </a>`,
+        )
+        .join("");
+    wrap.classList.remove("hidden");
+  }
+
+  /*-- SECTION: LIVE CALENDAR RADAR --*/
+
+  /**
+   * Fetches current conditions for every circuit (one burst, cached in
+   * sessionStorage for 10 minutes) and renders the live radar strip:
+   * wet circuits first with the amber treatment, plus a plain-language
+   * summary line. The whole section hides itself on total failure.
+   */
+  async _initRadar() {
+    const section = document.getElementById("liveRadar");
+    const strip = document.getElementById("radarStrip");
+    const summary = document.getElementById("radarSummary");
+    if (!section || !strip) return;
+
+    // Skeleton chips while the burst is in flight
+    strip.innerHTML = Array.from(
+      { length: 10 },
+      () => `<span class="radar-chip radar-skeleton"></span>`,
+    ).join("");
+
+    let list;
+    try {
+      list = await this._fetchRadarData();
+    } catch {
+      section.classList.add("hidden");
+      return;
+    }
+    if (!list.length) {
+      section.classList.add("hidden");
+      return;
+    }
+
+    // Wet circuits lead the strip
+    list.sort((a, b) => Number(b.isRaining) - Number(a.isRaining));
+    const wet = list.filter((x) => x.isRaining).length;
+
+    if (summary) {
+      summary.textContent =
+        wet === 0
+          ? `All ${list.length} circuits are running dry right now.`
+          : `${wet} circuit${wet > 1 ? "s" : ""} racing in the rain right now. ${list.length - wet} running dry.`;
+    }
+
+    strip.innerHTML = list
+      .map((x) => {
+        const c = getCircuitById(x.id);
+        if (!c) return "";
+        return /* html */ `
+        <a class="radar-chip${x.isRaining ? " is-wet" : ""}"
+           href="workbench.html?circuit=${x.id}"
+           aria-label="${c.shortName}: ${x.main}, ${x.temp} degrees. Open workbench.">
+          ${x.isRaining ? '<span class="radar-live-dot" aria-hidden="true"></span>' : ""}
+          <span class="rc-flag" aria-hidden="true">${c.flag}</span>
+          <span class="rc-name">${c.shortName.toUpperCase()}</span>
+          <span class="rc-temp">${x.temp}°</span>
+          <span class="rc-icon ${wxFor(x.main).cls}" aria-hidden="true">${wxSvg(x.main)}</span>
+        </a>`;
+      })
+      .join("");
+  }
+
+  async _fetchRadarData() {
+    const CACHE_KEY = "apexRadarV1";
+    const TTL = 10 * 60 * 1000;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? "null");
+      if (cached && Date.now() - cached.t < TTL) return cached.list;
+    } catch {
+      /* fall through to a fresh fetch */
+    }
+
+    const ws = new WeatherService();
+    const results = await Promise.allSettled(
+      this._circuits.map((c) =>
+        ws.fetchWeather(c.lat, c.lon, c.id).then((w) => ({
+          id: c.id,
+          temp: w.temp,
+          main: w.weatherMain,
+          isRaining: w.isRaining,
+        })),
+      ),
+    );
+    const list = results
+      .filter((r) => r.status === "fulfilled")
+      .map((r) => r.value);
+    if (list.length) {
+      try {
+        sessionStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ t: Date.now(), list }),
+        );
+      } catch {
+        /* storage full or unavailable — cache skipped */
+      }
+    }
+    return list;
   }
 
   /**
