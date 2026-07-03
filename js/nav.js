@@ -287,7 +287,11 @@ function injectNavStyles() {
   s.id = "apex-nav-styles";
   s.textContent = `
     apex-nav { display: block; }
-    @media(max-width:380px){ .apex-nav-brand svg{ width:46px;overflow:hidden; } }
+    /* Keep the full logo (icon + wordmark) at its normal size on phones;
+       only shrink it a touch on genuinely tiny screens instead of
+       cropping it down to just the icon. */
+    @media(max-width:360px){ .apex-nav-brand svg{ height:24px; } }
+    @media(max-width:320px){ .apex-nav-brand svg{ height:21px; } }
   `;
   document.head.appendChild(s);
 }

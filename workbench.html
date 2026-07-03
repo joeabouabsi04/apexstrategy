@@ -205,8 +205,13 @@
             ></span>
             <span class="apex-label">Live conditions</span>
           </div>
-          <div class="apex-readout" id="tempReadout" aria-label="Temperature">
-            --°C
+          <div class="wb-weather-headline">
+            <div class="apex-readout" id="tempReadout" aria-label="Temperature">
+              --°C
+            </div>
+            <!-- Condition glyph — swapped by WorkbenchController to match
+                 the current weather (sun / clouds / rain / storm / ...) -->
+            <div class="wb-weather-icon" id="weatherIcon" aria-hidden="true"></div>
           </div>
           <span id="dataAge" aria-live="polite">--</span>
         </div>
@@ -229,10 +234,6 @@
             <span class="apex-value text-mono" id="trackTempHeader">--°C</span>
           </div>
         </div>
-
-        <!-- Condition glyph — swapped by WorkbenchController to match
-             the current weather (sun / clouds / rain / storm / ...) -->
-        <div class="wb-weather-icon" id="weatherIcon" aria-hidden="true"></div>
       </div>
     </section>
 
