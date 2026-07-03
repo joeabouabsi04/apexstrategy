@@ -82,6 +82,41 @@ export class TabController {
     const pre = this.tabs.find((t) => t.classList.contains("tab-active"));
     const init = pre?.dataset.tab ?? this.tabs[0]?.dataset.tab;
     if (init) this.switchTo(init);
+
+    this._initScrollCues();
+  }
+
+  /**
+   * Mobile scroll affordance: when the tab row is wider than its
+   * container it becomes horizontally scrollable, but nothing signals
+   * that. We toggle .can-scroll-left / .can-scroll-right on the nav so
+   * CSS can fade the overflowing edge(s) — a clear "there's more this
+   * way" cue instead of a row that looks like it's just cut off.
+   */
+  _initScrollCues() {
+    this._updateScrollCues();
+    this._scrollHandler = () => this._updateScrollCues();
+    this.nav.addEventListener("scroll", this._scrollHandler, { passive: true });
+    window.addEventListener("resize", this._scrollHandler);
+  }
+
+  _updateScrollCues() {
+    const { scrollLeft, scrollWidth, clientWidth } = this.nav;
+    const overflowing = scrollWidth - clientWidth > 2;
+    this.nav.classList.toggle("can-scroll-left", overflowing && scrollLeft > 2);
+    this.nav.classList.toggle(
+      "can-scroll-right",
+      overflowing && scrollLeft < scrollWidth - clientWidth - 2,
+    );
+  }
+
+  /** Keep the active tab within view when it's off-screen (mobile). */
+  _scrollActiveIntoView() {
+    const active = this.tabs.find((t) => t.dataset.tab === this.activeTab);
+    if (!active || this.nav.scrollWidth <= this.nav.clientWidth) return;
+    const target =
+      active.offsetLeft - (this.nav.clientWidth - active.offsetWidth) / 2;
+    this.nav.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
   }
 
   _handleKeyNav(e) {
@@ -142,11 +177,11 @@ export class TabController {
       }
     });
 
+    this._scrollActiveIntoView();
     this.nav.dispatchEvent(
       new CustomEvent("tabchange", { bubbles: true, detail: { tab: tabName } }),
     );
     this.onSwitch?.(tabName);
-    console.log(`[TabController] Active: ${tabName}`);
   }
 
   /** @returns {string|null} Active tab slug */
@@ -177,7 +212,11 @@ export class TabController {
       this.nav.removeEventListener("click", this._clickHandler);
     if (this._keyHandler)
       this.nav.removeEventListener("keydown", this._keyHandler);
-    this._clickHandler = this._keyHandler = null;
+    if (this._scrollHandler) {
+      this.nav.removeEventListener("scroll", this._scrollHandler);
+      window.removeEventListener("resize", this._scrollHandler);
+    }
+    this._clickHandler = this._keyHandler = this._scrollHandler = null;
   }
 
   _findTab(n) {

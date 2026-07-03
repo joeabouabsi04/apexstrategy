@@ -43,26 +43,26 @@ const NAV_TEMPLATE = /* html */ `
     </a>
   </div>
   <div class="apex-nav-right">
+    <button class="theme-switch" id="themeToggle" type="button"
+            role="switch" aria-checked="false" aria-label="Switch to light mode">
+      <span class="theme-switch-knob" aria-hidden="true">
+        <svg class="ts-icon ts-moon" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z"/>
+        </svg>
+        <svg class="ts-icon ts-sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <circle cx="8" cy="8" r="3.3" fill="currentColor" stroke="none"/>
+          <line x1="8" y1="1" x2="8" y2="2.8"/><line x1="8" y1="13.2" x2="8" y2="15"/>
+          <line x1="1" y1="8" x2="2.8" y2="8"/><line x1="13.2" y1="8" x2="15" y2="8"/>
+          <line x1="3.4" y1="3.4" x2="4.6" y2="4.6"/><line x1="11.4" y1="11.4" x2="12.6" y2="12.6"/>
+          <line x1="12.6" y1="3.4" x2="11.4" y2="4.6"/><line x1="4.6" y1="11.4" x2="3.4" y2="12.6"/>
+        </svg>
+      </span>
+    </button>
     <ul class="apex-nav-links" id="navLinks" role="list">
       <li role="listitem"><a href="index.html"     class="apex-nav-link" data-page="home"      aria-label="Circuits">CIRCUITS</a></li>
       <li role="listitem"><a href="workbench.html" class="apex-nav-link" data-page="workbench" aria-label="Workbench">WORKBENCH</a></li>
       <li role="listitem"><a href="handbook.html"  class="apex-nav-link" data-page="handbook"  aria-label="Handbook">HANDBOOK</a></li>
     </ul>
-    <button class="apex-theme-toggle" id="themeToggle" type="button"
-            aria-label="Switch to light mode" aria-pressed="false">
-      <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
-        <path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z" style="fill:var(--text-secondary)"/>
-      </svg>
-      <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" style="display:none">
-        <circle cx="8" cy="8" r="3.5" style="fill:var(--text-secondary)"/>
-        <g style="stroke:var(--text-secondary);stroke-width:1.2">
-          <line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/>
-          <line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/>
-          <line x1="3.2" y1="3.2" x2="4.6" y2="4.6"/><line x1="11.4" y1="11.4" x2="12.8" y2="12.8"/>
-          <line x1="12.8" y1="3.2" x2="11.4" y2="4.6"/><line x1="4.6" y1="11.4" x2="3.2" y2="12.8"/>
-        </g>
-      </svg>
-    </button>
     <button class="apex-nav-toggle" id="navToggle" type="button"
             aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">
       <span aria-hidden="true"></span>
@@ -150,16 +150,14 @@ export class NavigationController {
   _syncThemeButton(theme) {
     const btn = this._themBtn;
     if (!btn) return;
-    const moon = btn.querySelector(".theme-icon-moon");
-    const sun = btn.querySelector(".theme-icon-sun");
     const light = theme === "light";
-    btn.setAttribute("aria-pressed", light ? "true" : "false");
+    // The knob position + icon crossfade are driven purely by the
+    // [data-theme] attribute in CSS; here we only keep ARIA in sync.
+    btn.setAttribute("aria-checked", light ? "true" : "false");
     btn.setAttribute(
       "aria-label",
       light ? "Switch to dark mode" : "Switch to light mode",
     );
-    if (moon) moon.style.display = light ? "none" : "block";
-    if (sun) sun.style.display = light ? "block" : "none";
   }
 
   _toggleTheme() {
@@ -289,7 +287,6 @@ function injectNavStyles() {
   s.id = "apex-nav-styles";
   s.textContent = `
     apex-nav { display: block; }
-    .apex-theme-toggle:hover svg path, .apex-theme-toggle:hover svg circle, .apex-theme-toggle:hover svg line { fill:var(--accent)!important; stroke:var(--accent)!important; }
     @media(max-width:380px){ .apex-nav-brand svg{ width:46px;overflow:hidden; } }
   `;
   document.head.appendChild(s);

@@ -2,14 +2,10 @@
    APEXSTRATEGY — HOME CONTROLLER  (ES6 module)
    ============================================================ */
 
-import {
-  CIRCUITS,
-  searchCircuits,
-  filterCircuitsByType,
-  filterCircuitsByRegion,
-} from "./circuits.js";
+import { CIRCUITS } from "./circuits.js";
 import { animateValue } from "./anim.js";
 import { fetchTrackMap } from "./trackmaps.js";
+import { ApexSelect } from "./ApexSelect.js";
 
 /*-- SECTION: LOOKUP --*/
 
@@ -28,6 +24,14 @@ const DEMAND_STATE = {
   "Very High": "critical",
 };
 
+/* Sort comparators keyed by the #sortFilter option values */
+const SORTERS = {
+  name: (a, b) => a.shortName.localeCompare(b.shortName),
+  "length-desc": (a, b) => b.length - a.length,
+  "length-asc": (a, b) => a.length - b.length,
+  "turns-desc": (a, b) => b.turns - a.turns,
+};
+
 /*-- SECTION: CLASS --*/
 
 export class HomeController {
@@ -36,6 +40,7 @@ export class HomeController {
     this._searchEl = document.getElementById("circuitSearch");
     this._typeEl = document.getElementById("typeFilter");
     this._regionEl = document.getElementById("regionFilter");
+    this._sortEl = document.getElementById("sortFilter");
     this._listEl = document.getElementById("circuitList");
     this._counterEl = document.getElementById("resultsCounter");
     this._emptyEl = document.getElementById("emptyState");
@@ -45,9 +50,28 @@ export class HomeController {
 
   _init() {
     this._bindEvents();
+    ApexSelect.enhance(); // themed dropdowns for the filter/sort selects
     this._initScrollReveals();
     this.renderCircuits(this._circuits);
     this._animateTotalBadge();
+    this._scrollToHash();
+  }
+
+  /**
+   * Cards render after DOMContentLoaded, so a cross-page anchor like
+   * workbench's "All circuits" (index.html#commandCenter) fires before
+   * the section exists at its final position and the browser's jump is
+   * lost. Re-run it once the grid is laid out (scroll-margin-top in CSS
+   * keeps the heading clear of the sticky nav).
+   */
+  _scrollToHash() {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    requestAnimationFrame(() =>
+      target.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
   }
 
   _animateTotalBadge() {
@@ -84,6 +108,7 @@ export class HomeController {
     this._searchEl?.addEventListener("input", debounced);
     this._typeEl?.addEventListener("change", () => this.filterAndRender());
     this._regionEl?.addEventListener("change", () => this.filterAndRender());
+    this._sortEl?.addEventListener("change", () => this.filterAndRender());
     // Full-card navigation handled by CSS stretched-link on .circuit-card-link
   }
 
@@ -114,6 +139,10 @@ export class HomeController {
     }
     if (type !== "all") results = results.filter((c) => c.type === type);
     if (region !== "all") results = results.filter((c) => c.region === region);
+
+    const sorter = SORTERS[this._sortEl?.value];
+    if (sorter) results = [...results].sort(sorter);
+
     this.renderCircuits(results);
   }
 

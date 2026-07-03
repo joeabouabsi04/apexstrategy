@@ -116,6 +116,24 @@
   padding: 0;
 }
 
+/* Bootstrap (loaded before this sheet) sets margins on element
+   selectors (ul, p, h1...), which outrank the universal reset above
+   on specificity. Re-zero them at element level so flex centering
+   (nav links, footer links) is not thrown off by phantom margins. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+figure {
+  margin: 0;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -340,14 +358,6 @@ pre {
   color: var(--accent-strong);
 }
 
-/* Legacy alias kept for JS-injected markup */
-.btn-neon {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--accent-ink);
-  border-radius: var(--r-pill);
-}
-
 /*-- SECTION: NAVIGATION --*/
 
 .apex-nav {
@@ -389,7 +399,6 @@ pre {
   display: flex;
   gap: 4px;
   align-items: center;
-  margin-right: 8px;
 }
 
 .apex-nav-link {
@@ -420,32 +429,81 @@ pre {
   background: var(--accent);
 }
 
-/* -- Theme toggle -- */
-.apex-theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
+/* -- Theme switch: sliding-knob toggle with sun/moon crossfade -- */
+.theme-switch {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  flex-shrink: 0;
   border: 1px solid var(--border);
   border-radius: var(--r-pill);
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background-color var(--t-fast),
-    border-color var(--t-fast);
-  flex-shrink: 0;
-}
-
-.apex-theme-toggle svg {
-  display: block;
-  margin: auto;
-  flex-shrink: 0;
-}
-
-.apex-theme-toggle:hover {
-  border-color: var(--border-strong);
   background: var(--bg-panel-alt);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background var(--t-mid) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
+}
+
+.theme-switch:hover {
+  border-color: var(--border-strong);
+}
+
+.theme-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition:
+    transform var(--t-mid) var(--ease-morph),
+    background var(--t-mid) var(--ease-out);
+}
+
+.ts-icon {
+  grid-area: 1 / 1;
+  width: 13px;
+  height: 13px;
+  transition:
+    opacity var(--t-mid) var(--ease-out),
+    transform var(--t-mid) var(--ease-out);
+}
+
+.ts-sun {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+/* Light mode: knob slides right, turns accent-red, sun replaces moon */
+[data-theme="light"] .theme-switch {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel-alt));
+}
+
+[data-theme="light"] .theme-switch-knob {
+  transform: translateX(26px);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+[data-theme="light"] .ts-moon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+
+[data-theme="light"] .ts-sun {
+  opacity: 1;
+  transform: none;
+}
+
+.theme-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* -- Mobile hamburger -- */
@@ -937,6 +995,151 @@ pre {
   color: var(--text-muted);
 }
 
+/*-- SECTION: CUSTOM DROPDOWN (js/ApexSelect.js) --*/
+/* The native <option> popup is OS-drawn and unthemeable, so
+   ApexSelect hides the real select and renders this instead. */
+
+.apex-select[data-enhanced] {
+  display: none;
+}
+
+.apex-select-wrap {
+  position: relative;
+  min-width: 150px;
+}
+
+.apex-select-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  height: 48px;
+  padding: 0 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+
+.apex-select-btn:hover {
+  border-color: var(--border-strong);
+}
+
+.apex-select-btn[aria-expanded="true"],
+.apex-select-btn:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.apex-select-btn svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--t-mid) var(--ease-out);
+}
+
+.apex-select-btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.apex-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apex-select-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 100%;
+  padding: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.45);
+  z-index: 60;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.apex-select-wrap.open .apex-select-menu {
+  display: block;
+}
+
+.apex-select-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.apex-select-option:hover,
+.apex-select-option:focus {
+  background: var(--bg-panel-alt);
+  color: var(--text-primary);
+}
+
+.apex-select-option[aria-selected="true"] {
+  color: var(--accent-strong);
+}
+
+/* Check mark on the selected option */
+.apex-select-option[aria-selected="true"]::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg) translateY(-1px);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .apex-select-wrap.open .apex-select-menu {
+    animation: select-menu-in 160ms var(--ease-out);
+  }
+
+  @keyframes select-menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Anchor landing (e.g. workbench "All circuits" → index.html#commandCenter)
+   clears the 64px sticky nav plus a little breathing room. */
+#commandCenter {
+  scroll-margin-top: 90px;
+}
+
 /* -- Results counter line -- */
 .results-counter {
   font-family: var(--font-mono);
@@ -1261,6 +1464,7 @@ pre {
   margin: 0 auto;
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
 
 .workbench-nav::-webkit-scrollbar {
@@ -1277,6 +1481,7 @@ pre {
   border-radius: var(--r-pill);
   color: var(--text-secondary);
   white-space: nowrap;
+  scroll-snap-align: center;
   transition:
     color var(--t-fast) var(--ease-out),
     background var(--t-fast) var(--ease-out);
@@ -1462,21 +1667,41 @@ pre {
   border-radius: var(--r-card);
   box-shadow: 0 20px 44px -24px rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
+  gap: 14px;
   padding: 10px;
   flex-wrap: wrap;
 }
 
-.wb-timeline-label {
-  font-family: var(--font-ui);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 0 14px;
+/* A caption, not a control: display type, accent icon, and a divider
+   separating it from the pill session buttons so it never reads as a
+   fourth (dead) tab. */
+.wb-timeline-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 18px 4px 8px;
+  border-right: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: default;
+  user-select: none;
   flex-shrink: 0;
+}
+
+.wb-timeline-title svg {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.wb-timeline-title span {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .timeline-selector {
@@ -1633,6 +1858,56 @@ pre {
   max-width: 52ch;
   min-height: 1.4em;
   line-height: 1.65;
+}
+
+/* -- Expandable circuit briefing (curated description from circuits.js) -- */
+.wb-briefing {
+  margin-top: 20px;
+  max-width: 60ch;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--bg-panel) 60%, transparent);
+}
+
+.wb-briefing summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  user-select: none;
+}
+
+.wb-briefing summary::-webkit-details-marker {
+  display: none;
+}
+
+.wb-briefing summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform var(--t-mid) var(--ease-out);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.wb-briefing[open] summary::after {
+  transform: rotate(225deg) translateY(-1px);
+}
+
+.wb-briefing[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.wb-briefing p {
+  padding: 14px 16px 16px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
 }
 
 /* -- Big track map -- */
@@ -1852,6 +2127,25 @@ pre {
 .wb-panel-body.flush .rec-block.rec-critical {
   border-left-color: var(--danger);
   background: color-mix(in srgb, var(--danger) 7%, var(--bg-panel-alt));
+}
+
+.compound-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Tyre glyph — rubber ring + compound-coloured sidewall stripe,
+   recoloured by WorkbenchController._renderTyreGlyph() */
+.tyre-glyph {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.tyre-glyph svg {
+  width: 100%;
+  height: 100%;
 }
 
 .compound-readout {
@@ -2633,33 +2927,6 @@ apex-footer {
     }
   }
 
-  /* Value-change flash (anim.js flashCell) */
-  .flash-up {
-    animation: flash-neon 240ms var(--ease-out) forwards;
-  }
-
-  .flash-down {
-    animation: flash-danger 240ms var(--ease-out) forwards;
-  }
-
-  @keyframes flash-neon {
-    0% {
-      background: color-mix(in srgb, var(--neon) 16%, transparent);
-    }
-    100% {
-      background: transparent;
-    }
-  }
-
-  @keyframes flash-danger {
-    0% {
-      background: color-mix(in srgb, var(--danger) 14%, transparent);
-    }
-    100% {
-      background: transparent;
-    }
-  }
-
   /* Scroll-reveal for sections (IntersectionObserver adds .in-view) */
   .reveal-on-scroll {
     opacity: 0;
@@ -2791,9 +3058,12 @@ apex-footer {
     grid-template-columns: 1fr;
   }
 
-  .wb-timeline-label {
+  /* Timeline stacks: title on its own row above the session pills */
+  .wb-timeline-title {
     width: 100%;
-    padding: 6px 14px 2px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 4px 8px 10px;
   }
 
   .timeline-btn {
@@ -2810,9 +3080,57 @@ apex-footer {
     gap: 8px;
   }
 
+  /* Tabs become a full-width scroll strip (no pill container) so the
+     edge-fade cue reads cleanly against the page, not a dissolving pill.
+     .can-scroll-* are toggled by TabController when the row overflows. */
   .workbench-nav {
     width: 100%;
     justify-content: flex-start;
+    gap: 6px;
+    padding: 0 0 12px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .workbench-nav.can-scroll-right {
+    -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent);
+    mask-image: linear-gradient(90deg, #000 82%, transparent);
+  }
+
+  .workbench-nav.can-scroll-left {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%);
+    mask-image: linear-gradient(90deg, transparent, #000 18%);
+  }
+
+  .workbench-nav.can-scroll-left.can-scroll-right {
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 18%,
+      #000 82%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 18%,
+      #000 82%,
+      transparent
+    );
+  }
+
+  .workbench-tab {
+    padding: 11px 18px;
+    font-size: 0.72rem;
+    border: 1px solid var(--border);
+  }
+
+  .workbench-tab.tab-active {
+    border-color: var(--accent);
   }
 }
 
@@ -2846,7 +3164,8 @@ apex-footer {
     width: 100%;
   }
 
-  .apex-select {
+  .apex-select,
+  .apex-select-wrap {
     min-width: 100%;
   }
 

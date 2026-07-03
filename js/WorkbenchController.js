@@ -3,11 +3,12 @@
    ============================================================ */
 
 import { CIRCUITS, getCircuitById } from "./circuits.js";
-import { animateValue, decodeText, flashCell } from "./anim.js";
+import { animateValue, decodeText, fadeText } from "./anim.js";
 import { WeatherService } from "./WeatherService.js";
 import { SetupEngine } from "./SetupEngine.js";
 import { TabController } from "./TabController.js";
 import { fetchTrackMap } from "./trackmaps.js"; // local SVG fetch — replaces getTrackMap
+import { ApexSelect } from "./ApexSelect.js";
 
 /*-- SECTION: WEATHER CONDITION ICONS --*/
 
@@ -140,6 +141,32 @@ export class WorkbenchController {
     this._setText("statLapRecord", (c.lapRecord ?? "--").replace(/\s*—\s*/g, " · "));
     this._setText("statAltitude", `${c.altitudeM} M`);
     this._setText("statGrip", c.surfaceGrip.toUpperCase());
+
+    // Curated circuit briefing — description text from circuits.js
+    const briefing = document.getElementById("circuitBriefing");
+    if (briefing && c.description) {
+      this._setText(
+        "circuitDescription",
+        c.description.replace(/\s*—\s*/g, ", "),
+      );
+      briefing.classList.remove("hidden");
+    }
+
+    // 3D tilt on the hero track map (skipped under reduced motion)
+    const mapWrap = document.querySelector(".wb-hero-map");
+    if (
+      window.VanillaTilt &&
+      mapWrap &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      window.VanillaTilt.init(mapWrap, {
+        max: 8,
+        speed: 400,
+        perspective: 900,
+        scale: 1.02,
+        glare: false,
+      });
+    }
 
     // Draw circuit minimap — async, fire-and-forget (visual only)
     this._renderMinimap().catch((err) =>
@@ -319,7 +346,6 @@ export class WorkbenchController {
     this.tabController = new TabController(
       ".workbench-nav",
       ".workbench-panes",
-      (tab) => this._onTabSwitch(tab),
     );
   }
 
@@ -675,6 +701,7 @@ export class WorkbenchController {
           : "status-live",
     );
     this._setText("compoundReason", compound.reason);
+    this._renderTyreGlyph(compound.compound);
 
     this._fillRecBlock(
       "trackTempBlock",
@@ -705,6 +732,35 @@ export class WorkbenchController {
 
     // Degradation bar charts — compound object carries degSoft/degMedium/degHard
     this._renderDegradationGraphs(compound);
+  }
+
+  /**
+   * Draws the tyre glyph beside the compound readout: a dark rubber
+   * ring with the sidewall stripe coloured to match the recommended
+   * compound (Pirelli colour code).
+   */
+  _renderTyreGlyph(compoundName) {
+    const el = document.getElementById("compoundTyre");
+    if (!el) return;
+    const n = (compoundName ?? "").toUpperCase();
+    const color = n.includes("WET")
+      ? "#4d7fd1"
+      : n.includes("INTER")
+        ? "#2fae5b"
+        : n.includes("SOFT")
+          ? "#e8611a"
+          : n.includes("MEDIUM")
+            ? "#f5c842"
+            : "#e8e8e8"; // HARD
+    el.innerHTML = /* html */ `
+      <svg viewBox="0 0 44 44" aria-hidden="true">
+        <circle cx="22" cy="22" r="17" fill="none"
+                stroke="#17171c" stroke-width="9"/>
+        <circle cx="22" cy="22" r="11.5" fill="none"
+                stroke="${color}" stroke-width="2.6"/>
+        <circle cx="22" cy="22" r="6.5" fill="none"
+                stroke="var(--border-strong)" stroke-width="1.4"/>
+      </svg>`;
   }
 
   /*-- AERO PANE --*/
@@ -771,7 +827,7 @@ export class WorkbenchController {
     );
 
     const notesEl = document.getElementById("aeroNotes");
-    if (notesEl) decodeText(notesEl, aero.notes, { duration: 400 });
+    if (notesEl) fadeText(notesEl, aero.notes, { duration: 200 });
   }
 
   /*-- WET PANE --*/
@@ -832,7 +888,7 @@ export class WorkbenchController {
   _renderVerdict(conditions) {
     const el = document.getElementById("conditionsVerdict");
     if (el)
-      decodeText(el, buildVerdict(conditions, this.circuit), { duration: 450 });
+      fadeText(el, buildVerdict(conditions, this.circuit), { duration: 200 });
   }
 
   /*-- DATA AGE TIMER --*/
@@ -857,14 +913,6 @@ export class WorkbenchController {
       .querySelector('[data-tab="wet"]')
       ?.classList.toggle("tab-rain-alert", isRaining);
     this._toggleRainCanvas(isRaining);
-  }
-
-  /*-- TAB SWITCH --*/
-
-  _onTabSwitch(tabName) {
-    console.log(`[WorkbenchController] Tab: ${tabName}`);
-    if (tabName === "wet" && this.report && !this.report.wetStrategy.required)
-      console.log("[WorkbenchController] WET tab: dry conditions");
   }
 
   /*-- NO-CIRCUIT STATE --*/
@@ -899,6 +947,7 @@ export class WorkbenchController {
     document
       .getElementById("errorState")
       ?.insertAdjacentElement("afterend", container);
+    ApexSelect.enhance(container); // themed dropdown for the region filter
     this._renderPickerList(CIRCUITS);
 
     let dt;

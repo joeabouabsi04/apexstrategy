@@ -454,37 +454,3 @@ export function getCircuitById(id) {
   if (!id || typeof id !== "string") return null;
   return CIRCUITS.find((c) => c.id === id.toLowerCase().trim()) ?? null;
 }
-
-export function searchCircuits(query) {
-  if (!query || typeof query !== "string") return CIRCUITS;
-  const q = query.toLowerCase().trim();
-  if (!q) return CIRCUITS;
-  return CIRCUITS.filter(
-    (c) =>
-      c.name.toLowerCase().includes(q) ||
-      c.shortName.toLowerCase().includes(q) ||
-      c.country.toLowerCase().includes(q) ||
-      c.city.toLowerCase().includes(q) ||
-      c.region.toLowerCase().includes(q) ||
-      c.type.toLowerCase().includes(q),
-  );
-}
-
-export function filterCircuitsByType(type) {
-  if (!type || type.toLowerCase() === "all") return CIRCUITS;
-  return CIRCUITS.filter((c) => c.type.toLowerCase() === type.toLowerCase());
-}
-
-export function filterCircuitsByRegion(region) {
-  if (!region || region.toLowerCase() === "all") return CIRCUITS;
-  return CIRCUITS.filter(
-    (c) => c.region.toLowerCase() === region.toLowerCase(),
-  );
-}
-
-export const CIRCUITS_META = Object.freeze({
-  total: CIRCUITS.length,
-  types: [...new Set(CIRCUITS.map((c) => c.type))].sort(),
-  regions: [...new Set(CIRCUITS.map((c) => c.region))].sort(),
-  version: "1.0.0",
-});

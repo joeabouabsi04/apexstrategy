@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       .init()
       .catch((err) => console.error("[main] WorkbenchController:", err));
   } else if (path.includes("handbook")) {
-    const { TabController } = await import("./TabController.js");
-    new TabController(".workbench-nav", ".workbench-panes");
+    const { HandbookController } = await import("./HandbookController.js");
+    new HandbookController(".workbench-nav", ".workbench-panes");
   } else {
     // Home page — boot hero first, then circuit grid
     const { initHero } = await import("./hero.js");

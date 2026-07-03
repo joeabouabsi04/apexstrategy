@@ -63,34 +63,35 @@ export function decodeText(el, finalText, opts = {}) {
   }, duration / steps);
 }
 
-/*-- SECTION: FLASH CELL --*/
+/*-- SECTION: FADE TEXT --*/
 
-/** Brief neon/danger flash on a DOM element when its value changes. */
-export function flashCell(el, direction = null) {
-  if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+/**
+ * Cross-fades an element's text to a new value instead of scrambling it
+ * character-by-character. Use this for multi-line / paragraph content
+ * where decodeText's per-glyph width fluctuation causes the line count
+ * (and therefore the whole layout below it) to flicker during the
+ * animation — decodeText is safe on short, fixed-width labels only.
+ */
+export function fadeText(el, text, opts = {}) {
+  if (!el) return;
+  const { duration = 180 } = opts;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    el.textContent = text;
     return;
-  const cls =
-    direction === "up"
-      ? "flash-up"
-      : direction === "down"
-        ? "flash-down"
-        : null;
-  if (!cls) return;
-  el.classList.remove("flash-up", "flash-down");
-  void el.offsetWidth;
-  el.classList.add(cls);
-  setTimeout(() => el.classList.remove("flash-up", "flash-down"), 240);
+  }
+  el.style.transition = `opacity ${duration}ms ease-out`;
+  el.style.opacity = "0";
+  setTimeout(() => {
+    el.textContent = text;
+    el.style.opacity = "1";
+  }, duration);
 }
 
 /*-- SECTION: BOOT SEQUENCE --*/
 
-/** Power-on: decodes the page title, removes boot-pending. */
+/** Power-on: scramble-decodes the page title (e.g. the handbook H1). */
 export function runBootSequence() {
-  const prefersReduced = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-  requestAnimationFrame(() => document.body.classList.remove("boot-pending"));
-  if (prefersReduced) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const titleEl = document.getElementById("pageTitle");
   if (titleEl) {
     const txt = titleEl.textContent.trim();
