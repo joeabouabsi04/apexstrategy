@@ -58,6 +58,32 @@ const TYRE_BASE = {
   Hybrid: { front: 22.5, rear: 21.0 },
 };
 
+// Full-wet is called at or above this rainfall rate (mm/h); below it,
+// intermediates. Shared by the compound and wet-strategy calcs so the
+// two panes never disagree.
+const FULL_WET_THRESHOLD = 2;
+
+// Tyre-wear management remark appended to the dry compound reason.
+const WEAR_NOTE = {
+  Low: "Low tyre wear here, so long stints are comfortable and a one-stop strategy usually wins.",
+  Medium: "Medium tyre wear points to a conventional two-stop window.",
+  High: "High tyre wear means managing rear temperatures early to protect the final stint.",
+  "Very High":
+    "Very high tyre wear demands aggressive thermal management, and track position often yields to fresher rubber.",
+};
+
+// Aero philosophy remark, appended to the baseline (dry, calm) note.
+const AERO_PHILOSOPHY = {
+  "High-Speed":
+    "Wings are trimmed for straight-line speed, accepting mild understeer through the medium-speed corners.",
+  Technical:
+    "Downforce is prioritised for mechanical grip and slow-corner rotation; the drag penalty is acceptable with no long straights.",
+  "Street Circuit":
+    "Maximum downforce for low-speed precision, since the circuit cannot tolerate aero instability near the barriers.",
+  Hybrid:
+    "A compromise trim balances the fast and technical sectors, so no single sector is fully optimised.",
+};
+
 const r = (n, d = 1) => Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
 
 function dragLabel(total) {
@@ -156,12 +182,11 @@ export class SetupEngine {
     );
 
     if (this.weather.isRaining) {
-      if (this.weather.rain1h < 0.5)
+      if (this.weather.rain1h < FULL_WET_THRESHOLD)
         return {
           compound: "INTERMEDIATE",
           status: "warning",
-          reason:
-            "Light precipitation · intermediate viable. Monitor for slick window.",
+          reason: `Light precipitation at ${this.weather.rain1h.toFixed(1)}mm/h · intermediate viable. Watch for the crossover to slicks as the line dries.`,
           degSoft,
           degMedium,
           degHard,
@@ -169,7 +194,7 @@ export class SetupEngine {
       return {
         compound: "FULL WET",
         status: "critical",
-        reason: `Active precipitation at ${this.weather.rain1h.toFixed(1)}mm/h · full wet mandatory.`,
+        reason: `Active precipitation at ${this.weather.rain1h.toFixed(1)}mm/h · full wet mandatory. Expect heavy spray and reduced visibility in traffic.`,
         degSoft,
         degMedium,
         degHard,
@@ -178,10 +203,11 @@ export class SetupEngine {
     const w =
       COMPOUND_WINDOWS.find((w) => this.weather.trackTempEstimate < w.max) ??
       COMPOUND_WINDOWS.at(-1);
+    const wearNote = WEAR_NOTE[this.circuit.tyreWear] ?? "";
     return {
       compound: w.compound,
       status: w.status,
-      reason: w.reason,
+      reason: `${w.reason} ${wearNote}`.trim(),
       degSoft,
       degMedium,
       degHard,
@@ -220,10 +246,12 @@ export class SetupEngine {
     front = Math.max(1, Math.min(20, front));
     rear = Math.max(1, Math.min(22, rear));
 
-    if (!notes.length)
+    if (!notes.length) {
+      const phil = AERO_PHILOSOPHY[this.circuit.type] ?? "";
       notes.push(
-        `${this.circuit.baseDownforce.toUpperCase()} DOWNFORCE · baseline for ${this.circuit.shortName}. Drag: ${dragLabel(front + rear)}.`,
+        `${this.circuit.baseDownforce} downforce baseline for ${this.circuit.shortName}, predicted drag ${dragLabel(front + rear).toLowerCase()}. ${phil}`,
       );
+    }
 
     return {
       frontWingAngle: front,

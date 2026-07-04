@@ -297,8 +297,15 @@
 
         <!-- Circuit grid — cards injected by HomeController -->
         <div class="row g-4" id="circuitList" role="list">
-          <!-- Populated by HomeController.renderCircuits() -->
+          <!-- Populated by HomeController._renderGrid() -->
         </div>
+
+        <!-- Pagination — 6 circuits per page, rebuilt by HomeController -->
+        <nav
+          class="pager hidden"
+          id="circuitPager"
+          aria-label="Circuit list pages"
+        ></nav>
 
         <!-- Empty state -->
         <div

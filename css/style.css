@@ -1506,6 +1506,71 @@ pre {
   color: var(--text-secondary);
 }
 
+/* -- Pagination -- */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: clamp(32px, 5vw, 48px);
+}
+
+.pager-btn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  transition:
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out),
+    transform 80ms var(--ease-out);
+}
+
+.pager-btn:hover:not(:disabled):not(.active) {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-panel-alt);
+}
+
+.pager-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.pager-btn.active {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+  cursor: default;
+}
+
+.pager-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pager-arrow {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.pager-ellipsis {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  padding: 0 2px;
+  align-self: flex-end;
+}
+
 /* -- Empty state -- */
 .browser-empty {
   padding: 96px 24px;
@@ -2097,8 +2162,8 @@ pre {
 }
 
 /* -- Print setup sheet button (top-right of the hero on desktop) --
-   Solid "glass" pill so it stays readable over circuit photo
-   backdrops in both themes, not just on the plain gradient. */
+   Always the dark "glass" pill (identical in light and dark themes,
+   and over circuit photo backdrops) so it never washes out. */
 .wb-print-btn {
   position: absolute;
   top: 0;
@@ -2112,11 +2177,11 @@ pre {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  color: #f2f1ee;
+  background: rgba(15, 15, 19, 0.74);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: var(--r-pill);
   padding: 9px 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -2126,8 +2191,8 @@ pre {
 }
 
 .wb-print-btn:hover {
-  color: var(--accent-strong);
-  border-color: var(--accent);
+  color: #ff6b60;
+  border-color: #ff3b2f;
 }
 
 .wb-print-btn svg {

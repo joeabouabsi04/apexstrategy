@@ -36,6 +36,8 @@ const SORTERS = {
 
 /*-- SECTION: CLASS --*/
 
+const PAGE_SIZE = 6;
+
 export class HomeController {
   constructor() {
     this._circuits = CIRCUITS;
@@ -47,6 +49,10 @@ export class HomeController {
     this._counterEl = document.getElementById("resultsCounter");
     this._emptyEl = document.getElementById("emptyState");
     this._badgeEl = document.getElementById("totalCount");
+    this._pagerEl = document.getElementById("circuitPager");
+    // Pagination state — the full filtered/sorted list plus current page
+    this._filtered = this._circuits;
+    this._page = 1;
     this._init();
   }
 
@@ -54,7 +60,7 @@ export class HomeController {
     this._bindEvents();
     ApexSelect.enhance(); // themed dropdowns for the filter/sort selects
     this._initScrollReveals();
-    this.renderCircuits(this._circuits);
+    this._renderPage(1);
     this._animateTotalBadge();
     this._renderRecentChips();
     this._initRadar();
@@ -240,6 +246,13 @@ export class HomeController {
     this._typeEl?.addEventListener("change", () => this.filterAndRender());
     this._regionEl?.addEventListener("change", () => this.filterAndRender());
     this._sortEl?.addEventListener("change", () => this.filterAndRender());
+
+    // Pagination — event delegation on the pager container
+    this._pagerEl?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-page]");
+      if (!btn || btn.disabled) return;
+      this._renderPage(Number(btn.dataset.page), true);
+    });
     // Full-card navigation handled by CSS stretched-link on .circuit-card-link
   }
 
@@ -274,7 +287,9 @@ export class HomeController {
     const sorter = SORTERS[this._sortEl?.value];
     if (sorter) results = [...results].sort(sorter);
 
-    this.renderCircuits(results);
+    // New result set → always restart at page 1
+    this._filtered = results;
+    this._renderPage(1);
   }
 
   _buildCardHTML(circuit) {
@@ -309,15 +324,41 @@ export class HomeController {
       </article>`;
   }
 
-  renderCircuits(circuits) {
+  /*-- SECTION: PAGINATION --*/
+
+  /**
+   * Renders one page (PAGE_SIZE cards) of the current filtered list,
+   * clamps the requested page into range, and refreshes the counter
+   * and pager. `scroll` smooth-scrolls back to the grid top so the
+   * user isn't left staring at the pager after a page change.
+   */
+  _renderPage(page, scroll = false) {
     if (!this._listEl) return;
-    this._updateCounter(circuits.length);
-    const isEmpty = !circuits.length;
+    const total = this._filtered.length;
+    const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    this._page = Math.min(Math.max(1, page), pageCount);
+
+    const isEmpty = total === 0;
     this._emptyEl?.classList.toggle("hidden", !isEmpty);
+
     if (isEmpty) {
       this._listEl.innerHTML = "";
+      this._updateCounter(0, 0, 0);
+      this._renderPager(1);
       return;
     }
+
+    const start = (this._page - 1) * PAGE_SIZE;
+    const pageItems = this._filtered.slice(start, start + PAGE_SIZE);
+    this._renderGrid(pageItems);
+    this._updateCounter(total, start, pageItems.length);
+    this._renderPager(pageCount);
+
+    if (scroll) this._scrollToGridTop();
+  }
+
+  /** Builds the card DOM for a given set of circuits (one page). */
+  _renderGrid(circuits) {
     this._listEl.innerHTML = circuits
       .map(
         (c, i) =>
@@ -338,6 +379,65 @@ export class HomeController {
         perspective: 1000,
       });
     }
+  }
+
+  /** Renders the numbered pager (hidden when a single page). */
+  _renderPager(pageCount) {
+    if (!this._pagerEl) return;
+    if (pageCount <= 1) {
+      this._pagerEl.innerHTML = "";
+      this._pagerEl.classList.add("hidden");
+      return;
+    }
+    this._pagerEl.classList.remove("hidden");
+    const cur = this._page;
+
+    const numBtn = (p) =>
+      `<button class="pager-btn pager-num${p === cur ? " active" : ""}"
+         data-page="${p}" aria-label="Page ${p}"${p === cur ? ' aria-current="page"' : ""}>${p}</button>`;
+
+    this._pagerEl.innerHTML = `
+      <button class="pager-btn pager-arrow" data-page="${cur - 1}"
+        ${cur === 1 ? "disabled" : ""} aria-label="Previous page">‹</button>
+      ${this._pageWindow(cur, pageCount)
+        .map((p) =>
+          p === "…"
+            ? `<span class="pager-ellipsis" aria-hidden="true">…</span>`
+            : numBtn(p),
+        )
+        .join("")}
+      <button class="pager-btn pager-arrow" data-page="${cur + 1}"
+        ${cur === pageCount ? "disabled" : ""} aria-label="Next page">›</button>`;
+  }
+
+  /**
+   * Returns the list of page numbers to show, collapsing long ranges
+   * with an ellipsis (first, last, and a window around the current
+   * page). With ≤ 7 pages every number is shown.
+   */
+  _pageWindow(cur, pageCount) {
+    if (pageCount <= 7)
+      return Array.from({ length: pageCount }, (_, i) => i + 1);
+    const pages = new Set([1, pageCount, cur, cur - 1, cur + 1]);
+    const sorted = [...pages]
+      .filter((p) => p >= 1 && p <= pageCount)
+      .sort((a, b) => a - b);
+    const out = [];
+    let prev = 0;
+    for (const p of sorted) {
+      if (p - prev > 1) out.push("…");
+      out.push(p);
+      prev = p;
+    }
+    return out;
+  }
+
+  /** Smooth-scroll so the results row sits just below the sticky nav. */
+  _scrollToGridTop() {
+    const el = this._counterEl ?? this._listEl;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 84;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }
 
   /**
@@ -361,8 +461,15 @@ export class HomeController {
     });
   }
 
-  _updateCounter(shown) {
-    if (this._counterEl)
-      this._counterEl.textContent = `SHOWING ${shown || "0"} OF ${this._circuits.length} CIRCUITS`;
+  _updateCounter(total, start, shown) {
+    if (!this._counterEl) return;
+    if (total === 0) {
+      this._counterEl.textContent = `SHOWING 0 OF ${this._circuits.length} CIRCUITS`;
+      return;
+    }
+    const range = shown > 1 ? `${start + 1}-${start + shown}` : `${start + 1}`;
+    const scope =
+      total === this._circuits.length ? `${total}` : `${total} MATCHING`;
+    this._counterEl.textContent = `SHOWING ${range} OF ${scope} CIRCUITS`;
   }
 }
